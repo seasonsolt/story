@@ -9,7 +9,7 @@
   function defaultSave() {
     return {
       v: SAVE_VERSION,
-      settings: { subtitles: true, sound: true },
+      settings: { subtitles: false, sound: true },
       rooms: {},
       skills: { sequence: 0, sentence: 0, classify: 0, reason: 0 },
       freeSentences: 0,

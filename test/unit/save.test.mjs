@@ -1,6 +1,7 @@
 export function saveSanitizesMergesSkillsAndRecordings({ loadLib, assert }) {
   const { defaultSave, sanitizeSave, mergeSaves } = loadLib(['save'], {}, '({ defaultSave, sanitizeSave, mergeSaves })');
   const d = defaultSave();
+  assert.equal(d.settings.subtitles, false);
   assert.equal(d.unlocked.rooms, 1);
   assert.deepEqual(Object.keys(d.skills), ['sequence', 'sentence', 'classify', 'reason']);
 

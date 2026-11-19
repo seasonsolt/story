@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="冰雪小导演">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
-  @font-face { font-family: 'ZCOOL KuaiLe'; src: url("game/font_zh.woff2?v=d13e9d3edef9") format('woff2'); font-display: swap; }
+  @font-face { font-family: 'ZCOOL KuaiLe'; src: url("game/font_zh.woff2?v=336a4a5abe25") format('woff2'); font-display: swap; }
   :root { --night: #111834; --palace: #1c2856; --gold: #ffd27a; --cream: #fff9ec; }
   * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -187,6 +187,7 @@ const LEVELS = [
     id: 'snowman',
     title: '一起堆雪宝',
     badge: '1',
+    coverCard: 'card_olaf_born',
     skill: 'sequence',
     bg: 'bg_garden',
     host: 'olaf',
@@ -202,6 +203,7 @@ const LEVELS = [
     id: 'cake',
     title: '烤草莓蛋糕',
     badge: '2',
+    coverCard: 'card_share_cake',
     skill: 'sequence',
     bg: 'bg_cozy',
     host: 'anna',
@@ -217,6 +219,7 @@ const LEVELS = [
     id: 'train_park',
     title: '冰雪花园区',
     badge: '3',
+    coverCard: 'card_act_castle',
     skill: 'sentence',
     bg: 'bg_garden',
     host: 'elsa',
@@ -237,6 +240,7 @@ const LEVELS = [
     id: 'train_home',
     title: '暖暖壁炉边',
     badge: '4',
+    coverCard: 'card_act_cocoa',
     skill: 'sentence',
     bg: 'bg_cozy',
     host: 'anna',
@@ -257,6 +261,7 @@ const LEVELS = [
     id: 'group_picnic',
     title: '野餐甜品篮',
     badge: '5',
+    coverCard: 'card_strawberry',
     skill: 'classify',
     bg: 'bg_garden',
     host: 'elsa',
@@ -273,6 +278,7 @@ const LEVELS = [
     id: 'group_winter',
     title: '保暖小衣柜',
     badge: '6',
+    coverCard: 'card_beanie',
     skill: 'classify',
     bg: 'bg_palace',
     host: 'anna',
@@ -289,6 +295,7 @@ const LEVELS = [
     id: 'reason_rain',
     title: '小侦探理由桥',
     badge: '7',
+    coverCard: 'card_cloak',
     skill: 'reason',
     bg: 'bg_palace',
     host: 'olaf',
@@ -317,6 +324,7 @@ const LEVELS = [
     id: 'reason_finale',
     title: '盛典许愿灯',
     badge: '8',
+    coverCard: 'card_sky_lanterns',
     skill: 'reason',
     bg: 'bg_palace',
     host: 'elsa',
@@ -849,7 +857,7 @@ function createGame() {
   function defaultSave() {
     return {
       v: SAVE_VERSION,
-      settings: { subtitles: true, sound: true },
+      settings: { subtitles: false, sound: true },
       rooms: {},
       skills: { sequence: 0, sentence: 0, classify: 0, reason: 0 },
       freeSentences: 0,
@@ -1118,7 +1126,7 @@ function createGame() {
 
   const game = createGame();
   const SIZES = {"anna_cheer":[206,226,103],"anna_idle":[109,220,54],"anna_speak":[236,220,118],"bg_cozy":[1280,720,640],"bg_garden":[1280,720,640],"bg_palace":[1280,720,640],"card_act_castle":[220,188,110],"card_act_cocoa":[198,220,99],"card_act_rainbow":[187,220,93],"card_act_sing":[220,202,110],"card_bake_oven":[220,204,110],"card_beanie":[208,220,104],"card_campfire":[220,203,110],"card_cloak":[220,182,110],"card_cookie":[220,193,110],"card_icecream":[149,220,74],"card_kite":[220,191,110],"card_lantern":[206,220,103],"card_loc_castle":[220,199,110],"card_loc_garden":[220,180,110],"card_loc_hearth":[220,201,110],"card_melting":[220,212,110],"card_mittens":[220,195,110],"card_mix_batter":[220,205,110],"card_mood_happy":[220,174,110],"card_mood_surprise":[220,204,110],"card_mood_warm":[220,182,110],"card_olaf_born":[219,220,109],"card_party_flag":[220,81,110],"card_rollball":[220,134,110],"card_scarf":[220,187,110],"card_share_cake":[220,164,110],"card_shell":[220,197,110],"card_skates":[220,175,110],"card_sky_lanterns":[220,177,110],"card_snowfall":[220,188,110],"card_strawberry":[208,220,104],"card_sunhat":[220,144,110],"card_umbrella":[220,196,110],"card_wind_snow":[220,141,110],"elsa_cheer":[156,236,78],"elsa_idle":[130,230,65],"elsa_speak":[233,230,116],"key":[1280,720,640],"olaf_cheer":[152,175,76],"olaf_idle":[105,175,52],"olaf_speak":[94,175,47],"portrait_anna":[220,220,110],"portrait_elsa":[220,220,110],"portrait_olaf":[220,220,110],"prop_mic":[127,190,63],"prop_star":[190,168,95]};
-  const ASSET_VERSION = "d13e9d3edef9";
+  const ASSET_VERSION = "336a4a5abe25";
   const assetURL = file => `game/${file}?v=${ASSET_VERSION}`;
 
   const HD_NAMES = new Set(["anna_cheer","anna_idle","anna_speak","bg_cozy","bg_garden","bg_palace","card_act_castle","card_act_cocoa","card_act_rainbow","card_act_sing","card_bake_oven","card_beanie","card_campfire","card_cloak","card_cookie","card_icecream","card_kite","card_lantern","card_loc_castle","card_loc_garden","card_loc_hearth","card_melting","card_mittens","card_mix_batter","card_mood_happy","card_mood_surprise","card_mood_warm","card_olaf_born","card_party_flag","card_rollball","card_scarf","card_share_cake","card_shell","card_skates","card_sky_lanterns","card_snowfall","card_strawberry","card_sunhat","card_umbrella","card_wind_snow","elsa_cheer","elsa_idle","elsa_speak","key","olaf_cheer","olaf_idle","olaf_speak","portrait_anna","portrait_elsa","portrait_olaf","prop_mic","prop_star"]);
@@ -1238,9 +1246,10 @@ function createGame() {
   fillSnow($('snowFront'), 10, true);
   /* Differentiated 4-Structure Stage Builders (Sequence, Sentence Train, Classify Basket, Reason Bridge) & Little Anchor Studio. */
   const stageState = {
-    idx: -1, phase: '', stepIdx: -1, puzzleIdx: -1, assistCard: '', demoHeard: false,
+    idx: -1, phase: '', stepIdx: -1, puzzleIdx: -1, assistCard: '', hintCard: '', demoHeard: false,
     recorded: false, hasClip: false, recording: false, activeCardIdx: -1,
   };
+  let lastHoverMs = 0;
 
   function drawStageStatic(lv) {
     $('bg').setAttribute('href', SRC(lv.bg));
@@ -1258,22 +1267,33 @@ function createGame() {
 
   function speakCard(cid) {
     const m = cardMetaOf(cid);
-    if (m.voiceKey && hasLineKey(m.voiceKey)) voice.line(m.voiceKey, { interrupt: true, tag: 'card', maxWait: 2000, subtitle: false });
+    if (m.voiceKey && hasLineKey(m.voiceKey)) return voice.line(m.voiceKey, { interrupt: true, tag: 'card', maxWait: 2000, subtitle: false });
+    return Promise.resolve(false);
+  }
+
+  function onCardHover(cid) {
+    const now = Date.now();
+    if (now - lastHoverMs < 450) return;
+    lastHoverMs = now;
+    speakCard(cid);
   }
 
   function renderCardTile(parent, opts) {
-    const { x, y, w, h, cid, label, tag, empty, active, glow, dim, actName, dataAttr } = opts;
-    const cls = (cid && !dim ? 'card-btn' : '') + (glow || active ? ' ux-pulse' : '');
+    const { x, y, w, h, cid, badgeKind, empty, active, glow, dim, actName, dataAttr, onSlotClick } = opts;
+    const interactive = cid && !dim;
+    const cls = (interactive ? 'card-btn' : '') + (glow || active ? ' ux-pulse' : '');
+    const meta = cid ? cardMetaOf(cid) : { label: '空位' };
     const g = el('g', Object.assign({
       class: cls,
       transform: `translate(${x} ${y})`,
-    }, cid && !dim ? { role: 'button', tabindex: '0', 'aria-label': label || (cid ? cardMetaOf(cid).label : '空位') } : {}), parent);
+    }, interactive ? { role: 'button', tabindex: '0', 'aria-label': meta.label || '图画卡' } : {}), parent);
     if (dataAttr) g.setAttribute(dataAttr[0], dataAttr[1]);
     if (actName) g.setAttribute('data-act', actName);
 
     const vis = el('g', { class: 'card-vis', filter: 'url(#softShadow)' }, g);
     const fill = empty ? 'rgba(18, 28, 62, .65)' : '#fff9ec';
-    const stroke = glow || active ? '#ffd27a' : (tag === '先' || tag === '我选' ? '#ff9cc4' : '#7dd4ff');
+    const warmEdge = badgeKind === '1' || badgeKind === 'who' || badgeKind === 'pick';
+    const stroke = glow || active ? '#ffd27a' : (warmEdge ? '#ff9cc4' : '#7dd4ff');
     el('rect', {
       width: w, height: h, rx: 22, fill, stroke,
       'stroke-width': glow || active ? 4.5 : 3.2,
@@ -1281,28 +1301,25 @@ function createGame() {
       ...(dim ? { opacity: '.28' } : {}),
     }, vis);
 
-    if (tag) {
-      const pw = Math.min(w - 16, Math.max(58, tag.length * 18 + 20));
-      el('rect', { x: w / 2 - pw / 2, y: -13, width: pw, height: 26, rx: 13, fill: active ? '#ffd27a' : '#263876', stroke: '#fff7de', 'stroke-width': 2 }, vis);
-      const tTxt = el('text', { x: w / 2, y: 5, 'text-anchor': 'middle', 'font-size': 15, fill: active ? '#3c2105' : '#fff9ec' }, vis);
-      tTxt.textContent = tag;
+    if (badgeKind) {
+      const bg = el('g', { transform: `translate(${w / 2} -2)` }, vis);
+      bg.innerHTML = uxSlotBadgeSvg(badgeKind, !!active, 16);
     }
 
     if (empty) {
-      const q = el('text', { x: w / 2, y: h / 2 + 12, 'text-anchor': 'middle', 'font-size': 38, fill: active ? '#ffd27a' : '#8da7db' }, vis);
+      const q = el('text', { x: w / 2, y: h / 2 + 14, 'text-anchor': 'middle', 'font-size': 42, fill: active ? '#ffd27a' : '#8da7db' }, vis);
       q.textContent = '?';
     } else if (cid) {
-      const meta = cardMetaOf(cid);
-      const textH = label || meta.label ? 30 : 10;
-      const topPad = tag ? 16 : 10;
-      const availW = w - 20, availH = h - topPad - textH - 4;
+      const topPad = badgeKind ? 18 : 10;
+      const availW = w - 20, availH = h - topPad - 10;
       const [iw, ih] = SIZES[cid] || [200, 200];
       const sc = Math.min(availW / iw, availH / ih);
       const dw = iw * sc, dh = ih * sc;
       img(cid, (w - dw) / 2, topPad + (availH - dh) / 2, dw, dh, vis, dim ? { opacity: '.28' } : {});
-      if (label || meta.label) {
-        const lb = el('text', { x: w / 2, y: h - 11, 'text-anchor': 'middle', 'font-size': w >= 150 ? 20 : 17, fill: dim ? '#8da7db' : '#232e5c' }, vis);
-        lb.textContent = label || meta.label;
+      if (onSlotClick) {
+        const speak = () => { uxNudge(g); speakCard(cid); };
+        g.addEventListener('click', speak);
+        g.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); speak(); } });
       }
     }
     return g;
@@ -1310,16 +1327,84 @@ function createGame() {
 
   function bindChoiceCard(node, cid) {
     const go = () => onCardPick(cid, node);
+    node.addEventListener('pointerenter', /** @param {PointerEvent} e */ e => { if (e.pointerType !== 'touch') onCardHover(cid); });
+    node.addEventListener('focus', () => onCardHover(cid));
     node.addEventListener('click', go);
     node.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
   }
 
-  function drawHeaderPill(host, text) {
-    const w = Math.min(540, Math.max(260, text.length * 22 + 54));
-    const g = el('g', { filter: 'url(#softShadow)', transform: `translate(${480 - w / 2} 18)` }, host);
-    el('rect', { width: w, height: 42, rx: 21, fill: '#141c42', opacity: '.9', stroke: '#ffd27a', 'stroke-width': 2.5 }, g);
-    const tx = el('text', { x: w / 2, y: 28, 'text-anchor': 'middle', 'font-size': 21, fill: '#fff9ec' }, g);
-    tx.textContent = text;
+  function drawVisualHeader(host, mode, lv, g) {
+    let w, h = 48, y = 18, inner;
+    const spk = (cx, cy, r, hot) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${hot ? 'url(#goldGrad)' : '#253978'}" stroke="#fff7de" stroke-width="2"/><g transform="translate(${cx} ${cy})">${uxIcon('speaker', r * .82, hot ? '#4a2605' : '#fff9ec')}</g>`;
+    const arr = (x1, x2, cy) => `<path d="M${x1} ${cy}H${x2}L${x2 - 5} ${cy - 4.5}M${x2} ${cy}L${x2 - 5} ${cy + 4.5}" fill="none" stroke="#ffd27a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+    if (mode === 'sequence') {
+      w = 276;
+      inner = spk(28, 24, 17, true);
+      for (let i = 0; i < 3; i++) {
+        const cx = 86 + i * 66;
+        inner += `<g transform="translate(${cx} 24)">${uxSlotBadgeSvg(String(i + 1), i === g.stepIdx || !!g.slots[i], 15)}</g>`;
+        if (i < 2) inner += arr(cx + 21, cx + 45, 24);
+      }
+    } else if (mode === 'sentence') {
+      w = 320;
+      const kinds = ['who', 'where', 'what', 'mood'];
+      inner = spk(28, 24, 17, true);
+      for (let i = 0; i < 4; i++) {
+        const cx = 84 + i * 62;
+        inner += `<g transform="translate(${cx} 24)">${uxSlotBadgeSvg(kinds[i], i === g.stepIdx || !!g.slots[i], 15)}</g>`;
+        if (i < 3) inner += `<rect x="${cx + 21}" y="22" width="20" height="4" rx="2" fill="#ffd27a"/>`;
+      }
+    } else if (mode === 'classify') {
+      w = 296;
+      const topicPic = lv.id === 'group_picnic' ? 'card_strawberry' : 'card_beanie';
+      inner = spk(28, 24, 17, true)
+        + `<rect x="58" y="6" width="40" height="36" rx="10" fill="#fff9ec" stroke="#7dd4ff" stroke-width="2"/>`
+        + uxPic(topicPic, 62, 8, 32, 32, '', 'meet')
+        + arr(106, 130, 24);
+      for (let i = 0; i < 3; i++) {
+        const cx = 160 + i * 48;
+        const on = !!g.slots[i];
+        inner += `<circle cx="${cx}" cy="24" r="15" fill="${on ? '#ffbe3d' : '#263876'}" stroke="#fff9ec" stroke-width="2"/>`
+          + `<path d="${UX_STAR_D}" transform="translate(${cx} 24) scale(11)" fill="${on ? '#fffdf5' : '#6483ba'}"/>`;
+      }
+    } else if (mode === 'reason') {
+      w = 298; h = 64; y = 12;
+      const puz = g.currentPuzzle();
+      const cid = (puz && puz.promptCard) || '';
+      const [iw, ih] = SIZES[cid] || [200, 200];
+      const sc = Math.min(64 / iw, 48 / ih);
+      const dw = iw * sc, dh = ih * sc;
+      inner = spk(28, 32, 18, true)
+        + `<rect x="56" y="5" width="74" height="54" rx="14" fill="#fff9ec" stroke="#7dd4ff" stroke-width="2.2"/>`
+        + (cid ? `<image href="${SRC(cid)}" x="${56 + (74 - dw) / 2}" y="${5 + (54 - dh) / 2}" width="${dw}" height="${dh}" preserveAspectRatio="none"/>` : '')
+        + arr(137, 159, 32)
+        + `<g transform="translate(184 32)">${uxSlotBadgeSvg('pick', g.stepIdx === 0 || !!g.slots[0], 16)}</g>`
+        + arr(207, 229, 32)
+        + `<g transform="translate(256 32)">${uxSlotBadgeSvg('why', g.stepIdx === 1 || !!g.slots[1], 16)}</g>`;
+    } else {
+      w = 280;
+      const rec = stageState.recording;
+      const hasClip = stageState.hasClip;
+      inner = spk(48, 24, 16, !g.demoHeard && !rec)
+        + arr(74, 106, 24)
+        + `<circle cx="140" cy="24" r="16" fill="${rec ? '#ff5b84' : (g.demoHeard ? 'url(#goldGrad)' : '#253978')}" stroke="#fff7de" stroke-width="2"/><g transform="translate(140 24)">${uxIcon('mic', 13, rec ? '#ffffff' : (g.demoHeard ? '#4a2605' : '#fff9ec'))}</g>`
+        + arr(166, 198, 24)
+        + `<circle cx="232" cy="24" r="16" fill="${hasClip ? 'url(#goldGrad)' : '#253978'}" stroke="#fff7de" stroke-width="2"/><path d="${UX_STAR_D}" transform="translate(232 24) scale(11)" fill="${hasClip ? '#4a2605' : '#9eb6e6'}"/>`;
+    }
+
+    const x = Math.round(449 - w / 2);
+    const hitY = h < 64 ? -(64 - h) / 2 : 0;
+    const hitH = Math.max(64, h);
+    host.insertAdjacentHTML('beforeend',
+      `<g class="ux-btn" data-act="prompt" role="button" tabindex="0" aria-label="再听一遍" transform="translate(${x} ${y})">
+        <rect x="0" y="${hitY}" width="${w}" height="${hitH}" fill="transparent"/>
+        <g class="btn-vis" filter="url(#softShadow)">
+          <rect width="${w}" height="${h}" rx="${h / 2}" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
+          ${inner}
+        </g>
+      </g>`
+    );
   }
 
   function drawBuildScene(g) {
@@ -1332,36 +1417,38 @@ function createGame() {
     const lv = g.level();
     const choices = g.currentChoices();
     const skill = lv.skill;
+    const badges = uxSlotBadgesFor(lv);
 
     if (skill === 'sequence') {
-      drawHeaderPill(slotsBox, '按顺序摆一摆：先 → 接着 → 最后');
-      const cw = 156, ch = 148, gap = 34;
+      drawVisualHeader(slotsBox, 'sequence', lv, g);
+      const cw = 158, ch = 152, gap = 32;
       const x0 = 480 - (3 * cw + 2 * gap) / 2;
       for (let i = 0; i < 3; i++) {
         const x = x0 + i * (cw + gap);
         renderCardTile(slotsBox, {
-          x, y: 98, w: cw, h: ch,
+          x, y: 96, w: cw, h: ch,
           cid: g.slots[i] || '',
-          tag: lv.scaffoldLabels[i],
+          badgeKind: badges[i],
           empty: !g.slots[i],
           active: i === g.stepIdx,
+          onSlotClick: true,
         });
         if (i < 2) {
           el('path', { d: `M${x + cw + 7} 172H${x + cw + gap - 13}L${x + cw + gap - 19} 165M${x + cw + gap - 13} 172L${x + cw + gap - 19} 179`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, slotsBox);
         }
       }
-      const bw = 166, bh = 160, bgap = 28, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
+      const bw = 166, bh = 158, bgap = 28, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
       choices.forEach((cid, i) => {
         const n = renderCardTile(cardsBox, {
-          x: bx0 + i * (bw + bgap), y: 294, w: bw, h: bh, cid,
-          glow: g.assistCard === cid,
+          x: bx0 + i * (bw + bgap), y: 288, w: bw, h: bh, cid,
+          glow: g.assistCard === cid || g.hintCard === cid,
           dataAttr: ['data-cid', cid],
         });
         bindChoiceCard(n, cid);
       });
     } else if (skill === 'sentence') {
-      drawHeaderPill(slotsBox, '魔法造句小火车：谁 · 在哪儿 · 干什么 · 怎么样');
-      const cw = 136, ch = 142, gap = 14;
+      drawVisualHeader(slotsBox, 'sentence', lv, g);
+      const cw = 138, ch = 144, gap = 14;
       const x0 = 480 - (4 * cw + 3 * gap) / 2;
       for (let i = 0; i < 4; i++) {
         const x = x0 + i * (cw + gap);
@@ -1369,77 +1456,74 @@ function createGame() {
         el('circle', { cx: x + 32, cy: 250, r: 12, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 3 }, slotsBox);
         el('circle', { cx: x + cw - 32, cy: 250, r: 12, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 3 }, slotsBox);
         renderCardTile(slotsBox, {
-          x, y: 100, w: cw, h: ch,
+          x, y: 98, w: cw, h: ch,
           cid: g.slots[i] || '',
-          tag: lv.scaffoldLabels[i],
+          badgeKind: badges[i],
           empty: !g.slots[i],
           active: i === g.stepIdx,
+          onSlotClick: true,
         });
       }
-      const bw = 166, bh = 160, bgap = 28, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
+      const bw = 166, bh = 158, bgap = 28, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
       choices.forEach((cid, i) => {
         const n = renderCardTile(cardsBox, {
-          x: bx0 + i * (bw + bgap), y: 294, w: bw, h: bh, cid,
-          glow: g.assistCard === cid,
+          x: bx0 + i * (bw + bgap), y: 288, w: bw, h: bh, cid,
+          glow: g.assistCard === cid || g.hintCard === cid,
           dataAttr: ['data-cid', cid],
         });
         bindChoiceCard(n, cid);
       });
     } else if (skill === 'classify') {
-      drawHeaderPill(slotsBox, lv.topicLabel || '归类整理');
-      const cw = 142, ch = 126, gap = 24, x0 = 480 - (3 * cw + 2 * gap) / 2;
+      drawVisualHeader(slotsBox, 'classify', lv, g);
+      const cw = 144, ch = 124, gap = 24, x0 = 480 - (3 * cw + 2 * gap) / 2;
       for (let i = 0; i < 3; i++) {
         renderCardTile(slotsBox, {
-          x: x0 + i * (cw + gap), y: 92, w: cw, h: ch,
+          x: x0 + i * (cw + gap), y: 86, w: cw, h: ch,
           cid: g.slots[i] || '',
-          tag: lv.scaffoldLabels[i],
+          badgeKind: badges[i],
           empty: !g.slots[i],
           active: i === g.stepIdx,
+          onSlotClick: true,
         });
       }
-      const bw = 148, bh = 104, bgapX = 20, bgapY = 14, gx0 = 480 - (3 * bw + 2 * bgapX) / 2;
+      const bw = 150, bh = 104, bgapX = 20, bgapY = 14, gx0 = 480 - (3 * bw + 2 * bgapX) / 2;
       choices.forEach((cid, i) => {
         const col = i % 3, row = (i / 3) | 0;
         const used = g.slots.includes(cid);
         const n = renderCardTile(cardsBox, {
-          x: gx0 + col * (bw + bgapX), y: 248 + row * (bh + bgapY), w: bw, h: bh,
+          x: gx0 + col * (bw + bgapX), y: 232 + row * (bh + bgapY), w: bw, h: bh,
           cid, dim: used,
-          glow: !used && g.assistCard === cid,
+          glow: !used && (g.assistCard === cid || g.hintCard === cid),
           dataAttr: ['data-cid', cid],
         });
         if (!used) bindChoiceCard(n, cid);
       });
     } else {
-      const puz = g.currentPuzzle();
-      const promptCid = puz ? puz.promptCard : '';
-      const pMeta = cardMetaOf(promptCid);
-      const qPill = el('g', { filter: 'url(#softShadow)', transform: 'translate(220 18)' }, slotsBox);
-      el('rect', { width: 520, height: 64, rx: 32, fill: '#141c42', opacity: '.92', stroke: '#ffd27a', 'stroke-width': 3 }, qPill);
-      if (promptCid && SIZES[promptCid]) img(promptCid, 14, 6, 52, 52, qPill);
-      const qTxt = el('text', { x: 286, y: 40, 'text-anchor': 'middle', 'font-size': 21, fill: '#fff9ec' }, qPill);
-      qTxt.textContent = `情景线索：${pMeta.speech}`;
-
-      const cw = 168, ch = 144, gap = 96, x0 = 480 - (2 * cw + gap) / 2;
-      el('path', { d: `M${x0 + cw + 12} 172Q480 128 ${x0 + cw + gap - 14} 172`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 4, 'stroke-dasharray': '8 6' }, slotsBox);
+      drawVisualHeader(slotsBox, 'reason', lv, g);
+      const cw = 172, ch = 146, gap = 96, x0 = 480 - (2 * cw + gap) / 2;
+      el('path', { d: `M${x0 + cw + 12} 174Q480 126 ${x0 + cw + gap - 14} 174`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 4, 'stroke-dasharray': '8 6' }, slotsBox);
       for (let i = 0; i < 2; i++) {
         renderCardTile(slotsBox, {
-          x: x0 + i * (cw + gap), y: 112, w: cw, h: ch,
+          x: x0 + i * (cw + gap), y: 110, w: cw, h: ch,
           cid: g.slots[i] || '',
-          tag: lv.scaffoldLabels[i],
+          badgeKind: badges[i],
           empty: !g.slots[i],
           active: i === g.stepIdx,
+          onSlotClick: true,
         });
       }
-      const bw = 166, bh = 160, bgap = 28, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
+      const bw = 166, bh = 158, bgap = 28, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
       choices.forEach((cid, i) => {
         const n = renderCardTile(cardsBox, {
-          x: bx0 + i * (bw + bgap), y: 294, w: bw, h: bh, cid,
-          glow: g.assistCard === cid,
+          x: bx0 + i * (bw + bgap), y: 288, w: bw, h: bh, cid,
+          glow: g.assistCard === cid || g.hintCard === cid,
           dataAttr: ['data-cid', cid],
         });
         bindChoiceCard(n, cid);
       });
     }
+
+    uxBind(slotsBox, { prompt: () => onHudPrompt() });
   }
 
   function highlightStudioCard(idx) {
@@ -1473,8 +1557,9 @@ function createGame() {
     box.textContent = '';
     const lv = g.level();
     const list = g.studioCards();
+    const badges = uxSlotBadgesFor(lv);
 
-    drawHeaderPill(box, '小小配音员 · 听示范，再用金色话筒讲一遍！');
+    drawVisualHeader(box, 'studio', lv, g);
 
     const n = Math.max(1, list.length);
     const cw = n >= 4 ? 136 : (n === 3 ? 166 : 182);
@@ -1482,10 +1567,23 @@ function createGame() {
     const gap = n >= 4 ? 14 : (n === 3 ? 28 : 48);
     const x0 = 480 - (n * cw + (n - 1) * gap) / 2;
 
+    if (lv.skill === 'reason' && list.length === 2) {
+      el('path', { d: `M${x0 + cw + 6} 168Q480 126 ${x0 + cw + gap - 8} 168`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 4, 'stroke-dasharray': '8 6' }, box);
+    }
+
     list.forEach((cid, i) => {
+      const cx = x0 + i * (cw + gap);
+      if (lv.skill === 'sequence' && i < n - 1) {
+        el('path', { d: `M${cx + cw + 6} 171H${cx + cw + gap - 10}L${cx + cw + gap - 16} 165M${cx + cw + gap - 10} 171L${cx + cw + gap - 16} 177`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, box);
+      } else if (lv.skill === 'sentence') {
+        if (i < n - 1) el('rect', { x: cx + cw - 2, y: 164, width: gap + 4, height: 8, rx: 4, fill: '#ffd27a' }, box);
+        el('circle', { cx: cx + 32, cy: 244, r: 11, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 2.8 }, box);
+        el('circle', { cx: cx + cw - 32, cy: 244, r: 11, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 2.8 }, box);
+      }
+
       const cardNode = renderCardTile(box, {
-        x: x0 + i * (cw + gap), y: 92, w: cw, h: ch,
-        cid, tag: (lv.scaffoldLabels && lv.scaffoldLabels[i]) || String(i + 1),
+        x: cx, y: 92, w: cw, h: ch,
+        cid, badgeKind: badges[i],
         active: stageState.activeCardIdx === i,
         dataAttr: ['data-studio-card', String(i)],
       });
@@ -1501,37 +1599,31 @@ function createGame() {
 
     // 7-bar aurora waveform meter
     const waveCols = ['#7dd4ff', '#9fe8ff', '#ff9cc4', '#ffd27a', '#ff9cc4', '#9fe8ff', '#7dd4ff'];
-    const wg = el('g', { id: 'studioWaves', transform: 'translate(480 286)' }, box);
+    const wg = el('g', { id: 'studioWaves', transform: 'translate(480 278)' }, box);
     for (let i = 0; i < 7; i++) {
       el('rect', { x: (i - 3) * 26 - 6, y: 17, width: 12, height: 10, rx: 6, fill: waveCols[i], opacity: stageState.recording ? '.98' : '.42' }, wg);
     }
 
     const rec = stageState.recording;
     const hasClip = stageState.hasClip;
-    let html = uxButton({ act: 'demo', ui: 'demo', icon: 'speaker', x: 296, y: 398, r: 36 });
-    html += uxButton({ act: 'mic', ui: rec ? 'stop' : 'mic', icon: rec ? 'stop' : 'mic', x: 480, y: 394, r: 46, plate: rec ? 'rec' : 'gold', cls: rec ? 'ux-pulse' : '' });
-    if (hasClip) {
-      html += uxButton({ act: 'listen', ui: 'listen', icon: 'play', x: 618, y: 398, r: 34 });
-      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 728, y: 398, r: 36, plate: 'gold', cls: 'ux-pulse' });
+    let html = uxButton({ act: 'demo', ui: 'demo', icon: 'speaker', x: 296, y: 394, r: 38, cls: (!g.demoHeard && !rec) ? 'ux-pulse' : '' });
+    if (rec) {
+      html += `<circle class="ux-ripple" cx="480" cy="388" r="52" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>`
+        + `<circle class="ux-ripple" cx="480" cy="388" r="52" fill="none" stroke="#ffb3c8" stroke-width="3" style="animation-delay:.6s" pointer-events="none"/>`
+        + uxButton({ act: 'mic', ui: 'stop', icon: 'stop', x: 480, y: 388, r: 50, plate: 'rec', cls: 'ux-pulse' });
     } else {
-      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 664, y: 398, r: 36, plate: 'gold', cls: g.demoHeard ? 'ux-pulse' : '' });
+      html += uxButton({ act: 'mic', ui: 'mic', pic: 'prop_mic', x: 480, y: 388, r: 50, plate: 'gold', cls: (g.demoHeard && !hasClip) ? 'ux-pulse' : '' });
+    }
+    if (hasClip) {
+      html += uxButton({ act: 'listen', ui: 'listen', icon: 'play', x: 626, y: 394, r: 36 });
+      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 738, y: 394, r: 40, plate: 'gold', cls: 'ux-pulse' });
+    } else {
+      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 668, y: 394, r: 38, plate: 'gold', cls: g.demoHeard ? 'ux-pulse' : '' });
     }
     box.insertAdjacentHTML('beforeend', html);
 
-    const lbl = (cx, cy, text) => {
-      const t = el('text', { x: cx, y: cy, 'text-anchor': 'middle', 'font-size': 18, fill: '#fff9ec', filter: 'url(#softShadow)' }, box);
-      t.textContent = text;
-    };
-    lbl(296, 456, '听示范');
-    lbl(480, 462, rec ? '点我停止录音' : '点我讲故事');
-    if (hasClip) {
-      lbl(618, 456, '听我的声音');
-      lbl(728, 456, '过关');
-    } else {
-      lbl(664, 456, '过关下一站');
-    }
-
     uxBind(box, {
+      prompt: () => onHudPrompt(),
       demo: () => onStudioDemo(),
       mic: () => onStudioMicToggle(),
       listen: () => onStudioListen(),
@@ -1545,14 +1637,15 @@ function createGame() {
     const needStatic = force || stageState.idx !== g.index;
     const needRedraw = needStatic || stageState.phase !== g.phase || stageState.stepIdx !== g.stepIdx
       || stageState.puzzleIdx !== g.puzzleIdx || stageState.assistCard !== g.assistCard
-      || stageState.demoHeard !== g.demoHeard || stageState.recorded !== g.recorded;
+      || stageState.hintCard !== g.hintCard || stageState.demoHeard !== g.demoHeard
+      || stageState.recorded !== g.recorded;
     if (needStatic) drawStageStatic(lv);
     if (needRedraw) {
       if (g.phase === 'build') drawBuildScene(g);
       else drawStudioScene(g);
       stageState.idx = g.index; stageState.phase = g.phase; stageState.stepIdx = g.stepIdx;
       stageState.puzzleIdx = g.puzzleIdx; stageState.assistCard = g.assistCard;
-      stageState.demoHeard = g.demoHeard; stageState.recorded = g.recorded;
+      stageState.hintCard = g.hintCard; stageState.demoHeard = g.demoHeard; stageState.recorded = g.recorded;
       if (typeof syncHud === 'function') syncHud();
     }
   }
@@ -1796,9 +1889,9 @@ function createGame() {
       else if (e.type === 'cheer') uxSfx('cheer');
     }
   }
-  /* Pure-Chinese spoken guidance, top-aligned or bottom subtitle pill, and event hooks. */
+  /* Pure-Chinese spoken guidance, bottom-safe optional parent subtitle pill, and event hooks. */
   const TK = (() => {
-    const subtitlesOn = () => { try { return !!setting('subtitles'); } catch (e) { return true; } };
+    const subtitlesOn = () => { try { return !!setting('subtitles'); } catch (e) { return false; } };
     let curSub = null, introDone = -1;
 
     function hideBubble() { const t = $('talk'); if (t) t.textContent = ''; }
@@ -1808,14 +1901,16 @@ function createGame() {
       if (!t) return;
       t.textContent = '';
       if (!sub || !subtitlesOn() || !sub.text) return;
-      const lines = wrap(sub.text, 24).slice(0, 2);
-      const w = Math.min(720, Math.max(240, Math.max(...lines.map(l => l.length)) * 21 + 42));
-      const h = lines.length * 25 + 18;
+      const lines = wrap(sub.text, 30).slice(0, 2);
+      const w = Math.min(720, Math.max(240, Math.max(...lines.map(l => l.length)) * 17 + 36));
+      const lineH = 20;
+      const h = lines.length * lineH + 12;
+      const y = 516 - h;
       const strokeCol = sub.who === 'elsa' ? '#7dd4ff' : (sub.who === 'anna' ? '#ff9cc4' : '#ffd27a');
-      const g = el('g', { transform: `translate(${480 - w / 2} ${458 - (lines.length - 1) * 14})`, 'pointer-events': 'none' }, t);
-      el('rect', { width: w, height: h, rx: 16, fill: '#111834', opacity: '.88', stroke: strokeCol, 'stroke-width': 2.5 }, g);
+      const g = el('g', { transform: `translate(${480 - w / 2} ${y})`, 'pointer-events': 'none' }, t);
+      el('rect', { width: w, height: h, rx: 14, fill: '#111834', opacity: '.88', stroke: strokeCol, 'stroke-width': 2 }, g);
       lines.forEach((ln, i) => {
-        const tx = el('text', { x: w / 2, y: 25 + i * 25, 'text-anchor': 'middle', 'font-size': 18, fill: '#fff9ec' }, g);
+        const tx = el('text', { x: w / 2, y: 20 + i * lineH, 'text-anchor': 'middle', 'font-size': 15, fill: '#fff9ec' }, g);
         tx.textContent = ln;
       });
     }
@@ -1841,9 +1936,6 @@ function createGame() {
           say('reason_puz2_intro', { interrupt: true, tag: 'prompt', maxWait: 5000 });
         } else if (e.type === 'studio_ready') {
           say('studio_prompt', { interrupt: true, tag: 'studio', maxWait: 5500 });
-        } else if (e.type === 'card_try') {
-          if (e.misses >= 1) say('assist_1', { interrupt: true, tag: 'try', maxWait: 3500 });
-          else say('try_' + (1 + ((e.misses || 1) % 3)), { interrupt: true, tag: 'try', maxWait: 3000 });
         } else if (e.type === 'cheer' && e.who) {
           say('cheer_' + e.who, { interrupt: true, tag: 'cheer', maxWait: 2800 });
         } else if (e.type === 'hint_auto') {
@@ -1900,13 +1992,61 @@ function createGame() {
     if (kind === 'stop') return `<rect x="${-s * .36}" y="${-s * .36}" width="${s * .72}" height="${s * .72}" rx="4" fill="${c}"/>`;
     if (kind === 'mic') return `<rect x="${-s * .22}" y="${-s * .52}" width="${s * .44}" height="${s * .62}" rx="${s * .22}" fill="${c}"/><path d="M${-s * .42} ${-s * .05}A${s * .42} ${s * .42} 0 0 0 ${s * .42} ${-s * .05}M0 ${s * .38}V${s * .58}M${-s * .25} ${s * .58}H${s * .25}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
     if (kind === 'speaker') return `<path d="M${-s * .45} ${-s * .22}H${-s * .18}L${s * .14} ${-s * .48}V${s * .48}L${-s * .18} ${s * .22}H${-s * .45}Z" fill="${c}"/><path d="M${s * .28} ${-s * .26}A${s * .36} ${s * .36} 0 0 1 ${s * .28} ${s * .26}M${s * .45} ${-s * .44}A${s * .6} ${s * .6} 0 0 1 ${s * .45} ${s * .44}" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`;
-    if (kind === 'train') return `<rect x="${-s * .52}" y="${-s * .35}" width="${s * 1.04}" height="${s * .56}" rx="6" fill="none" stroke="${c}" stroke-width="2.8"/><circle cx="${-s * .28}" cy="${s * .34}" r="${s * .12}" fill="${c}"/><circle cx="${s * .28}" cy="${s * .34}" r="${s * .12}" fill="${c}"/>`;
+    if (kind === 'train') return `<circle cx="${-s * .28}" cy="${-s * .44}" r="${s * .1}" fill="${c}" opacity=".65"/><circle cx="${-s * .12}" cy="${-s * .56}" r="${s * .07}" fill="${c}" opacity=".45"/><path d="M${-s * .42} ${-s * .1}V${-s * .32}H${-s * .26}V${-s * .1}H${s * .04}V${-s * .36}H${s * .48}V${s * .18}H${-s * .48}V${-s * .1}Z" fill="${c}"/><rect x="${s * .12}" y="${-s * .24}" width="${s * .24}" height="${s * .18}" rx="2" fill="#fff9ec" opacity=".88"/><circle cx="${-s * .26}" cy="${s * .32}" r="${s * .14}" fill="${c}"/><circle cx="${s * .24}" cy="${s * .32}" r="${s * .14}" fill="${c}"/>`;
+    if (kind === 'fullscreen') return `<path d="M${-s * .48} ${-s * .16}V${-s * .48}H${-s * .16}M${s * .16} ${-s * .48}H${s * .48}V${-s * .16}M${s * .48} ${s * .16}V${s * .48}H${s * .16}M${-s * .16} ${s * .48}H${-s * .48}V${s * .16}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (kind === 'lock') return `<path d="M${-s * .24} ${-s * .08}V${-s * .24}A${s * .24} ${s * .24} 0 0 1 ${s * .24} ${-s * .24}V${-s * .08}" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round"/><rect x="${-s * .38}" y="${-s * .08}" width="${s * .76}" height="${s * .58}" rx="${s * .14}" fill="${c}"/><circle cx="0" cy="${s * .2}" r="${s * .09}" fill="#1b264f"/>`;
     if (kind === 'album') return `<circle r="${s * .48}" fill="none" stroke="${c}" stroke-width="3"/><circle r="${s * .16}" fill="${c}"/>`;
     if (kind === 'meet') return `<path d="M0 ${s * .42}C${-s * .55} ${s * .05} ${-s * .62} ${-s * .38} ${-s * .26} ${-s * .46}C${-s * .08} ${-s * .5} 0 ${-s * .32} 0 ${-s * .32}C0 ${-s * .32} ${s * .08} ${-s * .5} ${s * .26} ${-s * .46}C${s * .62} ${-s * .38} ${s * .55} ${s * .05} 0 ${s * .42}Z" fill="${c}"/>`;
     if (kind === 'sticker') return `<path d="${UX_STAR_D}" transform="scale(${s * .68})" fill="${c}"/>`;
     if (kind === 'rooms') return `<rect x="${-s * .5}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${-s * .5}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/>`;
     if (kind === 'gear') return `<circle r="${s * .42}" fill="none" stroke="${c}" stroke-width="3.2" stroke-dasharray="5 3"/><circle r="${s * .16}" fill="${c}"/>`;
     return `<circle r="${s * .35}" fill="${c}"/>`;
+  }
+
+  function uxSlotBadgeSvg(kind, active, radius) {
+    const r = radius || 17;
+    const stroke = active ? '#fffdf5' : '#fff9ec';
+    const sw = active ? 2.8 : 2.2;
+    const ring = active ? `<circle r="${r + 3.5}" fill="none" stroke="#ffd27a" stroke-width="2" opacity=".9"/>` : '';
+    if (kind === '1' || kind === '2' || kind === '3') {
+      const fill = active ? '#ffbe3d' : '#263876';
+      const txtCol = active ? '#3c2105' : '#fff9ec';
+      return `${ring}<circle r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><text x="0" y="6" text-anchor="middle" font-size="18" font-weight="bold" fill="${txtCol}">${kind}</text>`;
+    }
+    if (kind === 'star1' || kind === 'star2' || kind === 'star3') {
+      const n = kind.slice(4);
+      const fill = active ? '#ffbe3d' : '#263876';
+      const txtCol = active ? '#3c2105' : '#fff9ec';
+      return `${ring}<circle r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><path d="${UX_STAR_D}" transform="translate(-5 0) scale(7.5)" fill="${active ? '#3c2105' : '#ffd27a'}"/><text x="7" y="5" text-anchor="middle" font-size="15" font-weight="bold" fill="${txtCol}">${n}</text>`;
+    }
+    if (kind === 'who') {
+      return `${ring}<circle r="${r}" fill="#ff7eb6" stroke="${stroke}" stroke-width="${sw}"/><circle cx="0" cy="-4" r="5" fill="#fff9ec"/><path d="M-9 9C-9 3 9 3 9 9Z" fill="#fff9ec"/>`;
+    }
+    if (kind === 'where') {
+      return `${ring}<circle r="${r}" fill="#4db8ff" stroke="${stroke}" stroke-width="${sw}"/><path d="M-8 8V-1L0 -9L8 -1V8H3V3H-3V8Z" fill="#fff9ec"/>`;
+    }
+    if (kind === 'what') {
+      return `${ring}<circle r="${r}" fill="#ffaa33" stroke="${stroke}" stroke-width="${sw}"/><path d="M0 -9L2.5 -2.5L9 0L2.5 2.5L0 9L-2.5 2.5L-9 0L-2.5 -2.5Z" fill="#fff9ec"/>`;
+    }
+    if (kind === 'mood') {
+      return `${ring}<circle r="${r}" fill="#a484ff" stroke="${stroke}" stroke-width="${sw}"/><circle cx="-4" cy="-3" r="1.8" fill="#fff9ec"/><circle cx="4" cy="-3" r="1.8" fill="#fff9ec"/><path d="M-5 3Q0 8 5 3" fill="none" stroke="#fff9ec" stroke-width="2.2" stroke-linecap="round"/>`;
+    }
+    if (kind === 'pick') {
+      return `${ring}<circle r="${r}" fill="#ff7eb6" stroke="${stroke}" stroke-width="${sw}"/><path d="M-7 1L-2 6L8 -5" fill="none" stroke="#fff9ec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (kind === 'why') {
+      return `${ring}<circle r="${r}" fill="#ffbe3d" stroke="${stroke}" stroke-width="${sw}"/><circle cx="0" cy="-2" r="6" fill="#fff9ec"/><rect x="-3" y="4" width="6" height="4" rx="1.5" fill="#fff9ec"/>`;
+    }
+    return `${ring}<circle r="${r}" fill="#263876" stroke="${stroke}" stroke-width="${sw}"/>`;
+  }
+
+  function uxSlotBadgesFor(lv) {
+    if (!lv) return [];
+    if (lv.skill === 'sequence') return ['1', '2', '3'];
+    if (lv.skill === 'sentence') return ['who', 'where', 'what', 'mood'];
+    if (lv.skill === 'classify') return ['star1', 'star2', 'star3'];
+    if (lv.skill === 'reason') return ['pick', 'why'];
+    return [];
   }
 
   function uxButton(o) {
@@ -1916,7 +2056,7 @@ function createGame() {
     const stroke = o.plate === 'gold' ? '#fff7dc' : (o.plate === 'rec' ? '#ffdbe6' : '#7ea9e8');
     const icCol = o.plate === 'gold' ? '#4a2605' : (o.plate === 'rec' ? '#ffffff' : '#1b2c5c');
     const cls = 'ux-btn' + (o.cls ? ' ' + o.cls : '');
-    const pic = o.pic ? uxPic(o.pic, -r * .78, -r * .78, r * 1.56, r * 1.56) : uxIcon(o.icon || o.ui, r * .66, icCol);
+    const pic = o.pic ? uxPic(o.pic, -r * .72, -r * .72, r * 1.44, r * 1.44, '', o.picFit || 'meet') : uxIcon(o.icon || o.ui, r * .66, icCol);
     return `<g class="${cls}" data-act="${o.act}" data-ui="${o.ui || o.act}" role="button" tabindex="0" aria-label="${o.ui || o.act}" transform="translate(${o.x} ${o.y})">
       <circle r="${hitR}" fill="transparent"/><g class="btn-vis" filter="url(#softShadow)">
       <circle r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="3.5"/>${pic}</g></g>`;
@@ -1978,17 +2118,39 @@ function createGame() {
   function showChapter(level, done) {
     const lv = uxLevel(level), s = uxScreen('chapter');
     const host = lv.host || 'elsa';
+    const preview = lv.skill === 'reason' && lv.puzzles && lv.puzzles[0]
+      ? [lv.puzzles[0].promptCard, ...lv.puzzles[0].answer]
+      : (lv.target || []).slice(0, 4);
+    const badges = uxSlotBadgesFor(lv);
+    const pn = Math.max(1, preview.length), pw = 104, ph = 104, pgap = pn >= 4 ? 22 : 38;
+    const px0 = 480 - (pn * pw + (pn - 1) * pgap) / 2;
+    const previewHtml = preview.map((cid, i) => {
+      const px = px0 + i * (pw + pgap);
+      const bk = lv.skill === 'reason' ? (i === 0 ? '' : badges[i - 1]) : badges[i];
+      const conn = i < pn - 1
+        ? (lv.skill === 'sentence'
+          ? `<rect x="${px + pw}" y="262" width="${pgap}" height="8" rx="4" fill="#ffd27a"/>`
+          : `<path d="M${px + pw + 6} 266H${px + pw + pgap - 8}L${px + pw + pgap - 14} 260M${px + pw + pgap - 8} 266L${px + pw + pgap - 14} 272" fill="none" stroke="#ffbe3d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`)
+        : '';
+      const wheels = lv.skill === 'sentence'
+        ? `<circle cx="${px + 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/><circle cx="${px + pw - 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/>`
+        : '';
+      return `${conn}${wheels}<g><rect x="${px}" y="214" width="${pw}" height="${ph}" rx="20" fill="#eef6ff" stroke="#7dd4ff" stroke-width="2.8"/>
+        <image href="${SRC(cid)}" x="${px + 8}" y="222" width="${pw - 16}" height="${ph - 16}" preserveAspectRatio="xMidYMid meet"/>
+        ${bk ? `<g transform="translate(${px + pw / 2} 212)">${uxSlotBadgeSvg(bk, false, 14)}</g>` : ''}</g>`;
+    }).join('');
+
     const root = uxPaint(`<g class="page">
       <image href="${SRC(lv.bg)}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
-      <rect width="960" height="520" fill="#101836" opacity=".58"/>
+      <rect width="960" height="520" fill="#101836" opacity=".56"/>
       <g filter="url(#softShadow)">
-        <rect x="210" y="92" width="540" height="310" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5"/>
-        <image href="${SRC('portrait_' + host)}" x="415" y="114" width="130" height="130" preserveAspectRatio="xMidYMid meet"/>
-        <rect x="330" y="256" width="300" height="38" rx="19" fill="#e5f2ff" stroke="#7dd4ff" stroke-width="2.5"/>
-        <text x="480" y="281" text-anchor="middle" font-size="20" fill="#1e3468">${SKILL_NAMES[lv.skill] || ''} · ${lv.scaffoldLabels.join(' · ')}</text>
-        <text x="480" y="346" text-anchor="middle" font-size="38" fill="#1e2a58">第 ${lv.badge} 关：${lv.title}</text>
+        <rect x="170" y="54" width="620" height="320" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5"/>
+        <image href="${SRC('portrait_' + host)}" x="423" y="72" width="114" height="114" preserveAspectRatio="xMidYMid meet"/>
+        <circle cx="530" cy="90" r="20" fill="url(#goldGrad)" stroke="#fff9ec" stroke-width="2.5"/>
+        <text x="530" y="97" text-anchor="middle" font-size="22" font-weight="bold" fill="#4a2605">${lv.badge}</text>
+        ${previewHtml}
       </g>
-      ${uxButton({ act: 'go', ui: 'next', icon: 'next', x: 480, y: 446, r: 44, plate: 'gold', cls: 'ux-pulse' })}
+      ${uxButton({ act: 'go', ui: 'next', icon: 'play', x: 480, y: 440, r: 46, plate: 'gold', cls: 'ux-pulse' })}
     </g>`);
     const go = () => uxEnd(s, done);
     s.onKey = go;
@@ -1999,28 +2161,27 @@ function createGame() {
   function showClear(level, done) {
     const lv = uxLevel(level), idx = uxLevelIndex(lv), s = uxScreen('clear');
     const got = [true, !!(game.demoHeard || game.recorded), !!game.recorded];
-    const starsHtml = got.map((g, k) => `<g transform="translate(${(k - 1) * 126} 0)"><g class="ux-pop on">
-      ${g ? '<circle r="54" fill="#fff2b5" opacity=".35"/>' : ''}
+    const starsHtml = got.map((g, k) => `<g transform="translate(${(k - 1) * 134} 0)"><g class="ux-pop on">
+      ${g ? '<circle r="54" fill="#fff2b5" opacity=".38"/>' : ''}
       <path d="${UX_STAR_D}" transform="scale(50)" fill="${g ? 'url(#goldGrad)' : '#213063'}" stroke="${g ? '#fff5cf' : '#6483ba'}" stroke-width=".06" opacity="${g ? 1 : .85}"/>
     </g></g>`).join('');
 
     const root = uxPaint(`<g class="page">
       <image href="${SRC(lv.bg)}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
-      <rect width="960" height="520" fill="#101836" opacity=".62"/>
-      <g transform="translate(480 128)">${starsHtml}</g>
-      <g filter="url(#softShadow)">
-        <rect x="190" y="218" width="580" height="148" rx="28" fill="#fff9ec" stroke="#ffd27a" stroke-width="4"/>
-        <text x="480" y="262" text-anchor="middle" font-size="24" fill="#b8326a">亲子日常表达小贴士</text>
-        ${wrap(lv.parentTip || '', 26).slice(0, 2).map((ln, i) => `<text x="480" y="${304 + i * 32}" text-anchor="middle" font-size="20" fill="#233262">${ln}</text>`).join('')}
-      </g>
-      ${uxButton({ act: 'replay', ui: 'replay', icon: 'replay', x: 382, y: 440, r: 38 })}
-      ${uxButton({ act: 'next', ui: 'next', icon: 'next', x: 578, y: 440, r: 44, plate: 'gold', cls: 'ux-pulse' })}
+      <rect width="960" height="520" fill="#101836" opacity=".54"/>
+      <circle cx="480" cy="296" r="190" fill="url(#warm)" opacity=".55" pointer-events="none"/>
+      <g transform="translate(480 114)">${starsHtml}</g>
+      <image href="${SRC('elsa_cheer')}" x="236" y="178" width="146" height="220" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('anna_cheer')}" x="405" y="184" width="152" height="214" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('olaf_cheer')}" x="576" y="214" width="146" height="180" preserveAspectRatio="xMidYMid meet"/>
+      ${uxButton({ act: 'replay', ui: 'replay', icon: 'replay', x: 384, y: 450, r: 38 })}
+      ${uxButton({ act: 'next', ui: 'next', icon: 'next', x: 576, y: 450, r: 46, plate: 'gold', cls: 'ux-pulse' })}
     </g>`);
     const next = () => uxEnd(s, done);
     s.onKey = next;
     uxBind(root, { next, replay: () => { if (uxAlive(s)) { uxEnd(s, null); uxHooks.replay(idx); } } });
     uxSfx('star');
-    uxConfetti(root.querySelector('.page'), 480, 150, 28);
+    uxConfetti(root.querySelector('.page'), 480, 140, 32);
     uxLine(lv.clearKey, { maxWait: 5500 });
   }
 
@@ -2034,23 +2195,27 @@ function createGame() {
       if (r && Array.isArray(r.stars)) totalStars += r.stars.filter(Boolean).length;
     }
     const doneSkills = Object.values(save.skills || {}).filter(n => n > 0).length;
-    const badge = (cx, cy, label, num) => `<g transform="translate(${cx} ${cy})">
-      <rect x="-86" y="-26" width="172" height="52" rx="26" fill="#141c42" opacity=".9" stroke="#ffd27a" stroke-width="2.5"/>
-      <text x="0" y="8" text-anchor="middle" font-size="20" fill="#fff5cf">${label} ${num}</text></g>`;
+    const pill = (cx, cy, innerHtml) => `<g transform="translate(${cx} ${cy})">
+      <rect x="-86" y="-26" width="172" height="52" rx="26" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
+      ${innerHtml}</g>`;
+
+    const starPill = pill(284, 382, `${uxPic('prop_star', -54, -15, 32, 28, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${totalStars}/${LEVELS.length * 3}</text>`);
+    const dotsPill = pill(480, 382, `${['#ff9cc4', '#7dd4ff', '#ffd27a', '#b79cff'].map((c, i) => `<circle cx="${-50 + i * 16}" cy="0" r="6" fill="${c}" stroke="#fff9ec" stroke-width="1.2"/>`).join('')}<text x="36" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${doneSkills}/4</text>`);
+    const micPill = pill(676, 382, `${uxPic('prop_mic', -44, -17, 22, 34, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${save.recordingsCount || 0}</text>`);
 
     const root = uxPaint(`<g class="page">
       <image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
       <rect width="960" height="520" fill="#101836" opacity=".46"/>
-      <rect x="200" y="42" width="560" height="306" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5" filter="url(#softShadow)"/>
-      <image href="${SRC('elsa_cheer')}" x="242" y="90" width="140" height="220" preserveAspectRatio="xMidYMid meet"/>
-      <image href="${SRC('anna_cheer')}" x="410" y="96" width="150" height="214" preserveAspectRatio="xMidYMid meet"/>
-      <image href="${SRC('olaf_cheer')}" x="578" y="132" width="142" height="175" preserveAspectRatio="xMidYMid meet"/>
-      <text x="480" y="78" text-anchor="middle" font-size="28" fill="#1e2a58">冰雪故事小导演勋章</text>
-      ${badge(284, 386, '金星', `${totalStars}/${LEVELS.length * 3}`)}
-      ${badge(480, 386, '结构力', `${doneSkills}/4`)}
-      ${badge(676, 386, '录音条数', String(save.recordingsCount || 0))}
-      ${uxButton({ act: 'album', ui: 'album', icon: 'album', x: 356, y: 462, r: 34 })}
-      ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 452, y: 462, r: 34 })}
+      <rect x="200" y="44" width="560" height="298" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5" filter="url(#softShadow)"/>
+      ${uxPic('prop_star', 448, 50, 64, 56, '', 'meet')}
+      <path d="${UX_STAR_D}" transform="translate(414 78) scale(15)" fill="#ffd27a"/>
+      <path d="${UX_STAR_D}" transform="translate(546 78) scale(15)" fill="#ffd27a"/>
+      <image href="${SRC('elsa_cheer')}" x="242" y="104" width="140" height="220" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('anna_cheer')}" x="408" y="108" width="150" height="214" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('olaf_cheer')}" x="576" y="144" width="142" height="175" preserveAspectRatio="xMidYMid meet"/>
+      ${starPill}${dotsPill}${micPill}
+      ${uxButton({ act: 'album', ui: 'album', pic: 'prop_mic', x: 356, y: 460, r: 34 })}
+      ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 452, y: 460, r: 34 })}
       ${uxButton({ act: 'done', ui: 'back', icon: 'home', x: 584, y: 460, r: 42, plate: 'gold', cls: 'ux-pulse' })}
     </g>`);
     uxBind(root, {
@@ -2062,7 +2227,7 @@ function createGame() {
     uxConfetti(root.querySelector('.page'), 480, 170, 36);
     uxLine('end', { maxWait: 6000 });
   }
-  /* Title Screen, 8-Room Story Map, Gameplay HUD, and Parent Structured-Expression Report Modal. */
+  /* Title Screen, 8-Room Story Map, Zero-Reading Gameplay HUD, and Parent Structured-Expression Report Modal. */
   const uxState = { modal: false };
 
   function syncHud() {
@@ -2071,21 +2236,36 @@ function createGame() {
     if (game.state !== 'play' || storyIsOpen()) { hud.textContent = ''; return; }
     const lv = game.level();
     const host = (lv && lv.host) || 'elsa';
-    const countTxt = `第 ${game.index + 1}/8 关`;
+    const dots = LEVELS.map((l, k) => {
+      const done = !!(save.rooms && save.rooms[l.id] && save.rooms[l.id].cleared);
+      const cur = k === game.index;
+      const r = cur ? 6.2 : (done ? 4.6 : 4);
+      const fill = cur ? '#ffd27a' : (done ? '#ffbe3d' : '#49629c');
+      const stroke = cur ? ' stroke="#fff9ec" stroke-width="1.8"' : '';
+      return `<circle cx="${104 + k * 15}" cy="46" r="${r}" fill="${fill}"${stroke}/>`;
+    }).join('');
     hud.innerHTML = `<g class="hud-bar">
+      <g class="ux-btn" data-act="prompt" role="button" tabindex="0" aria-label="再听一遍">
+        <circle cx="46" cy="46" r="36" fill="transparent"/>
+        <g class="btn-vis" filter="url(#softShadow)">
+          <circle cx="46" cy="46" r="30" fill="#162044" stroke="#ffd27a" stroke-width="3"/>
+          <image href="${SRC('portrait_' + host)}" x="20" y="20" width="52" height="52" preserveAspectRatio="xMidYMid meet"/>
+          <circle cx="70" cy="66" r="12" fill="url(#goldGrad)" stroke="#fff9ec" stroke-width="1.8"/>
+          <g transform="translate(70 66)">${uxIcon('speaker', 10, '#4a2605')}</g>
+        </g>
+      </g>
       <g filter="url(#softShadow)">
-        <circle cx="45" cy="45" r="30" fill="#162044" stroke="#ffd27a" stroke-width="3"/>
-        <image href="${SRC('portrait_' + host)}" x="19" y="19" width="52" height="52" preserveAspectRatio="xMidYMid slice"/>
-        <rect x="86" y="25" width="122" height="40" rx="20" fill="#162044" opacity=".9" stroke="#7dd4ff" stroke-width="2.2"/>
-        <text x="147" y="51" text-anchor="middle" font-size="19" fill="#fff9ec">${countTxt}</text>
+        <rect x="88" y="29" width="136" height="34" rx="17" fill="#162044" opacity=".9" stroke="#7dd4ff" stroke-width="2.2"/>
+        ${dots}
       </g>
       ${uxButton({ act: 'replay', ui: 'replay', icon: 'replay', x: 706, y: 45, r: 32 })}
       ${uxButton({ act: 'home', ui: 'back', icon: 'home', x: 778, y: 45, r: 32 })}
       ${uxButton({ act: 'hint', ui: 'hint', icon: 'sticker', x: 850, y: 45, r: 32, plate: 'gold' })}
-      ${uxButton({ act: 'fs', ui: 'fullscreen', icon: 'rooms', x: 918, y: 45, r: 32 })}
+      ${uxButton({ act: 'fs', ui: 'fullscreen', icon: 'fullscreen', x: 918, y: 45, r: 32 })}
     </g>`;
 
     uxBind(hud, {
+      prompt: () => onHudPrompt(),
       replay: () => onHudReplay(),
       home: () => { if (typeof stopStudioPlayback === 'function') stopStudioPlayback(); game.state = 'title'; showTitle(); },
       hint: () => triggerHint(),
@@ -2108,7 +2288,7 @@ function createGame() {
       ${uxButton({ act: 'play', ui: playUi, icon: 'play', x: 480, y: 266, r: 54, plate: 'gold', cls: 'ux-pulse' })}
       ${uxButton({ act: 'rooms', ui: 'rooms', icon: 'rooms', x: 306, y: 408, r: 38 })}
       ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 422, y: 408, r: 38 })}
-      ${uxButton({ act: 'album', ui: 'album', icon: 'album', x: 538, y: 408, r: 38 })}
+      ${uxButton({ act: 'album', ui: 'album', pic: 'prop_mic', x: 538, y: 408, r: 38 })}
       ${uxButton({ act: 'meet', ui: 'meet', icon: 'meet', x: 654, y: 408, r: 38, plate: 'gold' })}
       ${uxButton({ act: 'gear', ui: 'settings', icon: 'gear', x: 902, y: 458, r: 34 })}
     </g>`);
@@ -2142,29 +2322,44 @@ function createGame() {
 
   function showRooms() {
     const s = uxScreen('rooms');
+    loadArt(LEVELS.map(l => l.coverCard), ART_PATIENCE);
     const unlocked = unlockedRooms();
+    let totalStars = 0;
+    for (const l of LEVELS) {
+      const rr = save.rooms && save.rooms[l.id];
+      if (rr && Array.isArray(rr.stars)) totalStars += rr.stars.filter(Boolean).length;
+    }
     const cards = LEVELS.map((lv, i) => {
       const col = i % 4, row = (i / 4) | 0;
       const x = 68 + col * 212, y = 92 + row * 182;
       const open = i < unlocked;
       const rSave = save.rooms && save.rooms[lv.id];
       const stars = (rSave && rSave.stars) || [false, false, false];
-      const starRow = stars.map((g, k) => `<path d="${UX_STAR_D}" transform="translate(${62 + k * 34} 138) scale(14)" fill="${g ? '#ffd27a' : '#233262'}" stroke="#fff5cf" stroke-width=".08"/>`).join('');
-      return `<g class="ux-btn" data-act="${open ? 'pick' : ''}" data-room="${i}" data-ui="${open ? 'room_' + lv.id : ''}" data-state="${open ? 'open' : 'lock'}" role="button" tabindex="${open ? 0 : -1}" transform="translate(${x} ${y})">
+      const starRow = stars.map((g, k) => `<path d="${UX_STAR_D}" transform="translate(${62 + k * 34} 134) scale(14)" fill="${g ? '#ffd27a' : '#233262'}" stroke="#fff5cf" stroke-width=".08"/>`).join('');
+      return `<g class="ux-btn" data-act="${open ? 'pick' : ''}" data-room="${i}" data-ui="${open ? 'room_' + lv.id : ''}" data-state="${open ? 'open' : 'lock'}" role="button" tabindex="${open ? 0 : -1}" aria-label="${lv.title}" transform="translate(${x} ${y})">
         <g class="btn-vis" filter="url(#softShadow)">
           <rect width="192" height="158" rx="22" fill="${open ? '#fff9ec' : '#1b264f'}" stroke="${open ? '#ffd27a' : '#4a6099'}" stroke-width="3.5"/>
-          <image href="${SRC(lv.bg)}" x="10" y="10" width="172" height="92" preserveAspectRatio="xMidYMid slice" opacity="${open ? 1 : .28}"/>
-          <text x="96" y="120" text-anchor="middle" font-size="16" fill="${open ? '#213063' : '#7b92c7'}">${lv.badge}. ${lv.title}</text>
+          <image href="${SRC(lv.bg)}" x="8" y="8" width="176" height="104" clip-path="url(#rcClip)" preserveAspectRatio="xMidYMid slice" opacity="${open ? .24 : .12}"/>
+          <image href="${SRC(lv.coverCard)}" x="46" y="14" width="100" height="96" preserveAspectRatio="xMidYMid meet" opacity="${open ? 1 : .24}"/>
+          <circle cx="26" cy="26" r="15" fill="${open ? 'url(#goldGrad)' : '#263876'}" stroke="#fff9ec" stroke-width="2"/>
+          <text x="26" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="${open ? '#4a2605' : '#8da7db'}">${lv.badge}</text>
+          ${open
+            ? `<image href="${SRC('portrait_' + lv.host)}" x="150" y="10" width="34" height="34" preserveAspectRatio="xMidYMid meet"/>`
+            : `<g transform="translate(96 62)">${uxIcon('lock', 36, '#9cb6e8')}</g>`}
           ${starRow}
         </g>
       </g>`;
     }).join('');
     const root = uxPaint(`<g class="page">
+      <defs><clipPath id="rcClip"><rect x="8" y="8" width="176" height="104" rx="16"/></clipPath></defs>
       <image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
       <rect width="960" height="520" fill="#101836" opacity=".64"/>
       ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 48, r: 34 })}
-      <rect x="330" y="25" width="300" height="44" rx="22" fill="#141c42" opacity=".9" stroke="#ffd27a" stroke-width="2.5"/>
-      <text x="480" y="54" text-anchor="middle" font-size="22" fill="#fff9ec">冰雪故事关卡地图</text>
+      <g filter="url(#softShadow)">
+        <rect x="394" y="22" width="172" height="44" rx="22" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
+        ${uxPic('prop_star', 418, 29, 32, 30, '', 'meet')}
+        <text x="500" y="52" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${totalStars}/${LEVELS.length * 3}</text>
+      </g>
       ${cards}
     </g>`);
     const back = () => uxEnd(s, () => showTitle());
@@ -2194,27 +2389,27 @@ function createGame() {
     const drawModal = () => {
       const bars = skList.map(([k, lbl, col], idx) => {
         const val = Math.min(2, (save.skills && save.skills[k]) || 0);
-        const y = 104 + idx * 38;
+        const y = 104 + idx * 36;
         return `<text x="48" y="${y}" font-size="16" fill="#233262">${lbl}</text>
           <rect x="300" y="${y - 14}" width="180" height="16" rx="8" fill="#e1ecff"/>
           <rect x="300" y="${y - 14}" width="${Math.round((val / 2) * 180)}" height="16" rx="8" fill="${col}"/>
           <text x="494" y="${y}" font-size="15" fill="#4e5d8c">${val}/2</text>`;
       }).join('');
-      const tipText = LEVELS[tipIdx].parentTip;
+      const tipLines = wrap(LEVELS[tipIdx].parentTip || '', 28).slice(0, 2);
       modal.innerHTML = `<rect width="960" height="520" fill="#0d1430" opacity=".82"/>
-        <g transform="translate(180 42)" filter="url(#softShadow)">
-          <rect width="600" height="436" rx="28" fill="#fff9ec" stroke="#ffd27a" stroke-width="4"/>
+        <g transform="translate(180 38)" filter="url(#softShadow)">
+          <rect width="600" height="444" rx="28" fill="#fff9ec" stroke="#ffd27a" stroke-width="4"/>
           <text x="300" y="42" text-anchor="middle" font-size="26" fill="#1e2a58">家长表达力报告与设置</text>
           <text x="300" y="72" text-anchor="middle" font-size="16" fill="#4e5d8c">本地录音：${save.recordingsCount || 0} 次 · 自由造句：${save.freeSentences || 0} 句 · 累计探索：${mins} 分钟</text>
           ${bars}
-          <g class="ux-btn" data-m="nextTip" transform="translate(48 248)">
-            <rect width="504" height="66" rx="16" fill="#eef5ff" stroke="#7dd4ff" stroke-width="2"/>
-            <text x="16" y="25" font-size="14" fill="#b8326a">今日亲子日常提问建议（点我换一条）：</text>
-            <text x="16" y="50" font-size="15" fill="#1e2a58">${tipText.slice(0, 31)}</text>
+          <g class="ux-btn" data-m="nextTip" transform="translate(48 242)">
+            <rect width="504" height="82" rx="16" fill="#eef5ff" stroke="#7dd4ff" stroke-width="2"/>
+            <text x="16" y="24" font-size="14" fill="#b8326a">今日亲子日常提问建议（点我换一条）：</text>
+            ${tipLines.map((ln, i) => `<text x="16" y="${48 + i * 22}" font-size="15" fill="#1e2a58">${ln}</text>`).join('')}
           </g>
-          <g class="ux-btn" data-m="subs" transform="translate(48 330)"><rect width="160" height="48" rx="14" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="17" fill="#1e2a58">字幕：${setting('subtitles') ? '开' : '关'}</text></g>
-          <g class="ux-btn" data-m="snd" transform="translate(220 330)"><rect width="160" height="48" rx="14" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="17" fill="#1e2a58">声音：${setting('sound') ? '开' : '关'}</text></g>
-          <g class="ux-btn" data-m="close" transform="translate(392 330)"><rect width="160" height="48" rx="14" fill="url(#goldGrad)" stroke="#d6a44e" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="19" fill="#4a2605">关闭返回</text></g>
+          <g class="ux-btn" data-m="subs" transform="translate(48 342)"><rect width="160" height="48" rx="14" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="17" fill="#1e2a58">字幕：${setting('subtitles') ? '开' : '关'}</text></g>
+          <g class="ux-btn" data-m="snd" transform="translate(220 342)"><rect width="160" height="48" rx="14" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="17" fill="#1e2a58">声音：${setting('sound') ? '开' : '关'}</text></g>
+          <g class="ux-btn" data-m="close" transform="translate(392 342)"><rect width="160" height="48" rx="14" fill="url(#goldGrad)" stroke="#d6a44e" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="19" fill="#4a2605">关闭返回</text></g>
         </g>`;
       modal.querySelectorAll('[data-m]').forEach(b => {
         b.addEventListener('click', () => {
@@ -2228,7 +2423,7 @@ function createGame() {
     };
     drawModal();
   }
-  /* Extras: Meet Heroes Trio, 4-Car Free Sentence Train Sandbox (with local voice recording) & Story Voice Album. */
+  /* Extras: Zero-Reading Meet Heroes Trio, Pure-Picture 4-Car Free Sentence Train & Visual Story Voice Album. */
 
   function showMeet() {
     const s = uxScreen('meet');
@@ -2237,105 +2432,124 @@ function createGame() {
       { id: 'anna', x: 480, name: '安娜', sprite: 'anna_idle', bg: '#ff9cc4' },
       { id: 'olaf', x: 740, name: '雪宝', sprite: 'olaf_idle', bg: '#ffd27a' },
     ];
-    const htmlHeroes = heroes.map(h => `<g class="ux-btn" data-hero="${h.id}" role="button" tabindex="0" aria-label="${h.name}" transform="translate(${h.x} 360)">
-      <circle cx="0" cy="-95" r="88" fill="${h.bg}" opacity=".28"/>
-      <g class="btn-vis">
-        <image href="${SRC(h.sprite)}" x="-76" y="-215" width="152" height="215" preserveAspectRatio="xMidYMax meet"/>
-        <rect x="-56" y="16" width="112" height="38" rx="19" fill="#fff9ec" stroke="${h.bg}" stroke-width="3" filter="url(#softShadow)"/>
-        <text x="0" y="42" text-anchor="middle" font-size="22" fill="#1e2a58">${h.name}</text>
+    const htmlHeroes = heroes.map(h => `<g class="ux-btn" data-hero="${h.id}" role="button" tabindex="0" aria-label="${h.name}" transform="translate(${h.x} 400)">
+      <circle cx="0" cy="-120" r="98" fill="${h.bg}" opacity=".26"/>
+      <ellipse cx="0" cy="4" rx="76" ry="18" fill="${h.bg}" opacity=".45" stroke="#fff9ec" stroke-width="2"/>
+      <g class="btn-vis" filter="url(#softShadow)">
+        <image href="${SRC(h.sprite)}" x="-88" y="-245" width="176" height="245" preserveAspectRatio="xMidYMax meet"/>
       </g>
     </g>`).join('');
 
     const root = uxPaint(`<g class="page">
       <image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
-      <rect width="960" height="520" fill="#101836" opacity=".52"/>
+      <rect width="960" height="520" fill="#101836" opacity=".48"/>
       ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 48, r: 34 })}
-      <rect x="300" y="24" width="360" height="44" rx="22" fill="#141c42" opacity=".9" stroke="#ffd27a" stroke-width="2.5"/>
-      <text x="480" y="53" text-anchor="middle" font-size="21" fill="#fff9ec">点一点艾莎、安娜或雪宝打个招呼！</text>
       ${htmlHeroes}
     </g>`);
     const back = () => uxEnd(s, () => showTitle());
     s.onKey = back;
     uxBind(root, { back });
     root.querySelectorAll('[data-hero]').forEach(g => {
-      g.addEventListener('click', () => {
+      const tap = () => {
         const who = g.getAttribute('data-hero');
         uxNudge(g); uxConfetti(root.querySelector('.page'), 480, 220, 14);
         uxLine('me_' + who, { interrupt: true, maxWait: 4500 });
-      });
+      };
+      g.addEventListener('click', tap);
+      g.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tap(); } });
     });
     uxLine('me_elsa', { maxWait: 4500 });
   }
 
   function showFreeTrain() {
     const s = uxScreen('freeTrain');
+    loadArt(FREE_TRAIN_POOL.slots.flat(), ART_PATIENCE);
     let picked = FREE_TRAIN_POOL.slots.map(row => row[0]);
     let recBusy = false;
     let clipBlob = null;
+    let activeCarIdx = -1;
+    let playSeq = 0;
+
+    let render = () => {};
 
     const readTrain = async () => {
       if (!uxAlive(s)) return;
+      const seq = ++playSeq;
       save.freeSentences = (save.freeSentences || 0) + 1;
       saveSoon();
       for (let i = 0; i < picked.length; i++) {
-        if (!uxAlive(s) || recBusy) return;
+        if (!uxAlive(s) || recBusy || seq !== playSeq) return;
+        activeCarIdx = i;
+        render();
         const m = CARD_META[picked[i]];
         if (m && m.voiceKey && hasLineKey(m.voiceKey)) {
-          await voice.line(m.voiceKey, { interrupt: true, tag: 'card', maxWait: 2500 });
+          await voice.line(m.voiceKey, { interrupt: true, tag: 'card', maxWait: 2500, subtitle: false });
         }
       }
-      if (uxAlive(s)) uxConfetti(document.querySelector('#overlay .page'), 480, 210, 18);
+      if (uxAlive(s) && seq === playSeq) {
+        activeCarIdx = -1;
+        render();
+        uxConfetti(document.querySelector('#overlay .page'), 480, 200, 18);
+      }
     };
 
-    const render = () => {
+    const carKinds = ['who', 'where', 'what', 'mood'];
+    render = () => {
       if (!uxAlive(s)) return;
       const carsHtml = picked.map((cid, i) => {
-        const x = 112 + i * 190;
+        const x = 110 + i * 188;
         const meta = CARD_META[cid] || { label: cid };
-        return `<g class="card-btn" data-car="${i}" role="button" tabindex="0" transform="translate(${x} 96)">
-          ${i < 3 ? '<rect x="164" y="64" width="28" height="8" rx="4" fill="#ffd27a"/>' : ''}
-          <circle cx="38" cy="144" r="12" fill="#263876" stroke="#ffd27a" stroke-width="3"/>
-          <circle cx="128" cy="144" r="12" fill="#263876" stroke="#ffd27a" stroke-width="3"/>
+        const hot = activeCarIdx === i;
+        return `<g class="card-btn${hot ? ' ux-pulse' : ''}" data-car="${i}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${x} 44)">
+          ${i < 3 ? '<rect x="164" y="60" width="26" height="8" rx="4" fill="#ffd27a"/>' : ''}
+          <circle cx="38" cy="136" r="12" fill="#263876" stroke="#ffd27a" stroke-width="3"/>
+          <circle cx="128" cy="136" r="12" fill="#263876" stroke="#ffd27a" stroke-width="3"/>
           <g class="card-vis" filter="url(#softShadow)">
-            <rect width="166" height="136" rx="22" fill="#fff9ec" stroke="#7dd4ff" stroke-width="3.5"/>
-            <rect x="44" y="-12" width="78" height="24" rx="12" fill="#263876" stroke="#fff9ec" stroke-width="2"/>
-            <text x="83" y="5" text-anchor="middle" font-size="14" fill="#fff9ec">${FREE_TRAIN_POOL.labels[i]}</text>
-            <image href="${SRC(cid)}" x="38" y="16" width="90" height="86" preserveAspectRatio="xMidYMid meet"/>
-            <text x="83" y="124" text-anchor="middle" font-size="18" fill="#1e2a58">${meta.label}</text>
+            <rect width="166" height="128" rx="22" fill="#fff9ec" stroke="${hot ? '#ffd27a' : '#7dd4ff'}" stroke-width="${hot ? 4.5 : 3.5}"/>
+            <g transform="translate(83 -2)">${uxSlotBadgeSvg(carKinds[i], hot, 16)}</g>
+            <image href="${SRC(cid)}" x="23" y="18" width="120" height="98" preserveAspectRatio="xMidYMid meet"/>
           </g>
         </g>`;
       }).join('');
 
       const rowsHtml = FREE_TRAIN_POOL.slots.map((row, sIdx) => {
-        const x0 = 112 + sIdx * 190;
+        const x0 = 110 + sIdx * 188;
+        const twoByTwo = row.length === 4;
         return row.map((cid, rIdx) => {
-          const y = 264 + rIdx * 52;
           const active = picked[sIdx] === cid;
           const meta = CARD_META[cid] || { label: cid };
-          return `<g class="card-btn" data-pick-slot="${sIdx}" data-pick-cid="${cid}" role="button" tabindex="0" transform="translate(${x0} ${y})">
-            <g class="card-vis">
-              <rect width="166" height="44" rx="16" fill="${active ? '#ffd27a' : '#fff9ec'}" stroke="${active ? '#e67e22' : '#7ea9e8'}" stroke-width="2.5"/>
-              <image href="${SRC(cid)}" x="10" y="5" width="34" height="34" preserveAspectRatio="xMidYMid meet"/>
-              <text x="98" y="28" text-anchor="middle" font-size="16" fill="#1e2a58">${meta.label}</text>
+          const w = twoByTwo ? 80 : 158;
+          const h = twoByTwo ? 80 : 70;
+          const tx = twoByTwo ? x0 + (rIdx % 2) * 86 : x0 + 4;
+          const ty = twoByTwo ? 230 + ((rIdx / 2) | 0) * 90 : 212 + rIdx * 82;
+          const iw = twoByTwo ? 64 : 74;
+          const ih = twoByTwo ? 64 : 58;
+          return `<g class="card-btn" data-pick-slot="${sIdx}" data-pick-cid="${cid}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${tx} ${ty})">
+            <g class="card-vis" filter="url(#softShadow)">
+              <rect width="${w}" height="${h}" rx="18" fill="${active ? '#ffe08a' : '#fff9ec'}" stroke="${active ? '#f59e0b' : '#7ea9e8'}" stroke-width="${active ? 3.5 : 2.5}"/>
+              <image href="${SRC(cid)}" x="${(w - iw) / 2}" y="${(h - ih) / 2}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid meet"/>
             </g>
           </g>`;
         }).join('');
       }).join('');
 
-      const playBtn = uxButton({ act: 'speakTrain', ui: 'demo', icon: 'speaker', x: 896, y: 162, r: 34, plate: 'gold' });
-      const micBtn = uxButton({ act: 'freeMic', ui: recBusy ? 'stop' : 'mic', icon: recBusy ? 'stop' : 'mic', x: 896, y: 266, r: 36, plate: recBusy ? 'rec' : 'gold', cls: recBusy ? 'ux-pulse' : '' });
-      const listenBtn = clipBlob ? uxButton({ act: 'freePlay', ui: 'listen', icon: 'play', x: 896, y: 366, r: 32 }) : '';
+      const playBtn = uxButton({ act: 'speakTrain', ui: 'demo', icon: 'speaker', x: 894, y: 146, r: 36, plate: 'gold' });
+      const micRipple = recBusy ? `<circle class="ux-ripple" cx="894" cy="258" r="44" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
+      const micBtn = micRipple + uxButton(recBusy
+        ? { act: 'freeMic', ui: 'stop', icon: 'stop', x: 894, y: 258, r: 42, plate: 'rec', cls: 'ux-pulse' }
+        : { act: 'freeMic', ui: 'mic', pic: 'prop_mic', x: 894, y: 258, r: 42, plate: 'gold' });
+      const listenBtn = clipBlob ? uxButton({ act: 'freePlay', ui: 'listen', icon: 'play', x: 894, y: 368, r: 34 }) : '';
 
       const root = uxPaint(`<g class="page">
         <image href="${SRC('bg_garden')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
-        <rect width="960" height="520" fill="#101836" opacity=".56"/>
-        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 48, r: 34 })}
-        <rect x="260" y="22" width="440" height="44" rx="22" fill="#141c42" opacity=".9" stroke="#ffd27a" stroke-width="2.5"/>
-        <text x="480" y="51" text-anchor="middle" font-size="21" fill="#fff9ec">自由造句小火车（点卡片混搭编故事！）</text>
+        <rect width="960" height="520" fill="#101836" opacity=".54"/>
+        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 48, y: 46, r: 32 })}
         ${carsHtml}${rowsHtml}${playBtn}${micBtn}${listenBtn}
       </g>`);
 
       const cleanup = () => {
+        playSeq++;
+        activeCarIdx = -1;
         if (recBusy) { recorder.stop(); recBusy = false; }
         recorder.stopPlay();
         setMicMute(false);
@@ -2349,6 +2563,8 @@ function createGame() {
         speakTrain: () => readTrain(),
         freeMic: async () => {
           unlockAudio();
+          playSeq++;
+          activeCarIdx = -1;
           if (recBusy) {
             const res = await recorder.stop();
             recBusy = false;
@@ -2386,16 +2602,21 @@ function createGame() {
       root.querySelectorAll('[data-pick-cid]').forEach(btn => {
         const sIdx = Number(btn.getAttribute('data-pick-slot'));
         const cid = btn.getAttribute('data-pick-cid');
-        btn.addEventListener('click', () => {
+        const pick = () => {
+          playSeq++;
+          activeCarIdx = -1;
           picked[sIdx] = cid;
           uxSfx('tap');
           const m = CARD_META[cid];
           if (m && m.voiceKey && hasLineKey(m.voiceKey)) voice.line(m.voiceKey, { interrupt: true, tag: 'card', maxWait: 2000, subtitle: false });
           render();
-        });
+        };
+        btn.addEventListener('click', pick);
+        btn.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
       });
       root.querySelectorAll('[data-car]').forEach(car => {
         car.addEventListener('click', () => readTrain());
+        car.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); readTrain(); } });
       });
     };
     render();
@@ -2404,6 +2625,7 @@ function createGame() {
 
   function showAlbum() {
     const s = uxScreen('album');
+    loadArt(LEVELS.map(l => l.coverCard), ART_PATIENCE);
     let playingId = '';
     const render = async () => {
       if (!uxAlive(s)) return;
@@ -2411,25 +2633,39 @@ function createGame() {
       if (!uxAlive(s)) return;
       const discs = LEVELS.map((lv, i) => {
         const col = i % 4, row = (i / 4) | 0;
-        const x = 112 + col * 196, y = 98 + row * 184;
+        const x = 104 + col * 196, y = 94 + row * 186;
         const hasRec = keys.has('room_' + lv.id);
         const on = playingId === lv.id;
-        return `<g class="ux-btn" data-disc="${lv.id}" data-has="${hasRec ? '1' : '0'}" role="button" tabindex="0" transform="translate(${x} ${y})">
+        const statusPill = hasRec
+          ? `<rect x="36" y="114" width="100" height="30" rx="15" fill="${on ? '#ff9cc4' : '#ffe6a3'}" stroke="#ff9cc4" stroke-width="2"/>
+             ${uxPic('prop_mic', 50, 117, 16, 24, '', 'meet')}
+             <rect x="74" y="125" width="5" height="8" rx="2.5" fill="#d64579"/>
+             <rect x="83" y="121" width="5" height="16" rx="2.5" fill="#d64579"/>
+             <rect x="92" y="123" width="5" height="12" rx="2.5" fill="#d64579"/>
+             <rect x="101" y="125" width="5" height="8" rx="2.5" fill="#d64579"/>`
+          : `<rect x="36" y="114" width="100" height="30" rx="15" fill="#253978" stroke="#7dd4ff" stroke-width="2"/>
+             <g transform="translate(86 129)">${uxIcon('speaker', 15, '#a8ccff')}</g>`;
+        return `<g class="ux-btn${on ? ' ux-pulse' : ''}" data-disc="${lv.id}" data-has="${hasRec ? '1' : '0'}" role="button" tabindex="0" aria-label="${lv.title}" transform="translate(${x} ${y})">
           <g class="btn-vis" filter="url(#softShadow)">
-            <rect width="166" height="156" rx="24" fill="${hasRec ? '#fff9ec' : '#1b264f'}" stroke="${on ? '#ff9cc4' : (hasRec ? '#ffd27a' : '#4d659c')}" stroke-width="${on ? 5 : 3.5}"/>
-            <image href="${SRC('portrait_' + lv.host)}" x="45" y="16" width="76" height="76" preserveAspectRatio="xMidYMid meet"/>
-            <text x="83" y="116" text-anchor="middle" font-size="18" fill="${hasRec ? '#1e2a58' : '#9eb6e6'}">${lv.title}</text>
-            <text x="83" y="140" text-anchor="middle" font-size="14" fill="${hasRec ? '#d64579' : '#6c85bd'}">${hasRec ? '● 我的本地录音' : '○ 听标准示范'}</text>
+            <rect width="172" height="158" rx="24" fill="${hasRec ? '#fff9ec' : '#1b264f'}" stroke="${on ? '#ff9cc4' : (hasRec ? '#ffd27a' : '#4d659c')}" stroke-width="${on ? 5 : 3.5}"/>
+            <image href="${SRC('portrait_' + lv.host)}" x="10" y="10" width="38" height="38" preserveAspectRatio="xMidYMid meet"/>
+            <image href="${SRC(lv.coverCard)}" x="44" y="20" width="102" height="84" preserveAspectRatio="xMidYMid meet" opacity="${hasRec ? 1 : .58}"/>
+            ${statusPill}
           </g>
         </g>`;
       }).join('');
 
       const root = uxPaint(`<g class="page">
         <image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
-        <rect width="960" height="520" fill="#101836" opacity=".64"/>
+        <rect width="960" height="520" fill="#101836" opacity=".62"/>
         ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 48, r: 34 })}
-        <rect x="275" y="22" width="410" height="44" rx="22" fill="#141c42" opacity=".9" stroke="#ffd27a" stroke-width="2.5"/>
-        <text x="480" y="51" text-anchor="middle" font-size="21" fill="#fff9ec">我的故事留声机（点徽章听声音！）</text>
+        <g filter="url(#softShadow)">
+          <rect x="422" y="20" width="116" height="46" rx="23" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
+          ${uxPic('prop_mic', 442, 24, 24, 38, '', 'meet')}
+          <rect x="478" y="36" width="6" height="14" rx="3" fill="#7dd4ff"/>
+          <rect x="490" y="30" width="6" height="26" rx="3" fill="#ff9cc4"/>
+          <rect x="502" y="34" width="6" height="18" rx="3" fill="#ffd27a"/>
+        </g>
         ${discs}
       </g>`);
       const back = () => { recorder.stopPlay(); setMicMute(false); uxEnd(s, () => showTitle()); };
@@ -2437,7 +2673,7 @@ function createGame() {
       uxBind(root, { back });
       root.querySelectorAll('[data-disc]').forEach(d => {
         const lid = d.getAttribute('data-disc');
-        d.addEventListener('click', async () => {
+        const playDisc = async () => {
           const lv = LEVELS.find(x => x.id === lid);
           if (!lv) return;
           playingId = lid;
@@ -2449,12 +2685,15 @@ function createGame() {
           } else {
             recorder.stopPlay();
             setMicMute(false);
+            render();
             uxLine(lv.demoKey, { interrupt: true, maxWait: 7000 }).then(() => {
               playingId = '';
               if (uxAlive(s)) render();
             });
           }
-        });
+        };
+        d.addEventListener('click', playDisc);
+        d.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playDisc(); } });
       });
     };
     render();
@@ -2630,22 +2869,41 @@ function createGame() {
     talkOnEvents(game.drain(), game);
   }
 
+  let pickNonce = 0;
+
+  function onHudPrompt() {
+    if (!canPlay()) return;
+    unlockAudio();
+    const lv = game.level();
+    if (!lv) return;
+    if (game.phase === 'build') {
+      const key = (lv.skill === 'reason' && game.puzzleIdx > 0) ? 'reason_puz2_intro' : lv.introKey;
+      TK.say(key, { interrupt: true, tag: 'prompt', maxWait: 6000 });
+    } else {
+      TK.say('studio_prompt', { interrupt: true, tag: 'studio', maxWait: 5500 });
+    }
+  }
+
   function onCardPick(cid, btnNode) {
     if (!canPlay() || game.phase !== 'build') return;
     unlockAudio();
+    const myNonce = ++pickNonce;
     const ok = game.pickCard(cid);
     const evs = game.drain();
     audioOnEvents(evs);
     talkOnEvents(evs, game);
     if (!ok) {
       uxNudge(btnNode);
-      speakCard(cid);
       renderStage(game, false);
+      speakCard(cid).then(() => {
+        if (myNonce === pickNonce && canPlay() && game.phase === 'build') {
+          TK.say(game.misses >= 1 ? 'assist_1' : 'try_1', { tag: 'try', maxWait: 3500 });
+        }
+      });
       return;
     }
-    const meta = CARD_META[cid];
-    if (meta && meta.voiceKey && hasLineKey(meta.voiceKey) && game.phase === 'build') {
-      voice.line(meta.voiceKey, { interrupt: true, tag: 'card', maxWait: 2000, subtitle: false });
+    if (game.phase === 'build' && !evs.some(e => e.type === 'puzzle_next')) {
+      speakCard(cid);
     }
     uxConfetti($('fx'), 480, 210, 16);
     renderStage(game, false);
@@ -2788,6 +3046,7 @@ function createGame() {
     unlockAudio();
     if (game.phase === 'build') {
       game.hintCard = game.expectedCardId();
+      renderStage(game, false);
       uxSfx('tap');
       TK.say('idle_' + (1 + Math.floor(Math.random() * 3)), { interrupt: true, tag: 'hint', maxWait: 3500 });
     } else {
@@ -2818,7 +3077,11 @@ function createGame() {
     if (canPlay()) {
       game.step(dt);
       const evs = game.drain();
-      if (evs.length) { audioOnEvents(evs); talkOnEvents(evs, game); }
+      if (evs.length) {
+        audioOnEvents(evs);
+        talkOnEvents(evs, game);
+        if (evs.some(e => e.type === 'hint_auto')) renderStage(game, false);
+      }
       renderHeroes(game, tSec);
       secAcc += dt;
       if (secAcc >= 1) { save.totalPlaySeconds += Math.floor(secAcc); secAcc %= 1; saveSoon(); }

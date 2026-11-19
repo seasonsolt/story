@@ -38,13 +38,61 @@
     if (kind === 'stop') return `<rect x="${-s * .36}" y="${-s * .36}" width="${s * .72}" height="${s * .72}" rx="4" fill="${c}"/>`;
     if (kind === 'mic') return `<rect x="${-s * .22}" y="${-s * .52}" width="${s * .44}" height="${s * .62}" rx="${s * .22}" fill="${c}"/><path d="M${-s * .42} ${-s * .05}A${s * .42} ${s * .42} 0 0 0 ${s * .42} ${-s * .05}M0 ${s * .38}V${s * .58}M${-s * .25} ${s * .58}H${s * .25}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
     if (kind === 'speaker') return `<path d="M${-s * .45} ${-s * .22}H${-s * .18}L${s * .14} ${-s * .48}V${s * .48}L${-s * .18} ${s * .22}H${-s * .45}Z" fill="${c}"/><path d="M${s * .28} ${-s * .26}A${s * .36} ${s * .36} 0 0 1 ${s * .28} ${s * .26}M${s * .45} ${-s * .44}A${s * .6} ${s * .6} 0 0 1 ${s * .45} ${s * .44}" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`;
-    if (kind === 'train') return `<rect x="${-s * .52}" y="${-s * .35}" width="${s * 1.04}" height="${s * .56}" rx="6" fill="none" stroke="${c}" stroke-width="2.8"/><circle cx="${-s * .28}" cy="${s * .34}" r="${s * .12}" fill="${c}"/><circle cx="${s * .28}" cy="${s * .34}" r="${s * .12}" fill="${c}"/>`;
+    if (kind === 'train') return `<circle cx="${-s * .28}" cy="${-s * .44}" r="${s * .1}" fill="${c}" opacity=".65"/><circle cx="${-s * .12}" cy="${-s * .56}" r="${s * .07}" fill="${c}" opacity=".45"/><path d="M${-s * .42} ${-s * .1}V${-s * .32}H${-s * .26}V${-s * .1}H${s * .04}V${-s * .36}H${s * .48}V${s * .18}H${-s * .48}V${-s * .1}Z" fill="${c}"/><rect x="${s * .12}" y="${-s * .24}" width="${s * .24}" height="${s * .18}" rx="2" fill="#fff9ec" opacity=".88"/><circle cx="${-s * .26}" cy="${s * .32}" r="${s * .14}" fill="${c}"/><circle cx="${s * .24}" cy="${s * .32}" r="${s * .14}" fill="${c}"/>`;
+    if (kind === 'fullscreen') return `<path d="M${-s * .48} ${-s * .16}V${-s * .48}H${-s * .16}M${s * .16} ${-s * .48}H${s * .48}V${-s * .16}M${s * .48} ${s * .16}V${s * .48}H${s * .16}M${-s * .16} ${s * .48}H${-s * .48}V${s * .16}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (kind === 'lock') return `<path d="M${-s * .24} ${-s * .08}V${-s * .24}A${s * .24} ${s * .24} 0 0 1 ${s * .24} ${-s * .24}V${-s * .08}" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round"/><rect x="${-s * .38}" y="${-s * .08}" width="${s * .76}" height="${s * .58}" rx="${s * .14}" fill="${c}"/><circle cx="0" cy="${s * .2}" r="${s * .09}" fill="#1b264f"/>`;
     if (kind === 'album') return `<circle r="${s * .48}" fill="none" stroke="${c}" stroke-width="3"/><circle r="${s * .16}" fill="${c}"/>`;
     if (kind === 'meet') return `<path d="M0 ${s * .42}C${-s * .55} ${s * .05} ${-s * .62} ${-s * .38} ${-s * .26} ${-s * .46}C${-s * .08} ${-s * .5} 0 ${-s * .32} 0 ${-s * .32}C0 ${-s * .32} ${s * .08} ${-s * .5} ${s * .26} ${-s * .46}C${s * .62} ${-s * .38} ${s * .55} ${s * .05} 0 ${s * .42}Z" fill="${c}"/>`;
     if (kind === 'sticker') return `<path d="${UX_STAR_D}" transform="scale(${s * .68})" fill="${c}"/>`;
     if (kind === 'rooms') return `<rect x="${-s * .5}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${-s * .5}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/>`;
     if (kind === 'gear') return `<circle r="${s * .42}" fill="none" stroke="${c}" stroke-width="3.2" stroke-dasharray="5 3"/><circle r="${s * .16}" fill="${c}"/>`;
     return `<circle r="${s * .35}" fill="${c}"/>`;
+  }
+
+  function uxSlotBadgeSvg(kind, active, radius) {
+    const r = radius || 17;
+    const stroke = active ? '#fffdf5' : '#fff9ec';
+    const sw = active ? 2.8 : 2.2;
+    const ring = active ? `<circle r="${r + 3.5}" fill="none" stroke="#ffd27a" stroke-width="2" opacity=".9"/>` : '';
+    if (kind === '1' || kind === '2' || kind === '3') {
+      const fill = active ? '#ffbe3d' : '#263876';
+      const txtCol = active ? '#3c2105' : '#fff9ec';
+      return `${ring}<circle r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><text x="0" y="6" text-anchor="middle" font-size="18" font-weight="bold" fill="${txtCol}">${kind}</text>`;
+    }
+    if (kind === 'star1' || kind === 'star2' || kind === 'star3') {
+      const n = kind.slice(4);
+      const fill = active ? '#ffbe3d' : '#263876';
+      const txtCol = active ? '#3c2105' : '#fff9ec';
+      return `${ring}<circle r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><path d="${UX_STAR_D}" transform="translate(-5 0) scale(7.5)" fill="${active ? '#3c2105' : '#ffd27a'}"/><text x="7" y="5" text-anchor="middle" font-size="15" font-weight="bold" fill="${txtCol}">${n}</text>`;
+    }
+    if (kind === 'who') {
+      return `${ring}<circle r="${r}" fill="#ff7eb6" stroke="${stroke}" stroke-width="${sw}"/><circle cx="0" cy="-4" r="5" fill="#fff9ec"/><path d="M-9 9C-9 3 9 3 9 9Z" fill="#fff9ec"/>`;
+    }
+    if (kind === 'where') {
+      return `${ring}<circle r="${r}" fill="#4db8ff" stroke="${stroke}" stroke-width="${sw}"/><path d="M-8 8V-1L0 -9L8 -1V8H3V3H-3V8Z" fill="#fff9ec"/>`;
+    }
+    if (kind === 'what') {
+      return `${ring}<circle r="${r}" fill="#ffaa33" stroke="${stroke}" stroke-width="${sw}"/><path d="M0 -9L2.5 -2.5L9 0L2.5 2.5L0 9L-2.5 2.5L-9 0L-2.5 -2.5Z" fill="#fff9ec"/>`;
+    }
+    if (kind === 'mood') {
+      return `${ring}<circle r="${r}" fill="#a484ff" stroke="${stroke}" stroke-width="${sw}"/><circle cx="-4" cy="-3" r="1.8" fill="#fff9ec"/><circle cx="4" cy="-3" r="1.8" fill="#fff9ec"/><path d="M-5 3Q0 8 5 3" fill="none" stroke="#fff9ec" stroke-width="2.2" stroke-linecap="round"/>`;
+    }
+    if (kind === 'pick') {
+      return `${ring}<circle r="${r}" fill="#ff7eb6" stroke="${stroke}" stroke-width="${sw}"/><path d="M-7 1L-2 6L8 -5" fill="none" stroke="#fff9ec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (kind === 'why') {
+      return `${ring}<circle r="${r}" fill="#ffbe3d" stroke="${stroke}" stroke-width="${sw}"/><circle cx="0" cy="-2" r="6" fill="#fff9ec"/><rect x="-3" y="4" width="6" height="4" rx="1.5" fill="#fff9ec"/>`;
+    }
+    return `${ring}<circle r="${r}" fill="#263876" stroke="${stroke}" stroke-width="${sw}"/>`;
+  }
+
+  function uxSlotBadgesFor(lv) {
+    if (!lv) return [];
+    if (lv.skill === 'sequence') return ['1', '2', '3'];
+    if (lv.skill === 'sentence') return ['who', 'where', 'what', 'mood'];
+    if (lv.skill === 'classify') return ['star1', 'star2', 'star3'];
+    if (lv.skill === 'reason') return ['pick', 'why'];
+    return [];
   }
 
   function uxButton(o) {
@@ -54,7 +102,7 @@
     const stroke = o.plate === 'gold' ? '#fff7dc' : (o.plate === 'rec' ? '#ffdbe6' : '#7ea9e8');
     const icCol = o.plate === 'gold' ? '#4a2605' : (o.plate === 'rec' ? '#ffffff' : '#1b2c5c');
     const cls = 'ux-btn' + (o.cls ? ' ' + o.cls : '');
-    const pic = o.pic ? uxPic(o.pic, -r * .78, -r * .78, r * 1.56, r * 1.56) : uxIcon(o.icon || o.ui, r * .66, icCol);
+    const pic = o.pic ? uxPic(o.pic, -r * .72, -r * .72, r * 1.44, r * 1.44, '', o.picFit || 'meet') : uxIcon(o.icon || o.ui, r * .66, icCol);
     return `<g class="${cls}" data-act="${o.act}" data-ui="${o.ui || o.act}" role="button" tabindex="0" aria-label="${o.ui || o.act}" transform="translate(${o.x} ${o.y})">
       <circle r="${hitR}" fill="transparent"/><g class="btn-vis" filter="url(#softShadow)">
       <circle r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="3.5"/>${pic}</g></g>`;
@@ -116,17 +164,39 @@
   function showChapter(level, done) {
     const lv = uxLevel(level), s = uxScreen('chapter');
     const host = lv.host || 'elsa';
+    const preview = lv.skill === 'reason' && lv.puzzles && lv.puzzles[0]
+      ? [lv.puzzles[0].promptCard, ...lv.puzzles[0].answer]
+      : (lv.target || []).slice(0, 4);
+    const badges = uxSlotBadgesFor(lv);
+    const pn = Math.max(1, preview.length), pw = 104, ph = 104, pgap = pn >= 4 ? 22 : 38;
+    const px0 = 480 - (pn * pw + (pn - 1) * pgap) / 2;
+    const previewHtml = preview.map((cid, i) => {
+      const px = px0 + i * (pw + pgap);
+      const bk = lv.skill === 'reason' ? (i === 0 ? '' : badges[i - 1]) : badges[i];
+      const conn = i < pn - 1
+        ? (lv.skill === 'sentence'
+          ? `<rect x="${px + pw}" y="262" width="${pgap}" height="8" rx="4" fill="#ffd27a"/>`
+          : `<path d="M${px + pw + 6} 266H${px + pw + pgap - 8}L${px + pw + pgap - 14} 260M${px + pw + pgap - 8} 266L${px + pw + pgap - 14} 272" fill="none" stroke="#ffbe3d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`)
+        : '';
+      const wheels = lv.skill === 'sentence'
+        ? `<circle cx="${px + 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/><circle cx="${px + pw - 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/>`
+        : '';
+      return `${conn}${wheels}<g><rect x="${px}" y="214" width="${pw}" height="${ph}" rx="20" fill="#eef6ff" stroke="#7dd4ff" stroke-width="2.8"/>
+        <image href="${SRC(cid)}" x="${px + 8}" y="222" width="${pw - 16}" height="${ph - 16}" preserveAspectRatio="xMidYMid meet"/>
+        ${bk ? `<g transform="translate(${px + pw / 2} 212)">${uxSlotBadgeSvg(bk, false, 14)}</g>` : ''}</g>`;
+    }).join('');
+
     const root = uxPaint(`<g class="page">
       <image href="${SRC(lv.bg)}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
-      <rect width="960" height="520" fill="#101836" opacity=".58"/>
+      <rect width="960" height="520" fill="#101836" opacity=".56"/>
       <g filter="url(#softShadow)">
-        <rect x="210" y="92" width="540" height="310" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5"/>
-        <image href="${SRC('portrait_' + host)}" x="415" y="114" width="130" height="130" preserveAspectRatio="xMidYMid meet"/>
-        <rect x="330" y="256" width="300" height="38" rx="19" fill="#e5f2ff" stroke="#7dd4ff" stroke-width="2.5"/>
-        <text x="480" y="281" text-anchor="middle" font-size="20" fill="#1e3468">${SKILL_NAMES[lv.skill] || ''} · ${lv.scaffoldLabels.join(' · ')}</text>
-        <text x="480" y="346" text-anchor="middle" font-size="38" fill="#1e2a58">第 ${lv.badge} 关：${lv.title}</text>
+        <rect x="170" y="54" width="620" height="320" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5"/>
+        <image href="${SRC('portrait_' + host)}" x="423" y="72" width="114" height="114" preserveAspectRatio="xMidYMid meet"/>
+        <circle cx="530" cy="90" r="20" fill="url(#goldGrad)" stroke="#fff9ec" stroke-width="2.5"/>
+        <text x="530" y="97" text-anchor="middle" font-size="22" font-weight="bold" fill="#4a2605">${lv.badge}</text>
+        ${previewHtml}
       </g>
-      ${uxButton({ act: 'go', ui: 'next', icon: 'next', x: 480, y: 446, r: 44, plate: 'gold', cls: 'ux-pulse' })}
+      ${uxButton({ act: 'go', ui: 'next', icon: 'play', x: 480, y: 440, r: 46, plate: 'gold', cls: 'ux-pulse' })}
     </g>`);
     const go = () => uxEnd(s, done);
     s.onKey = go;
@@ -137,28 +207,27 @@
   function showClear(level, done) {
     const lv = uxLevel(level), idx = uxLevelIndex(lv), s = uxScreen('clear');
     const got = [true, !!(game.demoHeard || game.recorded), !!game.recorded];
-    const starsHtml = got.map((g, k) => `<g transform="translate(${(k - 1) * 126} 0)"><g class="ux-pop on">
-      ${g ? '<circle r="54" fill="#fff2b5" opacity=".35"/>' : ''}
+    const starsHtml = got.map((g, k) => `<g transform="translate(${(k - 1) * 134} 0)"><g class="ux-pop on">
+      ${g ? '<circle r="54" fill="#fff2b5" opacity=".38"/>' : ''}
       <path d="${UX_STAR_D}" transform="scale(50)" fill="${g ? 'url(#goldGrad)' : '#213063'}" stroke="${g ? '#fff5cf' : '#6483ba'}" stroke-width=".06" opacity="${g ? 1 : .85}"/>
     </g></g>`).join('');
 
     const root = uxPaint(`<g class="page">
       <image href="${SRC(lv.bg)}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
-      <rect width="960" height="520" fill="#101836" opacity=".62"/>
-      <g transform="translate(480 128)">${starsHtml}</g>
-      <g filter="url(#softShadow)">
-        <rect x="190" y="218" width="580" height="148" rx="28" fill="#fff9ec" stroke="#ffd27a" stroke-width="4"/>
-        <text x="480" y="262" text-anchor="middle" font-size="24" fill="#b8326a">亲子日常表达小贴士</text>
-        ${wrap(lv.parentTip || '', 26).slice(0, 2).map((ln, i) => `<text x="480" y="${304 + i * 32}" text-anchor="middle" font-size="20" fill="#233262">${ln}</text>`).join('')}
-      </g>
-      ${uxButton({ act: 'replay', ui: 'replay', icon: 'replay', x: 382, y: 440, r: 38 })}
-      ${uxButton({ act: 'next', ui: 'next', icon: 'next', x: 578, y: 440, r: 44, plate: 'gold', cls: 'ux-pulse' })}
+      <rect width="960" height="520" fill="#101836" opacity=".54"/>
+      <circle cx="480" cy="296" r="190" fill="url(#warm)" opacity=".55" pointer-events="none"/>
+      <g transform="translate(480 114)">${starsHtml}</g>
+      <image href="${SRC('elsa_cheer')}" x="236" y="178" width="146" height="220" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('anna_cheer')}" x="405" y="184" width="152" height="214" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('olaf_cheer')}" x="576" y="214" width="146" height="180" preserveAspectRatio="xMidYMid meet"/>
+      ${uxButton({ act: 'replay', ui: 'replay', icon: 'replay', x: 384, y: 450, r: 38 })}
+      ${uxButton({ act: 'next', ui: 'next', icon: 'next', x: 576, y: 450, r: 46, plate: 'gold', cls: 'ux-pulse' })}
     </g>`);
     const next = () => uxEnd(s, done);
     s.onKey = next;
     uxBind(root, { next, replay: () => { if (uxAlive(s)) { uxEnd(s, null); uxHooks.replay(idx); } } });
     uxSfx('star');
-    uxConfetti(root.querySelector('.page'), 480, 150, 28);
+    uxConfetti(root.querySelector('.page'), 480, 140, 32);
     uxLine(lv.clearKey, { maxWait: 5500 });
   }
 
@@ -172,23 +241,27 @@
       if (r && Array.isArray(r.stars)) totalStars += r.stars.filter(Boolean).length;
     }
     const doneSkills = Object.values(save.skills || {}).filter(n => n > 0).length;
-    const badge = (cx, cy, label, num) => `<g transform="translate(${cx} ${cy})">
-      <rect x="-86" y="-26" width="172" height="52" rx="26" fill="#141c42" opacity=".9" stroke="#ffd27a" stroke-width="2.5"/>
-      <text x="0" y="8" text-anchor="middle" font-size="20" fill="#fff5cf">${label} ${num}</text></g>`;
+    const pill = (cx, cy, innerHtml) => `<g transform="translate(${cx} ${cy})">
+      <rect x="-86" y="-26" width="172" height="52" rx="26" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
+      ${innerHtml}</g>`;
+
+    const starPill = pill(284, 382, `${uxPic('prop_star', -54, -15, 32, 28, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${totalStars}/${LEVELS.length * 3}</text>`);
+    const dotsPill = pill(480, 382, `${['#ff9cc4', '#7dd4ff', '#ffd27a', '#b79cff'].map((c, i) => `<circle cx="${-50 + i * 16}" cy="0" r="6" fill="${c}" stroke="#fff9ec" stroke-width="1.2"/>`).join('')}<text x="36" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${doneSkills}/4</text>`);
+    const micPill = pill(676, 382, `${uxPic('prop_mic', -44, -17, 22, 34, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${save.recordingsCount || 0}</text>`);
 
     const root = uxPaint(`<g class="page">
       <image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
       <rect width="960" height="520" fill="#101836" opacity=".46"/>
-      <rect x="200" y="42" width="560" height="306" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5" filter="url(#softShadow)"/>
-      <image href="${SRC('elsa_cheer')}" x="242" y="90" width="140" height="220" preserveAspectRatio="xMidYMid meet"/>
-      <image href="${SRC('anna_cheer')}" x="410" y="96" width="150" height="214" preserveAspectRatio="xMidYMid meet"/>
-      <image href="${SRC('olaf_cheer')}" x="578" y="132" width="142" height="175" preserveAspectRatio="xMidYMid meet"/>
-      <text x="480" y="78" text-anchor="middle" font-size="28" fill="#1e2a58">冰雪故事小导演勋章</text>
-      ${badge(284, 386, '金星', `${totalStars}/${LEVELS.length * 3}`)}
-      ${badge(480, 386, '结构力', `${doneSkills}/4`)}
-      ${badge(676, 386, '录音条数', String(save.recordingsCount || 0))}
-      ${uxButton({ act: 'album', ui: 'album', icon: 'album', x: 356, y: 462, r: 34 })}
-      ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 452, y: 462, r: 34 })}
+      <rect x="200" y="44" width="560" height="298" rx="34" fill="#fff9ec" stroke="#ffd27a" stroke-width="5" filter="url(#softShadow)"/>
+      ${uxPic('prop_star', 448, 50, 64, 56, '', 'meet')}
+      <path d="${UX_STAR_D}" transform="translate(414 78) scale(15)" fill="#ffd27a"/>
+      <path d="${UX_STAR_D}" transform="translate(546 78) scale(15)" fill="#ffd27a"/>
+      <image href="${SRC('elsa_cheer')}" x="242" y="104" width="140" height="220" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('anna_cheer')}" x="408" y="108" width="150" height="214" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('olaf_cheer')}" x="576" y="144" width="142" height="175" preserveAspectRatio="xMidYMid meet"/>
+      ${starPill}${dotsPill}${micPill}
+      ${uxButton({ act: 'album', ui: 'album', pic: 'prop_mic', x: 356, y: 460, r: 34 })}
+      ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 452, y: 460, r: 34 })}
       ${uxButton({ act: 'done', ui: 'back', icon: 'home', x: 584, y: 460, r: 42, plate: 'gold', cls: 'ux-pulse' })}
     </g>`);
     uxBind(root, {

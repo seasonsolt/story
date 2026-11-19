@@ -68,22 +68,41 @@
     talkOnEvents(game.drain(), game);
   }
 
+  let pickNonce = 0;
+
+  function onHudPrompt() {
+    if (!canPlay()) return;
+    unlockAudio();
+    const lv = game.level();
+    if (!lv) return;
+    if (game.phase === 'build') {
+      const key = (lv.skill === 'reason' && game.puzzleIdx > 0) ? 'reason_puz2_intro' : lv.introKey;
+      TK.say(key, { interrupt: true, tag: 'prompt', maxWait: 6000 });
+    } else {
+      TK.say('studio_prompt', { interrupt: true, tag: 'studio', maxWait: 5500 });
+    }
+  }
+
   function onCardPick(cid, btnNode) {
     if (!canPlay() || game.phase !== 'build') return;
     unlockAudio();
+    const myNonce = ++pickNonce;
     const ok = game.pickCard(cid);
     const evs = game.drain();
     audioOnEvents(evs);
     talkOnEvents(evs, game);
     if (!ok) {
       uxNudge(btnNode);
-      speakCard(cid);
       renderStage(game, false);
+      speakCard(cid).then(() => {
+        if (myNonce === pickNonce && canPlay() && game.phase === 'build') {
+          TK.say(game.misses >= 1 ? 'assist_1' : 'try_1', { tag: 'try', maxWait: 3500 });
+        }
+      });
       return;
     }
-    const meta = CARD_META[cid];
-    if (meta && meta.voiceKey && hasLineKey(meta.voiceKey) && game.phase === 'build') {
-      voice.line(meta.voiceKey, { interrupt: true, tag: 'card', maxWait: 2000, subtitle: false });
+    if (game.phase === 'build' && !evs.some(e => e.type === 'puzzle_next')) {
+      speakCard(cid);
     }
     uxConfetti($('fx'), 480, 210, 16);
     renderStage(game, false);
@@ -226,6 +245,7 @@
     unlockAudio();
     if (game.phase === 'build') {
       game.hintCard = game.expectedCardId();
+      renderStage(game, false);
       uxSfx('tap');
       TK.say('idle_' + (1 + Math.floor(Math.random() * 3)), { interrupt: true, tag: 'hint', maxWait: 3500 });
     } else {
@@ -256,7 +276,11 @@
     if (canPlay()) {
       game.step(dt);
       const evs = game.drain();
-      if (evs.length) { audioOnEvents(evs); talkOnEvents(evs, game); }
+      if (evs.length) {
+        audioOnEvents(evs);
+        talkOnEvents(evs, game);
+        if (evs.some(e => e.type === 'hint_auto')) renderStage(game, false);
+      }
       renderHeroes(game, tSec);
       secAcc += dt;
       if (secAcc >= 1) { save.totalPlaySeconds += Math.floor(secAcc); secAcc %= 1; saveSoon(); }

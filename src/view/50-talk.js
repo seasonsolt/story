@@ -1,6 +1,6 @@
-  /* Pure-Chinese spoken guidance, top-aligned or bottom subtitle pill, and event hooks. */
+  /* Pure-Chinese spoken guidance, bottom-safe optional parent subtitle pill, and event hooks. */
   const TK = (() => {
-    const subtitlesOn = () => { try { return !!setting('subtitles'); } catch (e) { return true; } };
+    const subtitlesOn = () => { try { return !!setting('subtitles'); } catch (e) { return false; } };
     let curSub = null, introDone = -1;
 
     function hideBubble() { const t = $('talk'); if (t) t.textContent = ''; }
@@ -10,14 +10,16 @@
       if (!t) return;
       t.textContent = '';
       if (!sub || !subtitlesOn() || !sub.text) return;
-      const lines = wrap(sub.text, 24).slice(0, 2);
-      const w = Math.min(720, Math.max(240, Math.max(...lines.map(l => l.length)) * 21 + 42));
-      const h = lines.length * 25 + 18;
+      const lines = wrap(sub.text, 30).slice(0, 2);
+      const w = Math.min(720, Math.max(240, Math.max(...lines.map(l => l.length)) * 17 + 36));
+      const lineH = 20;
+      const h = lines.length * lineH + 12;
+      const y = 516 - h;
       const strokeCol = sub.who === 'elsa' ? '#7dd4ff' : (sub.who === 'anna' ? '#ff9cc4' : '#ffd27a');
-      const g = el('g', { transform: `translate(${480 - w / 2} ${458 - (lines.length - 1) * 14})`, 'pointer-events': 'none' }, t);
-      el('rect', { width: w, height: h, rx: 16, fill: '#111834', opacity: '.88', stroke: strokeCol, 'stroke-width': 2.5 }, g);
+      const g = el('g', { transform: `translate(${480 - w / 2} ${y})`, 'pointer-events': 'none' }, t);
+      el('rect', { width: w, height: h, rx: 14, fill: '#111834', opacity: '.88', stroke: strokeCol, 'stroke-width': 2 }, g);
       lines.forEach((ln, i) => {
-        const tx = el('text', { x: w / 2, y: 25 + i * 25, 'text-anchor': 'middle', 'font-size': 18, fill: '#fff9ec' }, g);
+        const tx = el('text', { x: w / 2, y: 20 + i * lineH, 'text-anchor': 'middle', 'font-size': 15, fill: '#fff9ec' }, g);
         tx.textContent = ln;
       });
     }
@@ -43,9 +45,6 @@
           say('reason_puz2_intro', { interrupt: true, tag: 'prompt', maxWait: 5000 });
         } else if (e.type === 'studio_ready') {
           say('studio_prompt', { interrupt: true, tag: 'studio', maxWait: 5500 });
-        } else if (e.type === 'card_try') {
-          if (e.misses >= 1) say('assist_1', { interrupt: true, tag: 'try', maxWait: 3500 });
-          else say('try_' + (1 + ((e.misses || 1) % 3)), { interrupt: true, tag: 'try', maxWait: 3000 });
         } else if (e.type === 'cheer' && e.who) {
           say('cheer_' + e.who, { interrupt: true, tag: 'cheer', maxWait: 2800 });
         } else if (e.type === 'hint_auto') {
