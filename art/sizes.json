@@ -1,0 +1,262 @@
+{
+  "anna_cheer": [
+    206,
+    226,
+    103
+  ],
+  "anna_idle": [
+    109,
+    220,
+    54
+  ],
+  "anna_speak": [
+    236,
+    220,
+    118
+  ],
+  "bg_cozy": [
+    1280,
+    720,
+    640
+  ],
+  "bg_garden": [
+    1280,
+    720,
+    640
+  ],
+  "bg_palace": [
+    1280,
+    720,
+    640
+  ],
+  "card_act_castle": [
+    220,
+    188,
+    110
+  ],
+  "card_act_cocoa": [
+    198,
+    220,
+    99
+  ],
+  "card_act_rainbow": [
+    187,
+    220,
+    93
+  ],
+  "card_act_sing": [
+    220,
+    202,
+    110
+  ],
+  "card_bake_oven": [
+    220,
+    204,
+    110
+  ],
+  "card_beanie": [
+    208,
+    220,
+    104
+  ],
+  "card_campfire": [
+    220,
+    203,
+    110
+  ],
+  "card_cloak": [
+    220,
+    182,
+    110
+  ],
+  "card_cookie": [
+    220,
+    193,
+    110
+  ],
+  "card_icecream": [
+    149,
+    220,
+    74
+  ],
+  "card_kite": [
+    220,
+    191,
+    110
+  ],
+  "card_lantern": [
+    206,
+    220,
+    103
+  ],
+  "card_loc_castle": [
+    220,
+    199,
+    110
+  ],
+  "card_loc_garden": [
+    220,
+    180,
+    110
+  ],
+  "card_loc_hearth": [
+    220,
+    201,
+    110
+  ],
+  "card_melting": [
+    220,
+    212,
+    110
+  ],
+  "card_mittens": [
+    220,
+    195,
+    110
+  ],
+  "card_mix_batter": [
+    220,
+    205,
+    110
+  ],
+  "card_mood_happy": [
+    220,
+    174,
+    110
+  ],
+  "card_mood_surprise": [
+    220,
+    204,
+    110
+  ],
+  "card_mood_warm": [
+    220,
+    182,
+    110
+  ],
+  "card_olaf_born": [
+    219,
+    220,
+    109
+  ],
+  "card_party_flag": [
+    220,
+    81,
+    110
+  ],
+  "card_rollball": [
+    220,
+    134,
+    110
+  ],
+  "card_scarf": [
+    220,
+    187,
+    110
+  ],
+  "card_share_cake": [
+    220,
+    164,
+    110
+  ],
+  "card_shell": [
+    220,
+    197,
+    110
+  ],
+  "card_skates": [
+    220,
+    175,
+    110
+  ],
+  "card_sky_lanterns": [
+    220,
+    177,
+    110
+  ],
+  "card_snowfall": [
+    220,
+    188,
+    110
+  ],
+  "card_strawberry": [
+    208,
+    220,
+    104
+  ],
+  "card_sunhat": [
+    220,
+    144,
+    110
+  ],
+  "card_umbrella": [
+    220,
+    196,
+    110
+  ],
+  "card_wind_snow": [
+    220,
+    141,
+    110
+  ],
+  "elsa_cheer": [
+    156,
+    236,
+    78
+  ],
+  "elsa_idle": [
+    130,
+    230,
+    65
+  ],
+  "elsa_speak": [
+    233,
+    230,
+    116
+  ],
+  "key": [
+    1280,
+    720,
+    640
+  ],
+  "olaf_cheer": [
+    152,
+    175,
+    76
+  ],
+  "olaf_idle": [
+    105,
+    175,
+    52
+  ],
+  "olaf_speak": [
+    94,
+    175,
+    47
+  ],
+  "portrait_anna": [
+    220,
+    220,
+    110
+  ],
+  "portrait_elsa": [
+    220,
+    220,
+    110
+  ],
+  "portrait_olaf": [
+    220,
+    220,
+    110
+  ],
+  "prop_mic": [
+    127,
+    190,
+    63
+  ],
+  "prop_star": [
+    190,
+    168,
+    95
+  ]
+}
