@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="冰雪小导演">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
-  @font-face { font-family: 'ZCOOL KuaiLe'; src: url("game/font_zh.woff2?v=336a4a5abe25") format('woff2'); font-display: swap; }
+  @font-face { font-family: 'ZCOOL KuaiLe'; src: url("game/font_zh.woff2?v=9578fa35a205") format('woff2'); font-display: swap; }
   :root { --night: #111834; --palace: #1c2856; --gold: #ffd27a; --cream: #fff9ec; }
   * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -54,6 +54,8 @@
   @keyframes uxPop { 0% { opacity: 0; transform: scale(.45); } 65% { transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
   .ux-pop { opacity: 0; transform: scale(.45); }
   .ux-pop.on { opacity: 1; transform: scale(1); animation: uxPop .42s cubic-bezier(.2, .9, .3, 1.3) both; }
+  .ux-slot-magnet .card-vis { transform: scale(1.07); filter: drop-shadow(0 0 18px rgba(255, 210, 122, .95)); }
+  .ux-dragging { opacity: .28; }
   @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
   .page { animation: pageIn .32s ease; }
 
@@ -94,6 +96,7 @@
   <g id="slots"></g>
   <g id="cards"></g>
   <g id="studio"></g>
+  <g id="dragLayer" pointer-events="none"></g>
   <g id="fx"></g>
   <g id="snowFront" aria-hidden="true"></g>
   <rect width="960" height="520" fill="url(#vignette)" pointer-events="none"/>
@@ -119,7 +122,7 @@
 </div>
 
 <script id="logic">
-/* All 8 structured-expression story levels (纯中文) and Free Train sandbox pool. Zero DOM access. */
+/* All 12 structured-expression story levels (纯中文), Free Studio pools, and Olaf Daily Reporter topics. Zero DOM access. */
 
 const CARD_META = {
   portrait_elsa: { label: '艾莎', speech: '艾莎', voiceKey: 'card_portrait_elsa' },
@@ -163,6 +166,27 @@ const CARD_META = {
   card_melting: { label: '怕晒化', speech: '因为太阳好晒会化掉', voiceKey: 'card_melting' },
   card_party_flag: { label: '开派对', speech: '城堡在开派对', voiceKey: 'card_party_flag' },
   card_sky_lanterns: { label: '放天灯', speech: '放飞许愿天灯', voiceKey: 'card_sky_lanterns' },
+
+  card_picnic_blanket: { label: '铺野餐布', speech: '铺开野餐花布', voiceKey: 'card_picnic_blanket' },
+  card_gust_blow: { label: '大风吹', speech: '刮起大风差点吹跑', voiceKey: 'card_gust_blow' },
+  card_pin_stones: { label: '石头压', speech: '用小石头压住四角', voiceKey: 'card_pin_stones' },
+  card_picnic_feast: { label: '稳稳美食', speech: '稳稳当当吃大餐', voiceKey: 'card_picnic_feast' },
+  card_ice_swan: { label: '小冰雕', speech: '堆一只冰天鹅', voiceKey: 'card_ice_swan' },
+  card_warm_sun: { label: '大太阳', speech: '太阳晒得快化掉', voiceKey: 'card_warm_sun' },
+  card_frost_dome: { label: '冰霜罩', speech: '支起冰雪遮阳罩', voiceKey: 'card_frost_dome' },
+  card_crystal_show: { label: '闪亮亮', speech: '冰雕闪闪发光啦', voiceKey: 'card_crystal_show' },
+  card_snow_bunny: { label: '小雪兔', speech: '小白兔去雪林玩', voiceKey: 'card_snow_bunny' },
+  card_feel_worried: { label: '好着急', speech: '心里有点小着急', voiceKey: 'card_feel_worried' },
+  card_star_footprints: { label: '找脚印', speech: '跟着星光找脚印', voiceKey: 'card_star_footprints' },
+  card_bunny_hug: { label: '抱妈妈', speech: '扑进妈妈怀里抱抱', voiceKey: 'card_bunny_hug' },
+  card_dark_sky: { label: '夜黑黑', speech: '天突然黑下来啦', voiceKey: 'card_dark_sky' },
+  card_feel_brave: { label: '鼓起勇气', speech: '心里深呼吸变勇敢', voiceKey: 'card_feel_brave' },
+  card_magic_wand: { label: '挥仙女棒', speech: '挥动冰雪魔法棒', voiceKey: 'card_magic_wand' },
+  card_aurora_crown: { label: '极光亮', speech: '点亮最美极光夜空', voiceKey: 'card_aurora_crown' },
+  card_topic_play: { label: '今天玩什么', speech: '说说今天去哪儿玩啦', voiceKey: 'card_topic_play' },
+  card_topic_food: { label: '今天吃什么', speech: '说说今天吃了什么美味', voiceKey: 'card_topic_food' },
+  card_topic_oops: { label: '今天小插曲', speech: '说说遇到了什么小插曲', voiceKey: 'card_topic_oops' },
+  card_topic_bedtime: { label: '开心三件事', speech: '说说今天开心的三件事', voiceKey: 'card_topic_bedtime' },
 };
 
 const SKILL_NAMES = {
@@ -170,6 +194,8 @@ const SKILL_NAMES = {
   sentence: '完整句子',
   classify: '总分归类',
   reason: '因果理由',
+  twist: '转折解困',
+  episode: '完整故事山',
 };
 
 const FREE_TRAIN_POOL = {
@@ -181,6 +207,24 @@ const FREE_TRAIN_POOL = {
     ['card_mood_happy', 'card_mood_warm', 'card_mood_surprise'],
   ],
 };
+
+const FREE_MOUNTAIN_POOL = {
+  labels: ['谁', '遇麻烦', '心里觉得', '想办法', '最后结局'],
+  slots: [
+    ['portrait_elsa', 'portrait_anna', 'portrait_olaf', 'card_snow_bunny'],
+    ['card_gust_blow', 'card_warm_sun', 'card_dark_sky', 'card_wind_snow'],
+    ['card_feel_worried', 'card_feel_brave', 'card_mood_surprise'],
+    ['card_pin_stones', 'card_frost_dome', 'card_star_footprints', 'card_magic_wand'],
+    ['card_picnic_feast', 'card_crystal_show', 'card_bunny_hug', 'card_aurora_crown'],
+  ],
+};
+
+const INTERVIEW_TOPICS = [
+  { id: 'play', title: '今天去哪儿玩', card: 'card_topic_play', voiceKey: 'interview_play', badges: ['1', '2', '3'], cues: ['cue_first', 'cue_then', 'cue_last'] },
+  { id: 'food', title: '最爱吃的小美味', card: 'card_topic_food', voiceKey: 'interview_food', badges: ['pick', 'why'], cues: ['cue_pick', 'cue_why'] },
+  { id: 'oops', title: '遇到小插曲怎么办', card: 'card_topic_oops', voiceKey: 'interview_oops', badges: ['plan', 'but', 'end'], cues: ['cue_plan', 'cue_but', 'cue_last'] },
+  { id: 'bedtime', title: '今天开心三件事', card: 'card_topic_bedtime', voiceKey: 'interview_bedtime', badges: ['star1', 'star2', 'star3'], cues: ['cue_num1', 'cue_num2', 'cue_num3'] },
+];
 
 const LEVELS = [
   {
@@ -221,6 +265,7 @@ const LEVELS = [
     badge: '3',
     coverCard: 'card_act_castle',
     skill: 'sentence',
+    openCompose: true,
     bg: 'bg_garden',
     host: 'elsa',
     scaffoldLabels: ['谁', '在哪儿', '干什么', '怎么样'],
@@ -242,6 +287,7 @@ const LEVELS = [
     badge: '4',
     coverCard: 'card_act_cocoa',
     skill: 'sentence',
+    openCompose: true,
     bg: 'bg_cozy',
     host: 'anna',
     scaffoldLabels: ['谁', '在哪儿', '干什么', '怎么样'],
@@ -343,6 +389,82 @@ const LEVELS = [
     clearKey: 'clear_reason_finale',
     parentTip: '周末一起挑三样毛绒玩具摆成小剧场，请“小导演”连说顺序、原因和结尾！',
   },
+  {
+    id: 'twist_picnic',
+    title: '风吹野餐布',
+    badge: '9',
+    coverCard: 'card_picnic_blanket',
+    skill: 'twist',
+    bg: 'bg_garden',
+    host: 'anna',
+    scaffoldLabels: ['本来想', '可是', '于是', '最后'],
+    choices: ['card_gust_blow', 'card_picnic_feast', 'card_picnic_blanket', 'card_pin_stones'],
+    target: ['card_picnic_blanket', 'card_gust_blow', 'card_pin_stones', 'card_picnic_feast'],
+    introKey: 'intro_twist_picnic',
+    demoKey: 'demo_twist_picnic',
+    clearKey: 'clear_twist_picnic',
+    parentTip: '生活里遇到小波折（例如积木倒了、风吹跑了），引导孩子说“本来想……可是……于是……最后……”。',
+  },
+  {
+    id: 'twist_sculpture',
+    title: '守护冰天鹅',
+    badge: '10',
+    coverCard: 'card_ice_swan',
+    skill: 'twist',
+    bg: 'bg_palace',
+    host: 'elsa',
+    scaffoldLabels: ['本来想', '可是', '于是', '最后'],
+    choices: ['card_frost_dome', 'card_ice_swan', 'card_crystal_show', 'card_warm_sun'],
+    target: ['card_ice_swan', 'card_warm_sun', 'card_frost_dome', 'card_crystal_show'],
+    introKey: 'intro_twist_sculpture',
+    demoKey: 'demo_twist_sculpture',
+    clearKey: 'clear_twist_sculpture',
+    parentTip: '读到绘本转折页先停下来猜一猜：“呀，可是发生什么啦？接下来想什么办法好呢？”',
+  },
+  {
+    id: 'episode_bunny',
+    title: '迷路小雪兔',
+    badge: '11',
+    coverCard: 'card_snow_bunny',
+    skill: 'episode',
+    bg: 'bg_garden',
+    host: 'olaf',
+    scaffoldLabels: ['谁和在哪', '遇麻烦', '心里觉得', '想办法', '最后结局'],
+    steps: [
+      ['card_snow_bunny', 'card_cookie', 'card_skates'],
+      ['card_snowfall', 'card_act_sing', 'card_strawberry'],
+      ['card_feel_worried', 'card_mood_happy', 'card_mood_warm'],
+      ['card_star_footprints', 'card_icecream', 'card_shell'],
+      ['card_bunny_hug', 'card_wind_snow', 'card_melting'],
+    ],
+    target: ['card_snow_bunny', 'card_snowfall', 'card_feel_worried', 'card_star_footprints', 'card_bunny_hug'],
+    introKey: 'intro_episode_bunny',
+    demoKey: 'demo_episode_bunny',
+    clearKey: 'clear_episode_bunny',
+    parentTip: '多问“他心里当时觉得怎么样呀？”，帮助孩子把感受词放进完整故事山里！',
+  },
+  {
+    id: 'episode_aurora',
+    title: '寻找极光星',
+    badge: '12',
+    coverCard: 'card_aurora_crown',
+    skill: 'episode',
+    bg: 'bg_palace',
+    host: 'elsa',
+    scaffoldLabels: ['谁和在哪', '遇麻烦', '心里觉得', '想办法', '最后结局'],
+    steps: [
+      ['card_loc_castle', 'card_shell', 'card_sunhat'],
+      ['card_dark_sky', 'card_share_cake', 'card_kite'],
+      ['card_feel_brave', 'card_feel_worried', 'card_mood_surprise'],
+      ['card_magic_wand', 'card_mix_batter', 'card_mittens'],
+      ['card_aurora_crown', 'card_dark_sky', 'card_wind_snow'],
+    ],
+    target: ['card_loc_castle', 'card_dark_sky', 'card_feel_brave', 'card_magic_wand', 'card_aurora_crown'],
+    introKey: 'intro_episode_aurora',
+    demoKey: 'demo_episode_aurora',
+    clearKey: 'clear_episode_aurora',
+    parentTip: '睡前用五个手指头一起复述一个五步小故事山：谁、遇麻烦、心里觉得、想办法、最后结局！',
+  },
 ];
 /* Pure state machine for 冰雪故事小导演 (<script id="logic">). Zero DOM access; runs in Node tests and browser. */
 const IDLE_HINT_SEC = 14;
@@ -397,7 +519,7 @@ function createGame() {
       g.demoHeard = false;
       g.recorded = false;
       g.studioPlayed = false;
-      const nSlots = lv.skill === 'sentence' ? 4 : (lv.skill === 'reason' ? 2 : 3);
+      const nSlots = lv.skill === 'episode' ? 5 : ((lv.skill === 'sentence' || lv.skill === 'twist') ? 4 : (lv.skill === 'reason' ? 2 : 3));
       g.slots = new Array(nSlots).fill('');
       for (const k of ['elsa', 'anna', 'olaf']) {
         g.heroes[k] = { state: k === lv.host ? 'speak' : 'idle', cheer: 0 };
@@ -420,8 +542,8 @@ function createGame() {
     currentChoices() {
       const lv = g.level();
       if (!lv) return [];
-      if (lv.skill === 'sequence' || lv.skill === 'classify') return lv.choices.slice();
-      if (lv.skill === 'sentence') return (lv.steps[g.stepIdx] || []).slice();
+      if (lv.skill === 'sequence' || lv.skill === 'classify' || lv.skill === 'twist') return lv.choices.slice();
+      if (lv.skill === 'sentence' || lv.skill === 'episode') return (lv.steps[g.stepIdx] || []).slice();
       const puz = g.currentPuzzle();
       if (lv.skill === 'reason' && puz) return g.stepIdx === 0 ? puz.pickChoices.slice() : puz.whyChoices.slice();
       return [];
@@ -430,7 +552,7 @@ function createGame() {
     expectedCardId() {
       const lv = g.level();
       if (!lv || g.phase !== 'build') return '';
-      if (lv.skill === 'sequence' || lv.skill === 'sentence') return lv.target[g.stepIdx] || '';
+      if (lv.skill === 'sequence' || lv.skill === 'sentence' || lv.skill === 'twist' || lv.skill === 'episode') return lv.target[g.stepIdx] || '';
       if (lv.skill === 'classify') {
         return lv.target.find(id => !g.slots.includes(id)) || '';
       }
@@ -443,10 +565,15 @@ function createGame() {
       const lv = g.level();
       if (!lv) return [];
       if (lv.skill === 'reason' && Array.isArray(lv.puzzles)) {
-        const last = lv.puzzles[lv.puzzles.length - 1];
-        return last ? last.answer.slice() : [];
+        return lv.puzzles.flatMap(p => (Array.isArray(p.answer) ? p.answer : []));
       }
       return g.slots.filter(Boolean);
+    },
+
+    isCustomSentence() {
+      const lv = g.level();
+      if (!lv || lv.skill !== 'sentence' || !lv.openCompose) return false;
+      return g.slots.some((c, i) => c && c !== lv.target[i]);
     },
 
     resetIdle() {
@@ -461,9 +588,11 @@ function createGame() {
       if (!choices.includes(cardId)) return false;
       g.resetIdle();
 
-      const valid = lv.skill === 'classify'
-        ? lv.target.includes(cardId) && !g.slots.includes(cardId)
-        : cardId === g.expectedCardId();
+      const valid = (lv.skill === 'sentence' && lv.openCompose)
+        ? true
+        : (lv.skill === 'classify'
+          ? lv.target.includes(cardId) && !g.slots.includes(cardId)
+          : cardId === g.expectedCardId());
 
       if (!valid) {
         g.misses++;
@@ -560,6 +689,7 @@ function createGame() {
     const out = [], add = n => { if (n && !out.includes(n)) out.push(n); };
     if (level) {
       add(level.bg);
+      add(level.coverCard);
       for (const c of level.choices || []) add(c);
       for (const row of level.steps || []) for (const c of row || []) add(c);
       for (const p of level.puzzles || []) {
@@ -618,24 +748,81 @@ function createGame() {
   }
   /* Pure play-state predicate & voice playback wrapper. */
   function canPlay() { return playFlow.phase === 'play' && game.state === 'play' && !storyIsOpen() && !uxState.modal && !isPortraitView(); }
-  /* 100% Local-only Tablet Voice Recorder + IndexedDB Store (zero network upload, iPadOS Safari + Chrome friendly). */
+  /* 100% Local-only Tablet Voice Recorder, Web Audio VAD, FX Premiere Playback, IndexedDB Store & Local WAV Export. */
+  function encodeWavFromFloat32(samples, sampleRate) {
+    const len = samples ? samples.length : 0;
+    const sr = Math.max(8000, sampleRate | 0 || 24000);
+    const buf = new ArrayBuffer(44 + len * 2);
+    const v = new DataView(buf);
+    const str = (off, s) => { for (let i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i)); };
+    str(0, 'RIFF');
+    v.setUint32(4, 36 + len * 2, true);
+    str(8, 'WAVE');
+    str(12, 'fmt ');
+    v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true);
+    v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true);
+    v.setUint32(28, sr * 2, true);
+    v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true);
+    str(36, 'data');
+    v.setUint32(40, len * 2, true);
+    let offset = 44;
+    for (let i = 0; i < len; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i] || 0));
+      v.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      offset += 2;
+    }
+    return new Uint8Array(buf);
+  }
+
+  function computeRmsAndBars(freqBins, timeDomain) {
+    const fLen = freqBins ? freqBins.length : 0;
+    const bars = [0, 1, 2, 3, 4, 5, 6].map(k => {
+      const v = fLen ? (freqBins[k % fLen] || 0) / 180 : 0;
+      return Math.max(.12, Math.min(1, v));
+    });
+    let sumSq = 0;
+    const tLen = timeDomain ? timeDomain.length : 0;
+    if (tLen) {
+      for (let i = 0; i < tLen; i++) {
+        const d = (timeDomain[i] - 128) / 128;
+        sumSq += d * d;
+      }
+    }
+    const rms = tLen ? Math.sqrt(sumSq / tLen) : 0;
+    const energy = Math.max(0, Math.min(1, rms * 3.8));
+    return { bars, energy, rms };
+  }
+
   const recorder = (() => {
     const DB_NAME = 'story_local_audio';
     const STORE = 'clips';
-    const MAX_MS = 18000;
+    const META_PREFIX = 'meta_';
+    const MAX_MS = 25000;
+    const SPEECH_ON = 0.08;
+    const SPEECH_OFF = 0.05;
     const memStore = new Map();
+    const memMeta = new Map();
 
     let rec = null;
     let stream = null;
-    let ac = null;
+    let recAc = null;
     let analyser = null;
     let raf = 0;
     let maxTimer = 0;
     let startedAt = 0;
     let chunks = [];
+    let active = false;
+    let lastVad = { activeSpeechMs: 0, peakEnergy: 0, speechBursts: 0 };
+
+    let playAc = null;
+    let playSrc = null;
+    let playRaf = 0;
+    let playEndTimer = 0;
     let activeAudio = null;
     let activeUrl = '';
-    let active = false;
 
     function pickMimeType() {
       if (typeof MediaRecorder === 'undefined') return '';
@@ -661,52 +848,97 @@ function createGame() {
       });
     }
 
-    async function saveClip(key, blob) {
-      if (!key || !blob) return false;
-      memStore.set(key, blob);
+    async function idbPut(k, val) {
       const db = await openDb();
       if (!db) return true;
       return new Promise(resolve => {
         try {
           const tx = db.transaction(STORE, 'readwrite');
-          tx.objectStore(STORE).put(blob, key);
+          tx.objectStore(STORE).put(val, k);
           tx.oncomplete = () => resolve(true);
           tx.onerror = () => resolve(false);
         } catch (e) { resolve(false); }
       });
     }
 
-    async function loadClip(key) {
-      if (memStore.has(key)) return memStore.get(key);
+    async function idbGet(k) {
       const db = await openDb();
       if (!db) return null;
       return new Promise(resolve => {
         try {
           const tx = db.transaction(STORE, 'readonly');
-          const req = tx.objectStore(STORE).get(key);
-          req.onsuccess = () => {
-            const b = req.result || null;
-            if (b) memStore.set(key, b);
-            resolve(b);
-          };
+          const req = tx.objectStore(STORE).get(k);
+          req.onsuccess = () => resolve(req.result || null);
           req.onerror = () => resolve(null);
         } catch (e) { resolve(null); }
       });
     }
 
+    async function idbDel(k) {
+      const db = await openDb();
+      if (!db) return true;
+      return new Promise(resolve => {
+        try {
+          const tx = db.transaction(STORE, 'readwrite');
+          tx.objectStore(STORE).delete(k);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        } catch (e) { resolve(false); }
+      });
+    }
+
+    async function saveClip(key, blob) {
+      if (!key || !blob) return false;
+      memStore.set(key, blob);
+      return idbPut(key, blob);
+    }
+
+    async function loadClip(key) {
+      if (memStore.has(key)) return memStore.get(key);
+      const b = await idbGet(key);
+      if (b) memStore.set(key, b);
+      return b;
+    }
+
+    async function saveMeta(key, meta) {
+      if (!key || !meta) return false;
+      memMeta.set(key, meta);
+      return idbPut(META_PREFIX + key, JSON.stringify(meta));
+    }
+
+    async function loadMeta(key) {
+      if (memMeta.has(key)) return memMeta.get(key);
+      const raw = await idbGet(META_PREFIX + key);
+      if (!raw) return null;
+      try {
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (parsed && typeof parsed === 'object') { memMeta.set(key, parsed); return parsed; }
+      } catch (e) {}
+      return null;
+    }
+
+    async function deleteClip(key) {
+      if (!key) return false;
+      memStore.delete(key);
+      memMeta.delete(key);
+      await idbDel(key);
+      await idbDel(META_PREFIX + key);
+      return true;
+    }
+
     async function listClipKeys() {
       const db = await openDb();
-      if (!db) return [...memStore.keys()];
+      if (!db) return [...memStore.keys()].filter(k => !k.startsWith(META_PREFIX));
       return new Promise(resolve => {
         try {
           const tx = db.transaction(STORE, 'readonly');
           const req = tx.objectStore(STORE).getAllKeys();
           req.onsuccess = () => {
             const keys = new Set([...memStore.keys(), ...((req.result || []).map(String))]);
-            resolve([...keys]);
+            resolve([...keys].filter(k => !k.startsWith(META_PREFIX)));
           };
-          req.onerror = () => resolve([...memStore.keys()]);
-        } catch (e) { resolve([...memStore.keys()]); }
+          req.onerror = () => resolve([...memStore.keys()].filter(k => !k.startsWith(META_PREFIX)));
+        } catch (e) { resolve([...memStore.keys()].filter(k => !k.startsWith(META_PREFIX))); }
       });
     }
 
@@ -717,15 +949,25 @@ function createGame() {
         try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
         stream = null;
       }
-      if (ac) {
-        try { ac.close(); } catch (e) {}
-        ac = null;
+      if (recAc) {
+        try { recAc.close(); } catch (e) {}
+        recAc = null;
       }
       analyser = null;
       active = false;
     }
 
     function stopPlay() {
+      cancelAnimationFrame(playRaf); playRaf = 0;
+      clearTimeout(playEndTimer); playEndTimer = 0;
+      if (playSrc) {
+        try { playSrc.onended = null; playSrc.stop(); } catch (e) {}
+        playSrc = null;
+      }
+      if (playAc) {
+        try { playAc.close(); } catch (e) {}
+        playAc = null;
+      }
       if (activeAudio) {
         try { activeAudio.pause(); activeAudio.onended = null; activeAudio.onerror = null; } catch (e) {}
         activeAudio = null;
@@ -736,8 +978,123 @@ function createGame() {
       }
     }
 
-    function play(blob, onEnd) {
+    function driveTimeline(timeline, startPerf, rate, onCard, lastIdxRef) {
+      if (!Array.isArray(timeline) || !timeline.length || typeof onCard !== 'function') return;
+      const elapsedAudioMs = (performance.now() - startPerf) * rate;
+      let curIdx = timeline[0].cardIdx;
+      for (const item of timeline) {
+        if (elapsedAudioMs >= item.ms) curIdx = item.cardIdx;
+        else break;
+      }
+      if (curIdx !== lastIdxRef.value) {
+        lastIdxRef.value = curIdx;
+        onCard(curIdx);
+      }
+    }
+
+    async function playWebAudio(blob, onEnd, opts) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC || typeof blob.arrayBuffer !== 'function') return false;
+      const myAc = new AC();
+      playAc = myAc;
+      try {
+        if (myAc.state === 'suspended') await myAc.resume().catch(() => {});
+        const rawBuf = await blob.arrayBuffer();
+        const audioBuf = await new Promise((ok, no) => myAc.decodeAudioData(rawBuf, ok, no));
+        if (playAc !== myAc) return true;
+
+        const src = myAc.createBufferSource();
+        src.buffer = audioBuf;
+        const fx = opts.fx || 'normal';
+        const rate = fx === 'olaf' ? 1.22 : 1.0;
+        src.playbackRate.value = rate;
+
+        const outAnalyser = myAc.createAnalyser();
+        outAnalyser.fftSize = 64;
+        const master = myAc.createGain();
+        master.gain.value = 1.0;
+        outAnalyser.connect(master);
+        master.connect(myAc.destination);
+
+        if (fx === 'hall') {
+          const dry = myAc.createGain(); dry.gain.value = 0.88;
+          const wet = myAc.createGain(); wet.gain.value = 0.34;
+          const delay = myAc.createDelay(0.5); delay.delayTime.value = 0.16;
+          const lp = myAc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600;
+          const fb = myAc.createGain(); fb.gain.value = 0.26;
+          src.connect(dry); dry.connect(outAnalyser);
+          src.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
+          lp.connect(wet); wet.connect(outAnalyser);
+        } else if (fx === 'olaf') {
+          const shelf = myAc.createBiquadFilter();
+          shelf.type = 'highshelf';
+          shelf.frequency.value = 2400;
+          shelf.gain.value = 3.5;
+          src.connect(shelf);
+          shelf.connect(outAnalyser);
+        } else {
+          src.connect(outAnalyser);
+        }
+
+        const fBins = new Uint8Array(outAnalyser.frequencyBinCount);
+        const tBins = new Uint8Array(outAnalyser.fftSize);
+        const timeline = Array.isArray(opts.timeline) ? opts.timeline : [];
+        const startPerf = performance.now();
+        const lastIdxRef = { value: -1 };
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          if (playAc === myAc) stopPlay();
+          if (typeof opts.onBars === 'function') opts.onBars(null);
+          if (typeof opts.onEnergy === 'function') opts.onEnergy(0);
+          if (typeof opts.onCard === 'function') opts.onCard(-1);
+          if (typeof onEnd === 'function') onEnd();
+        };
+
+        src.onended = finish;
+        const tailMs = fx === 'hall' ? 420 : 40;
+        const totalMs = Math.ceil((audioBuf.duration / rate) * 1000) + tailMs;
+        playEndTimer = setTimeout(finish, totalMs);
+        playSrc = src;
+        src.start(0);
+
+        const tick = () => {
+          if (playAc !== myAc || finished) return;
+          outAnalyser.getByteFrequencyData(fBins);
+          outAnalyser.getByteTimeDomainData(tBins);
+          const { bars, energy } = computeRmsAndBars(fBins, tBins);
+          if (typeof opts.onBars === 'function') opts.onBars(bars);
+          if (typeof opts.onEnergy === 'function') opts.onEnergy(energy);
+          driveTimeline(timeline, startPerf, rate, opts.onCard, lastIdxRef);
+          playRaf = requestAnimationFrame(tick);
+        };
+        tick();
+        return true;
+      } catch (e) {
+        if (playAc === myAc) stopPlay();
+        return false;
+      }
+    }
+
+    function play(blob, onEnd, opts) {
       stopPlay();
+      const o = opts || {};
+      if (!blob) {
+        if (typeof onEnd === 'function') onEnd();
+        return false;
+      }
+      if (typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext) && typeof blob.arrayBuffer === 'function') {
+        playWebAudio(blob, onEnd, o).then(ok => {
+          if (!ok && typeof Audio !== 'undefined') playElementFallback(blob, onEnd, o);
+          else if (!ok && typeof onEnd === 'function') onEnd();
+        });
+        return true;
+      }
+      return playElementFallback(blob, onEnd, o);
+    }
+
+    function playElementFallback(blob, onEnd, o) {
       if (!blob || typeof Audio === 'undefined') {
         if (typeof onEnd === 'function') onEnd();
         return false;
@@ -745,15 +1102,29 @@ function createGame() {
       try {
         activeUrl = URL.createObjectURL(blob);
         const au = new Audio(activeUrl);
+        const rate = o.fx === 'olaf' ? 1.22 : 1.0;
+        au.playbackRate = rate;
         activeAudio = au;
+        const timeline = Array.isArray(o.timeline) ? o.timeline : [];
+        const startPerf = performance.now();
+        const lastIdxRef = { value: -1 };
         const done = () => {
           if (activeAudio === au) stopPlay();
+          if (typeof o.onBars === 'function') o.onBars(null);
+          if (typeof o.onEnergy === 'function') o.onEnergy(0);
+          if (typeof o.onCard === 'function') o.onCard(-1);
           if (typeof onEnd === 'function') onEnd();
+        };
+        const tick = () => {
+          if (activeAudio !== au) return;
+          driveTimeline(timeline, startPerf, rate, o.onCard, lastIdxRef);
+          playRaf = requestAnimationFrame(tick);
         };
         au.onended = done;
         au.onerror = done;
         const pr = au.play();
-        if (pr && typeof pr.catch === 'function') pr.catch(done);
+        if (pr && typeof pr.then === 'function') pr.then(tick, done);
+        else tick();
         return true;
       } catch (e) {
         stopPlay();
@@ -762,7 +1133,46 @@ function createGame() {
       }
     }
 
-    async function start(onBars, onAutoStop) {
+    async function exportWav(blob, filename) {
+      if (!blob || typeof document === 'undefined') return false;
+      const base = (filename || 'story_voice').replace(/\.(wav|mp3|webm|m4a)$/i, '');
+      const AC = window.AudioContext || window.webkitAudioContext;
+      let outBlob = blob;
+      let ext = '.webm';
+      if (AC && typeof blob.arrayBuffer === 'function') {
+        let exAc = null;
+        try {
+          exAc = new AC();
+          const rawBuf = await blob.arrayBuffer();
+          const decoded = await new Promise((ok, no) => exAc.decodeAudioData(rawBuf, ok, no));
+          const len = decoded.length;
+          const nCh = decoded.numberOfChannels || 1;
+          const mono = new Float32Array(len);
+          for (let ch = 0; ch < nCh; ch++) {
+            const data = decoded.getChannelData(ch);
+            for (let i = 0; i < len; i++) mono[i] += data[i] / nCh;
+          }
+          const wavBytes = encodeWavFromFloat32(mono, decoded.sampleRate);
+          outBlob = new Blob([wavBytes], { type: 'audio/wav' });
+          ext = '.wav';
+        } catch (e) {
+          ext = (blob.type || '').includes('mp4') ? '.m4a' : '.webm';
+        } finally {
+          if (exAc) try { exAc.close(); } catch (e2) {}
+        }
+      }
+      const url = URL.createObjectURL(outBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = base + ext;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 2000);
+      return true;
+    }
+
+    async function start(onFrame, onAutoStop) {
       stopPlay();
       if (active) await stop();
       if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
@@ -782,22 +1192,51 @@ function createGame() {
       chunks = [];
       startedAt = Date.now();
       active = true;
+      lastVad = { activeSpeechMs: 0, peakEnergy: 0, speechBursts: 0 };
       rec.ondataavailable = e => { if (e && e.data && e.data.size > 0) chunks.push(e.data); };
 
       const AC = window.AudioContext || window.webkitAudioContext;
-      if (AC && typeof onBars === 'function') {
+      if (AC) {
         try {
-          ac = new AC();
-          const src = ac.createMediaStreamSource(stream);
-          analyser = ac.createAnalyser();
-          analyser.fftSize = 32;
+          recAc = new AC();
+          const src = recAc.createMediaStreamSource(stream);
+          analyser = recAc.createAnalyser();
+          analyser.fftSize = 64;
           src.connect(analyser);
           const bins = new Uint8Array(analyser.frequencyBinCount);
+          const tBins = new Uint8Array(analyser.fftSize);
+          let prevAt = performance.now();
+          let inSpeech = false;
+          let lastVoiceAt = 0;
           const tick = () => {
             if (!active || !analyser) return;
+            const now = performance.now();
+            const dtMs = Math.max(0, Math.min(120, now - prevAt));
+            prevAt = now;
             analyser.getByteFrequencyData(bins);
-            const bars = [0, 1, 2, 3, 4, 5, 6].map(k => Math.max(.12, Math.min(1, (bins[k % bins.length] || 0) / 180)));
-            onBars(bars);
+            analyser.getByteTimeDomainData(tBins);
+            const { bars, energy } = computeRmsAndBars(bins, tBins);
+            if (!inSpeech && energy >= SPEECH_ON) { inSpeech = true; lastVad.speechBursts++; }
+            else if (inSpeech && energy < SPEECH_OFF) { inSpeech = false; }
+            if (inSpeech) {
+              lastVad.activeSpeechMs += dtMs;
+              lastVoiceAt = now;
+            }
+            if (energy > lastVad.peakEnergy) lastVad.peakEnergy = energy;
+            const silenceAfterSpeechMs = inSpeech ? 0 : (lastVoiceAt > 0 ? now - lastVoiceAt : 0);
+            if (typeof onFrame === 'function') {
+              onFrame({
+                bars, energy,
+                vad: {
+                  activeSpeechMs: Math.round(lastVad.activeSpeechMs),
+                  peakEnergy: lastVad.peakEnergy,
+                  speechBursts: lastVad.speechBursts,
+                  inSpeech,
+                  silenceAfterSpeechMs: Math.round(silenceAfterSpeechMs),
+                },
+                elapsedMs: Date.now() - startedAt,
+              });
+            }
             raf = requestAnimationFrame(tick);
           };
           tick();
@@ -824,6 +1263,11 @@ function createGame() {
       const r = rec;
       const mime = r.mimeType || pickMimeType() || 'audio/webm';
       const dur = Math.max(0, Date.now() - startedAt);
+      const vadOut = {
+        activeSpeechMs: Math.round(lastVad.activeSpeechMs),
+        peakEnergy: Number(lastVad.peakEnergy.toFixed(3)),
+        speechBursts: lastVad.speechBursts,
+      };
       return new Promise(resolve => {
         const finish = () => {
           const outChunks = chunks.slice();
@@ -832,7 +1276,7 @@ function createGame() {
           cleanupCapture();
           if (!outChunks.length) { resolve(null); return; }
           const blob = new Blob(outChunks, { type: mime });
-          resolve({ blob, durationMs: dur });
+          resolve({ blob, durationMs: dur, ...vadOut });
         };
         if (r.state === 'inactive') { finish(); return; }
         r.onstop = finish;
@@ -842,7 +1286,7 @@ function createGame() {
     }
 
     return {
-      pickMimeType, start, stop, play, stopPlay, saveClip, loadClip, listClipKeys,
+      pickMimeType, start, stop, play, stopPlay, saveClip, loadClip, saveMeta, loadMeta, deleteClip, listClipKeys, exportWav,
       get recording() { return active; },
     };
   })();
@@ -850,19 +1294,33 @@ function createGame() {
   const SETTING_CHECK = {
     subtitles: v => typeof v === 'boolean',
     sound: v => typeof v === 'boolean',
+    eyeCare: v => typeof v === 'boolean',
   };
   const SAVE_VERSION = 1;
-  const SKILL_KEYS = ['sequence', 'sentence', 'classify', 'reason'];
+  const SKILL_KEYS = ['sequence', 'sentence', 'classify', 'reason', 'twist', 'episode'];
+  const TIER_KEYS = ['cloze', 'director', 'anchor'];
+  const PORTFOLIO_MAX = 30;
+
+  function emptySkills() {
+    const out = {};
+    for (const sk of SKILL_KEYS) out[sk] = 0;
+    return out;
+  }
 
   function defaultSave() {
     return {
       v: SAVE_VERSION,
-      settings: { subtitles: false, sound: true },
+      settings: { subtitles: false, sound: true, eyeCare: true },
       rooms: {},
-      skills: { sequence: 0, sentence: 0, classify: 0, reason: 0 },
+      skills: emptySkills(),
+      studioTier: 'director',
       freeSentences: 0,
       recordingsCount: 0,
+      speechSamples: 0,
+      totalSpeechMs: 0,
       totalPlaySeconds: 0,
+      creations: [],
+      diary: [],
       unlocked: { rooms: 1 },
       flags: { prologue: false },
     };
@@ -871,17 +1329,74 @@ function createGame() {
   const nat = (v, d) => (Number.isFinite(v) && v >= 0 ? Math.floor(v) : d);
   const bool3 = a => [0, 1, 2].map(i => !!(Array.isArray(a) && a[i]));
 
+  function sanitizeTimeline(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    for (const item of raw) {
+      if (!isObj(item)) continue;
+      out.push({ cardIdx: nat(item.cardIdx, 0), ms: nat(item.ms, 0) });
+      if (out.length >= 24) break;
+    }
+    return out;
+  }
+
+  function sanitizeCreations(raw) {
+    if (!Array.isArray(raw)) return [];
+    const seen = new Set();
+    const out = [];
+    for (const item of raw) {
+      if (!isObj(item) || typeof item.id !== 'string' || !item.id || seen.has(item.id)) continue;
+      seen.add(item.id);
+      const cards = Array.isArray(item.cards) ? item.cards.filter(c => typeof c === 'string' && c).slice(0, 5) : [];
+      out.push({
+        id: item.id,
+        mode: item.mode === 'mountain' ? 'mountain' : 'train',
+        cards,
+        createdAt: nat(item.createdAt, 0),
+        durationMs: nat(item.durationMs, 0),
+        activeSpeechMs: nat(item.activeSpeechMs, 0),
+        timeline: sanitizeTimeline(item.timeline),
+      });
+    }
+    out.sort((a, b) => b.createdAt - a.createdAt);
+    return out.slice(0, PORTFOLIO_MAX);
+  }
+
+  function sanitizeDiary(raw) {
+    if (!Array.isArray(raw)) return [];
+    const seen = new Set();
+    const out = [];
+    for (const item of raw) {
+      if (!isObj(item) || typeof item.id !== 'string' || !item.id || seen.has(item.id)) continue;
+      seen.add(item.id);
+      out.push({
+        id: item.id,
+        topicId: typeof item.topicId === 'string' ? item.topicId : 'play',
+        createdAt: nat(item.createdAt, 0),
+        durationMs: nat(item.durationMs, 0),
+        activeSpeechMs: nat(item.activeSpeechMs, 0),
+      });
+    }
+    out.sort((a, b) => b.createdAt - a.createdAt);
+    return out.slice(0, PORTFOLIO_MAX);
+  }
+
   function sanitizeSave(raw) {
     const s = defaultSave();
     if (!isObj(raw)) return s;
     for (const k of Object.keys(raw)) if (!(k in s) && k !== '__proto__') s[k] = raw[k];
     if (isObj(raw.settings)) for (const k of Object.keys(SETTING_CHECK)) if (SETTING_CHECK[k](raw.settings[k])) s.settings[k] = raw.settings[k];
+    if (TIER_KEYS.includes(raw.studioTier)) s.studioTier = raw.studioTier;
     if (isObj(raw.rooms)) {
       for (const id of Object.keys(raw.rooms)) {
         const r = raw.rooms[id];
         if (!isObj(r)) continue;
         const stars = bool3(r.stars);
-        s.rooms[id] = { cleared: !!r.cleared, recorded: !!r.recorded, stars };
+        const rec = { cleared: !!r.cleared, recorded: !!r.recorded, stars, tier3: !!r.tier3 };
+        if (Number.isFinite(r.firstSpeechMs) && r.firstSpeechMs >= 0) rec.firstSpeechMs = Math.floor(r.firstSpeechMs);
+        if (Number.isFinite(r.lastSpeechMs) && r.lastSpeechMs >= 0) rec.lastSpeechMs = Math.floor(r.lastSpeechMs);
+        if (Number.isFinite(r.recCount) && r.recCount >= 0) rec.recCount = Math.floor(r.recCount);
+        s.rooms[id] = rec;
       }
     }
     if (isObj(raw.skills)) {
@@ -889,7 +1404,11 @@ function createGame() {
     }
     s.freeSentences = nat(raw.freeSentences, 0);
     s.recordingsCount = nat(raw.recordingsCount, 0);
+    s.speechSamples = nat(raw.speechSamples, 0);
+    s.totalSpeechMs = nat(raw.totalSpeechMs, 0);
     s.totalPlaySeconds = nat(raw.totalPlaySeconds, 0);
+    s.creations = sanitizeCreations(raw.creations);
+    s.diary = sanitizeDiary(raw.diary);
     if (isObj(raw.unlocked)) s.unlocked.rooms = Math.max(1, nat(raw.unlocked.rooms, 1));
     if (isObj(raw.flags)) for (const k of Object.keys(s.flags)) s.flags[k] = !!raw.flags[k];
     return s;
@@ -905,19 +1424,27 @@ function createGame() {
     if (!isObj(mine) || !isObj(theirs)) return mine;
     for (const id of Object.keys(theirs.rooms || {})) {
       const o = theirs.rooms[id];
-      const r = mine.rooms[id] || (mine.rooms[id] = { cleared: false, recorded: false, stars: [false, false, false] });
+      const r = mine.rooms[id] || (mine.rooms[id] = { cleared: false, recorded: false, stars: [false, false, false], tier3: false });
       r.cleared = !!r.cleared || !!o.cleared;
       r.recorded = !!r.recorded || !!o.recorded;
+      r.tier3 = !!r.tier3 || !!o.tier3;
       if (!Array.isArray(r.stars)) r.stars = [false, false, false];
       for (let i = 0; i < 3; i++) r.stars[i] = !!r.stars[i] || !!(o.stars && o.stars[i]);
       if (r.cleared) r.stars[0] = true;
+      if (Number.isFinite(o.firstSpeechMs) && !Number.isFinite(r.firstSpeechMs)) r.firstSpeechMs = Math.floor(o.firstSpeechMs);
+      if (Number.isFinite(o.lastSpeechMs)) r.lastSpeechMs = Math.max(nat(r.lastSpeechMs, 0), Math.floor(o.lastSpeechMs));
+      if (Number.isFinite(o.recCount)) r.recCount = Math.max(nat(r.recCount, 0), Math.floor(o.recCount));
       for (const k of Object.keys(o)) if (!(k in r)) r[k] = o[k];
     }
-    if (!isObj(mine.skills)) mine.skills = { sequence: 0, sentence: 0, classify: 0, reason: 0 };
+    if (!isObj(mine.skills)) mine.skills = emptySkills();
     for (const sk of SKILL_KEYS) mine.skills[sk] = Math.max(nat(mine.skills[sk], 0), nat(theirs.skills && theirs.skills[sk], 0));
     mine.freeSentences = Math.max(nat(mine.freeSentences, 0), nat(theirs.freeSentences, 0));
     mine.recordingsCount = Math.max(nat(mine.recordingsCount, 0), nat(theirs.recordingsCount, 0));
+    mine.speechSamples = Math.max(nat(mine.speechSamples, 0), nat(theirs.speechSamples, 0));
+    mine.totalSpeechMs = Math.max(nat(mine.totalSpeechMs, 0), nat(theirs.totalSpeechMs, 0));
     mine.totalPlaySeconds = Math.max(nat(mine.totalPlaySeconds, 0), nat(theirs.totalPlaySeconds, 0));
+    mine.creations = sanitizeCreations([...(mine.creations || []), ...(theirs.creations || [])]);
+    mine.diary = sanitizeDiary([...(mine.diary || []), ...(theirs.diary || [])]);
     mine.unlocked.rooms = Math.max(1, nat(mine.unlocked.rooms, 1), nat(theirs.unlocked && theirs.unlocked.rooms, 1));
     for (const k of Object.keys(theirs.flags || {})) mine.flags[k] = !!mine.flags[k] || !!theirs.flags[k];
     for (const k of Object.keys(theirs)) if (!(k in mine) && k !== '__proto__') mine[k] = theirs[k];
@@ -1125,11 +1652,11 @@ function createGame() {
   }
 
   const game = createGame();
-  const SIZES = {"anna_cheer":[206,226,103],"anna_idle":[109,220,54],"anna_speak":[236,220,118],"bg_cozy":[1280,720,640],"bg_garden":[1280,720,640],"bg_palace":[1280,720,640],"card_act_castle":[220,188,110],"card_act_cocoa":[198,220,99],"card_act_rainbow":[187,220,93],"card_act_sing":[220,202,110],"card_bake_oven":[220,204,110],"card_beanie":[208,220,104],"card_campfire":[220,203,110],"card_cloak":[220,182,110],"card_cookie":[220,193,110],"card_icecream":[149,220,74],"card_kite":[220,191,110],"card_lantern":[206,220,103],"card_loc_castle":[220,199,110],"card_loc_garden":[220,180,110],"card_loc_hearth":[220,201,110],"card_melting":[220,212,110],"card_mittens":[220,195,110],"card_mix_batter":[220,205,110],"card_mood_happy":[220,174,110],"card_mood_surprise":[220,204,110],"card_mood_warm":[220,182,110],"card_olaf_born":[219,220,109],"card_party_flag":[220,81,110],"card_rollball":[220,134,110],"card_scarf":[220,187,110],"card_share_cake":[220,164,110],"card_shell":[220,197,110],"card_skates":[220,175,110],"card_sky_lanterns":[220,177,110],"card_snowfall":[220,188,110],"card_strawberry":[208,220,104],"card_sunhat":[220,144,110],"card_umbrella":[220,196,110],"card_wind_snow":[220,141,110],"elsa_cheer":[156,236,78],"elsa_idle":[130,230,65],"elsa_speak":[233,230,116],"key":[1280,720,640],"olaf_cheer":[152,175,76],"olaf_idle":[105,175,52],"olaf_speak":[94,175,47],"portrait_anna":[220,220,110],"portrait_elsa":[220,220,110],"portrait_olaf":[220,220,110],"prop_mic":[127,190,63],"prop_star":[190,168,95]};
-  const ASSET_VERSION = "336a4a5abe25";
+  const SIZES = {"anna_cheer":[206,226,103],"anna_idle":[109,220,54],"anna_speak":[236,220,118],"bg_cozy":[1280,720,640],"bg_garden":[1280,720,640],"bg_palace":[1280,720,640],"card_act_castle":[220,188,110],"card_act_cocoa":[198,220,99],"card_act_rainbow":[187,220,93],"card_act_sing":[220,202,110],"card_aurora_crown":[220,174,110],"card_bake_oven":[220,204,110],"card_beanie":[208,220,104],"card_bunny_hug":[220,205,110],"card_campfire":[220,203,110],"card_cloak":[220,182,110],"card_cookie":[220,193,110],"card_crystal_show":[220,201,110],"card_dark_sky":[220,160,110],"card_feel_brave":[220,155,110],"card_feel_worried":[220,166,110],"card_frost_dome":[220,201,110],"card_gust_blow":[220,165,110],"card_ice_swan":[220,218,110],"card_icecream":[149,220,74],"card_kite":[220,191,110],"card_lantern":[206,220,103],"card_loc_castle":[220,199,110],"card_loc_garden":[220,180,110],"card_loc_hearth":[220,201,110],"card_magic_wand":[208,220,104],"card_melting":[220,212,110],"card_mittens":[220,195,110],"card_mix_batter":[220,205,110],"card_mood_happy":[220,174,110],"card_mood_surprise":[220,204,110],"card_mood_warm":[220,182,110],"card_olaf_born":[219,220,109],"card_party_flag":[220,81,110],"card_picnic_blanket":[220,128,110],"card_picnic_feast":[220,155,110],"card_pin_stones":[220,142,110],"card_rollball":[220,134,110],"card_scarf":[220,187,110],"card_share_cake":[220,164,110],"card_shell":[220,197,110],"card_skates":[220,175,110],"card_sky_lanterns":[220,177,110],"card_snow_bunny":[220,174,110],"card_snowfall":[220,188,110],"card_star_footprints":[220,181,110],"card_strawberry":[208,220,104],"card_sunhat":[220,144,110],"card_topic_bedtime":[220,195,110],"card_topic_food":[220,176,110],"card_topic_oops":[220,192,110],"card_topic_play":[220,199,110],"card_umbrella":[220,196,110],"card_warm_sun":[193,220,96],"card_wind_snow":[220,141,110],"elsa_cheer":[156,236,78],"elsa_idle":[130,230,65],"elsa_speak":[233,230,116],"key":[1280,720,640],"olaf_cheer":[152,175,76],"olaf_idle":[105,175,52],"olaf_speak":[94,175,47],"portrait_anna":[220,220,110],"portrait_elsa":[220,220,110],"portrait_olaf":[220,220,110],"prop_mic":[127,190,63],"prop_star":[190,168,95]};
+  const ASSET_VERSION = "9578fa35a205";
   const assetURL = file => `game/${file}?v=${ASSET_VERSION}`;
 
-  const HD_NAMES = new Set(["anna_cheer","anna_idle","anna_speak","bg_cozy","bg_garden","bg_palace","card_act_castle","card_act_cocoa","card_act_rainbow","card_act_sing","card_bake_oven","card_beanie","card_campfire","card_cloak","card_cookie","card_icecream","card_kite","card_lantern","card_loc_castle","card_loc_garden","card_loc_hearth","card_melting","card_mittens","card_mix_batter","card_mood_happy","card_mood_surprise","card_mood_warm","card_olaf_born","card_party_flag","card_rollball","card_scarf","card_share_cake","card_shell","card_skates","card_sky_lanterns","card_snowfall","card_strawberry","card_sunhat","card_umbrella","card_wind_snow","elsa_cheer","elsa_idle","elsa_speak","key","olaf_cheer","olaf_idle","olaf_speak","portrait_anna","portrait_elsa","portrait_olaf","prop_mic","prop_star"]);
+  const HD_NAMES = new Set(["anna_cheer","anna_idle","anna_speak","bg_cozy","bg_garden","bg_palace","card_act_castle","card_act_cocoa","card_act_rainbow","card_act_sing","card_aurora_crown","card_bake_oven","card_beanie","card_bunny_hug","card_campfire","card_cloak","card_cookie","card_crystal_show","card_dark_sky","card_feel_brave","card_feel_worried","card_frost_dome","card_gust_blow","card_ice_swan","card_icecream","card_kite","card_lantern","card_loc_castle","card_loc_garden","card_loc_hearth","card_magic_wand","card_melting","card_mittens","card_mix_batter","card_mood_happy","card_mood_surprise","card_mood_warm","card_olaf_born","card_party_flag","card_picnic_blanket","card_picnic_feast","card_pin_stones","card_rollball","card_scarf","card_share_cake","card_shell","card_skates","card_sky_lanterns","card_snow_bunny","card_snowfall","card_star_footprints","card_strawberry","card_sunhat","card_topic_bedtime","card_topic_food","card_topic_oops","card_topic_play","card_umbrella","card_warm_sun","card_wind_snow","elsa_cheer","elsa_idle","elsa_speak","key","olaf_cheer","olaf_idle","olaf_speak","portrait_anna","portrait_elsa","portrait_olaf","prop_mic","prop_star"]);
   const HD_FROM = 1700;
   const hd = { on: false, ready: new Set(), asked: new Set(), live: new Set(), timer: 0 };
   const ART_PATIENCE = 1500;
@@ -1216,7 +1743,7 @@ function createGame() {
   const img = (name, x, y, w, h, parent, extra) => el('image', Object.assign({ href: SRC(name), x, y, width: w, height: h, preserveAspectRatio: 'none' }, extra), parent);
 
   /** @type {{ lines?: Record<string, any> }} */
-  const LINES = {"v":1,"voices":{"elsa":{"zh":["elevenlabs:hkfHEbBvdQFNX4uWHqRF","-5%","eleven_v4"]},"anna":{"zh":["elevenlabs:BT0SH7Hb8NRPpT5xbCgg","+0%","eleven_v4"]},"olaf":{"zh":["elevenlabs:lkK6X9yp6sIA3vecwS2p","+6%","eleven_v4"]}},"lines":{"p1":{"who":"elsa","say":["欢迎来到冰雪故事魔法屋！今天我们不光是听故事，还要当小小故事导演哦！"]},"p2":{"who":"anna","say":["对呀！先用图画积木把故事按顺序摆好，再用金色话筒把故事大声讲出来！"]},"p3":{"who":"olaf","say":["太棒了！我还准备了好多笑哈哈的卡片，就等着听你的声音呢！出发吧！"]},"win":{"who":"anna","say":["哇，太神奇了！八个冰雪故事全部导演完成，极光天灯亮起来啦！"]},"end":{"who":"elsa","say":["小宝贝，你现在既能讲清先接着最后，还能说出因为所以，真是了不起的冰雪小主播！"]},"me_elsa":{"who":"elsa","say":["你好呀小导演，我是艾莎。我会用冰雪魔法陪你把每个故事讲得清清楚楚！"]},"me_anna":{"who":"anna","say":["嘿嘿，我是安娜！快挑几张好玩的图画卡片，我最喜欢听你编故事啦！"]},"me_olaf":{"who":"olaf","say":["哈哈，我是爱抱抱的雪宝！记住别离暖炉太近哦，快对准金色话筒讲给我听吧！"]},"ui_play":{"who":"elsa","say":["开始当小导演！"]},"ui_continue":{"who":"elsa","say":["继续讲故事！"]},"ui_next":{"who":"anna","say":["下一步！"]},"ui_replay":{"who":"anna","say":["再玩一次！"]},"ui_back":{"who":"elsa","say":["返回！"]},"ui_rooms":{"who":"anna","say":["故事关卡地图！"]},"ui_train":{"who":"olaf","say":["自由造句小火车！"]},"ui_album":{"who":"elsa","say":["我的故事留声机！"]},"ui_meet":{"who":"anna","say":["认识艾莎、安娜和雪宝！"]},"ui_settings":{"who":"elsa","say":["家长报告和设置！"]},"ui_hint":{"who":"olaf","say":["来看小提示！"]},"ui_fullscreen":{"who":"elsa","say":["全屏播放！"]},"ui_demo":{"who":"elsa","say":["点我听标准示范！"]},"ui_mic":{"who":"olaf","say":["点金色话筒开始录音！"]},"ui_stop":{"who":"anna","say":["录好啦，点我停止！"]},"ui_listen":{"who":"anna","say":["回放我讲的故事！"]},"ui_skip":{"who":"elsa","say":["收下小金星，去下一站！"]},"ui_room_snowman":{"who":"olaf","say":["第一关，先接着最后，一起堆雪宝！"]},"ui_room_cake":{"who":"anna","say":["第二关，先接着最后，烤草莓蛋糕！"]},"ui_room_train_park":{"who":"elsa","say":["第三关，冰雪花园造句小火车！"]},"ui_room_train_home":{"who":"anna","say":["第四关，暖暖壁炉造句小火车！"]},"ui_room_group_picnic":{"who":"elsa","say":["第五关，整理野餐甜品篮！"]},"ui_room_group_winter":{"who":"anna","say":["第六关，收拾保暖小衣柜！"]},"ui_room_reason_rain":{"who":"olaf","say":["第七关，小侦探搭理由桥！"]},"ui_room_reason_finale":{"who":"elsa","say":["第八关，冰雪盛典许愿灯！"]},"intro_snowman":{"who":"olaf","say":["请按先、接着、最后的顺序，挑出堆雪宝的三张图画吧！最先发生什么呢？"]},"demo_snowman":{"who":"olaf","say":["先下起漫天大雪，接着我们一起滚动大雪球，最后可爱的雪宝就醒过来啦！"]},"clear_snowman":{"who":"olaf","say":["太棒了！你讲得先、接着、最后清清楚楚，雪宝开心得跳起来啦！"]},"intro_cake":{"who":"anna","say":["我们来做大蛋糕啦！先做什么，接着做什么，最后做什么呢？"]},"demo_cake":{"who":"anna","say":["先在木碗里拌好草莓面糊，接着送进暖暖的小烤箱，最后大家一起分享大蛋糕！"]},"clear_cake":{"who":"anna","say":["好香甜呀！小导演把做蛋糕的步骤说得井井有条，大红心送给你！"]},"intro_train_park":{"who":"elsa","say":["魔法造句小火车开来啦！帮雪宝拼出：雪宝、在冰雪花园里、堆城堡、真开心！"]},"demo_train_park":{"who":"elsa","say":["雪宝在冰雪花园里，堆了一座亮晶晶的雪城堡，开心得不得了！"]},"clear_train_park":{"who":"elsa","say":["哇，四节小火车全部满载故事积木啦，这句话又完整又好听！"]},"intro_train_home":{"who":"anna","say":["这次帮我搭小火车呀：安娜、在暖暖壁炉边、喝热可可、心里暖融融！"]},"demo_train_home":{"who":"anna","say":["安娜在暖暖的壁炉边，端起棉花糖热可可慢慢喝，心里暖融融的！"]},"clear_train_home":{"who":"anna","say":["耶！谁在哪儿干什么怎么样，你全部说对啦！"]},"intro_group_picnic":{"who":"elsa","say":["野餐篮要装三样好吃的点心和水果！请仔细挑出能吃的三样宝贝放进篮子里！"]},"demo_group_picnic":{"who":"elsa","say":["野餐篮里有三种美食：第一是红草莓，第二是星星饼干，第三是草莓冰淇淋！"]},"clear_group_picnic":{"who":"elsa","say":["先说总数再数一二三，这样介绍美食真让小伙伴一听就流口水！"]},"intro_group_winter":{"who":"anna","say":["外面雪花飘飘，从头到脚挑选三件冬天出门的保暖宝贝放进小衣柜吧！"]},"demo_group_winter":{"who":"anna","say":["出门要带三件保暖宝贝：第一是绒球毛线帽，第二是软软厚手套，第三是紫红暖斗篷！"]},"clear_group_winter":{"who":"anna","say":["整齐极了！小主播整理秀大获成功！"]},"intro_reason_rain":{"who":"olaf","say":["呼呼刮冷风下大雪啦！先挑一件选对的宝贝，再挑一张告诉大家因为什么！"]},"reason_puz2_intro":{"who":"olaf","say":["答对第一题！看第二题，太阳好暖好晒，怎样保护雪宝不会化掉呢？"]},"demo_reason_rain":{"who":"olaf","say":["我选紫红暖斗篷，因为外面正在下大雪好冷呀！我还选撑起小阳伞，因为能帮雪宝遮太阳不融化！"]},"clear_reason_rain":{"who":"olaf","say":["哇，小侦探不但挑得准，还把因为什么讲得明明白白！"]},"intro_reason_finale":{"who":"elsa","say":["最后一站啦！冰雪盛典选放什么点亮夜空，又是因为什么心情呢？"]},"demo_reason_finale":{"who":"elsa","say":["盛典夜里我选放飞许愿天灯，因为暖暖的灯光会让大家的笑脸像太阳一样温暖！"]},"clear_reason_finale":{"who":"elsa","say":["太惊艳了！你是最有魔法的小小故事导演！"]},"studio_prompt":{"who":"olaf","say":["故事积木搭好啦！先点小喇叭听一听完整示范，再点大话筒录下你的小声音吧！"]},"rec_done_1":{"who":"anna","say":["哇，你的小声音又响亮又有感情，像森林小播音员！"]},"rec_done_2":{"who":"olaf","say":["哈哈，我听到了你的声音！讲得太精彩啦，我要再听一遍！"]},"rec_done_3":{"who":"elsa","say":["真是太棒了，你的声音比雪花魔法还要动听呢！"]},"mic_fallback":{"who":"elsa","say":["这里没找到小话筒也没关系哦，跟着艾莎大声讲一遍，同样能收获金星星！"]},"try_1":{"who":"olaf","say":["差一点点哦，再想想先做什么呀？"]},"try_2":{"who":"anna","say":["哎呀再找找看，哪一张更合拍呢？"]},"try_3":{"who":"elsa","say":["别着急，点一点卡片先听听它们是谁吧！"]},"assist_1":{"who":"elsa","say":["看呀，发金光的那张小卡片在向你招手呢！"]},"idle_1":{"who":"anna","say":["点下面发光的小图卡，它就会跳进上面亮晶晶的槽位里哦！"]},"idle_2":{"who":"olaf","say":["不知道先选哪个的话，就点亮着金色边框的卡片试试看！"]},"idle_3":{"who":"elsa","say":["我在听呢，慢慢想，用小手指点一点你喜欢的卡片！"]},"cheer_elsa":{"who":"elsa","say":["雪花魔法保佑你，小宝贝今天真勇敢！"]},"cheer_anna":{"who":"anna","say":["给你一个大大的公主拥抱，继续加油哦！"]},"cheer_olaf":{"who":"olaf","say":["雪宝最喜欢和你一起编故事啦，嘿嘿！"]},"free_train_intro":{"who":"anna","say":["欢迎登上自由造句列车！随便挑谁、在哪儿、干什么、怎么样，编一个属于你自己的奇妙故事吧！"]},"album_intro":{"who":"elsa","say":["这里是你的故事留声机，点一点亮起的小徽章，就能重温自己讲过的故事声音哦！"]},"card_portrait_elsa":{"who":"anna","say":["艾莎"]},"card_portrait_anna":{"who":"elsa","say":["安娜"]},"card_portrait_olaf":{"who":"olaf","say":["雪宝"]},"card_snowfall":{"who":"olaf","say":["下起大雪啦"]},"card_rollball":{"who":"olaf","say":["滚动大雪球"]},"card_olaf_born":{"who":"olaf","say":["雪宝醒过来"]},"card_mix_batter":{"who":"anna","say":["搅拌草莓面糊"]},"card_bake_oven":{"who":"anna","say":["送进小烤箱"]},"card_share_cake":{"who":"anna","say":["分享大蛋糕"]},"card_loc_garden":{"who":"elsa","say":["在冰雪花园里"]},"card_loc_castle":{"who":"elsa","say":["在水晶城堡里"]},"card_loc_hearth":{"who":"anna","say":["在暖暖壁炉边"]},"card_act_castle":{"who":"olaf","say":["堆冰雪小城堡"]},"card_act_cocoa":{"who":"anna","say":["喝香甜热可可"]},"card_act_rainbow":{"who":"elsa","say":["画七色彩虹"]},"card_act_sing":{"who":"olaf","say":["拿着话筒唱歌"]},"card_mood_happy":{"who":"olaf","say":["开心得不得了"]},"card_mood_warm":{"who":"anna","say":["心里暖融融的"]},"card_mood_surprise":{"who":"olaf","say":["觉得好惊喜"]},"card_strawberry":{"who":"elsa","say":["甜甜红草莓"]},"card_cookie":{"who":"elsa","say":["星星小饼干"]},"card_scarf":{"who":"anna","say":["暖和花围巾"]},"card_skates":{"who":"anna","say":["白色溜冰鞋"]},"card_lantern":{"who":"anna","say":["发光小灯笼"]},"card_beanie":{"who":"anna","say":["绒球毛线帽"]},"card_mittens":{"who":"anna","say":["软软厚手套"]},"card_icecream":{"who":"olaf","say":["草莓冰淇淋"]},"card_shell":{"who":"olaf","say":["海边小贝壳"]},"card_kite":{"who":"anna","say":["蝴蝶大风筝"]},"card_cloak":{"who":"anna","say":["紫红暖斗篷"]},"card_sunhat":{"who":"olaf","say":["夏天小草帽"]},"card_wind_snow":{"who":"olaf","say":["因为下大雪好冷呀"]},"card_umbrella":{"who":"olaf","say":["撑起小阳伞"]},"card_campfire":{"who":"olaf","say":["暖烘烘小火堆"]},"card_melting":{"who":"olaf","say":["因为太阳好晒会化掉"]},"card_party_flag":{"who":"elsa","say":["城堡在开派对"]},"card_sky_lanterns":{"who":"elsa","say":["放飞许愿天灯"]}}};
+  const LINES = {"v":1,"voices":{"elsa":{"zh":["elevenlabs:hkfHEbBvdQFNX4uWHqRF","-5%","eleven_v4"]},"anna":{"zh":["elevenlabs:BT0SH7Hb8NRPpT5xbCgg","+0%","eleven_v4"]},"olaf":{"zh":["elevenlabs:lkK6X9yp6sIA3vecwS2p","+6%","eleven_v4"]}},"lines":{"p1":{"who":"elsa","say":["欢迎来到冰雪故事魔法屋！今天我们不光是听故事，还要当小小故事导演哦！"]},"p2":{"who":"anna","say":["对呀！先用图画积木把故事按顺序摆好，再用金色话筒把故事大声讲出来！"]},"p3":{"who":"olaf","say":["太棒了！我还准备了好多笑哈哈的卡片，就等着听你的声音呢！出发吧！"]},"win":{"who":"anna","say":["哇，太神奇了！十二个冰雪故事全部导演完成，极光天灯把夜空都点亮啦！"]},"end":{"who":"elsa","say":["小宝贝，你现在不仅能讲顺序和理由，还能说出转折故事山和心里想法，真是闪闪发光的冰雪故事大导演！"]},"me_elsa":{"who":"elsa","say":["你好呀小导演，我是艾莎。我会用冰雪魔法陪你把每个故事讲得清清楚楚！"]},"me_anna":{"who":"anna","say":["嘿嘿，我是安娜！快挑几张好玩的图画卡片，我最喜欢听你编故事啦！"]},"me_olaf":{"who":"olaf","say":["哈哈，我是爱抱抱的雪宝！记住别离暖炉太近哦，快对准金色话筒讲给我听吧！"]},"ui_play":{"who":"elsa","say":["开始当小导演！"]},"ui_continue":{"who":"elsa","say":["继续讲故事！"]},"ui_next":{"who":"anna","say":["下一步！"]},"ui_replay":{"who":"anna","say":["再玩一次！"]},"ui_back":{"who":"elsa","say":["返回！"]},"ui_rooms":{"who":"anna","say":["故事关卡地图！"]},"ui_train":{"who":"olaf","say":["自由造句小火车！"]},"ui_album":{"who":"elsa","say":["我的故事留声机！"]},"ui_meet":{"who":"anna","say":["认识艾莎、安娜和雪宝！"]},"ui_settings":{"who":"elsa","say":["家长报告和设置！"]},"ui_hint":{"who":"olaf","say":["来看小提示！"]},"ui_fullscreen":{"who":"elsa","say":["全屏播放！"]},"ui_demo":{"who":"elsa","say":["点我听标准示范！"]},"ui_mic":{"who":"olaf","say":["点金色话筒开始录音！"]},"ui_stop":{"who":"anna","say":["录好啦，点我停止！"]},"ui_listen":{"who":"anna","say":["回放我讲的故事！"]},"ui_skip":{"who":"elsa","say":["收下小金星，去下一站！"]},"ui_interview":{"who":"olaf","say":["雪宝今日小记者采访！"]},"ui_tier_cloze":{"who":"olaf","say":["小接力接话筒模式！"]},"ui_tier_director":{"who":"elsa","say":["小导演点卡演播模式！"]},"ui_tier_anchor":{"who":"anna","say":["独立小主播聚光灯模式！"]},"ui_fx_normal":{"who":"elsa","say":["原声清晰播放！"]},"ui_fx_olaf":{"who":"olaf","say":["雪宝快乐变声！"]},"ui_fx_hall":{"who":"elsa","say":["水晶大厅回声！"]},"ui_mode_train":{"who":"anna","say":["切换到四节造句小火车！"]},"ui_mode_mountain":{"who":"elsa","say":["切换到五步故事山！"]},"ui_tab_stories":{"who":"elsa","say":["故事关卡录音集！"]},"ui_tab_free":{"who":"anna","say":["我的自由创作集！"]},"ui_tab_diary":{"who":"olaf","say":["雪宝今日日记本！"]},"ui_room_snowman":{"who":"olaf","say":["第一关，先接着最后，一起堆雪宝！"]},"ui_room_cake":{"who":"anna","say":["第二关，先接着最后，烤草莓蛋糕！"]},"ui_room_train_park":{"who":"elsa","say":["第三关，冰雪花园造句小火车！"]},"ui_room_train_home":{"who":"anna","say":["第四关，暖暖壁炉造句小火车！"]},"ui_room_group_picnic":{"who":"elsa","say":["第五关，整理野餐甜品篮！"]},"ui_room_group_winter":{"who":"anna","say":["第六关，收拾保暖小衣柜！"]},"ui_room_reason_rain":{"who":"olaf","say":["第七关，小侦探搭理由桥！"]},"ui_room_reason_finale":{"who":"elsa","say":["第八关，冰雪盛典许愿灯！"]},"ui_room_twist_picnic":{"who":"anna","say":["第九关，转折解困，风吹野餐布！"]},"ui_room_twist_sculpture":{"who":"elsa","say":["第十关，转折解困，守护冰天鹅！"]},"ui_room_episode_bunny":{"who":"olaf","say":["第十一关，五步故事山，迷路小雪兔！"]},"ui_room_episode_aurora":{"who":"elsa","say":["第十二关，五步故事山，寻找极光星！"]},"intro_snowman":{"who":"olaf","say":["请按先、接着、最后的顺序，挑出堆雪宝的三张图画吧！最先发生什么呢？"]},"demo_snowman":{"who":"olaf","say":["先下起漫天大雪，接着我们一起滚动大雪球，最后可爱的雪宝就醒过来啦！"]},"clear_snowman":{"who":"olaf","say":["太棒了！你讲得先、接着、最后清清楚楚，雪宝开心得跳起来啦！"]},"intro_cake":{"who":"anna","say":["我们来做大蛋糕啦！先做什么，接着做什么，最后做什么呢？"]},"demo_cake":{"who":"anna","say":["先在木碗里拌好草莓面糊，接着送进暖暖的小烤箱，最后大家一起分享大蛋糕！"]},"clear_cake":{"who":"anna","say":["好香甜呀！小导演把做蛋糕的步骤说得井井有条，大红心送给你！"]},"intro_train_park":{"who":"elsa","say":["魔法造句小火车开来啦！挑出谁、在哪儿、干什么和怎么样，随便组合都能开出你的故事列车哦！"]},"demo_train_park":{"who":"elsa","say":["雪宝在冰雪花园里，堆了一座亮晶晶的雪城堡，开心得不得了！"]},"clear_train_park":{"who":"elsa","say":["哇，四节小火车全部满载故事积木啦，这句话又完整又好听！"]},"intro_train_home":{"who":"anna","say":["暖暖壁炉造句小火车来啦！自由挑选四张图画积木，编一句好玩的话告诉我吧！"]},"demo_train_home":{"who":"anna","say":["安娜在暖暖的壁炉边，端起棉花糖热可可慢慢喝，心里暖融融的！"]},"clear_train_home":{"who":"anna","say":["耶！谁在哪儿干什么怎么样，你全部说对啦！"]},"intro_group_picnic":{"who":"elsa","say":["野餐篮要装三样好吃的点心和水果！请仔细挑出能吃的三样宝贝放进篮子里！"]},"demo_group_picnic":{"who":"elsa","say":["野餐篮里有三种美食：第一是红草莓，第二是星星饼干，第三是草莓冰淇淋！"]},"clear_group_picnic":{"who":"elsa","say":["先说总数再数一二三，这样介绍美食真让小伙伴一听就流口水！"]},"intro_group_winter":{"who":"anna","say":["外面雪花飘飘，从头到脚挑选三件冬天出门的保暖宝贝放进小衣柜吧！"]},"demo_group_winter":{"who":"anna","say":["出门要带三件保暖宝贝：第一是绒球毛线帽，第二是软软厚手套，第三是紫红暖斗篷！"]},"clear_group_winter":{"who":"anna","say":["整齐极了！小主播整理秀大获成功！"]},"intro_reason_rain":{"who":"olaf","say":["呼呼刮冷风下大雪啦！先挑一件选对的宝贝，再挑一张告诉大家因为什么！"]},"reason_puz2_intro":{"who":"olaf","say":["答对第一题！看第二题，太阳好暖好晒，怎样保护雪宝不会化掉呢？"]},"demo_reason_rain":{"who":"olaf","say":["我选紫红暖斗篷，因为外面正在下大雪好冷呀！我还选撑起小阳伞，因为能帮雪宝遮太阳不融化！"]},"clear_reason_rain":{"who":"olaf","say":["哇，小侦探不但挑得准，还把因为什么讲得明明白白！"]},"intro_reason_finale":{"who":"elsa","say":["第八关啦！冰雪盛典选放什么点亮夜空，又是因为什么心情呢？"]},"demo_reason_finale":{"who":"elsa","say":["盛典夜里我选放飞许愿天灯，因为暖暖的灯光会让大家的笑脸像太阳一样温暖！"]},"clear_reason_finale":{"who":"elsa","say":["太棒了！原因和理由站全部通关，接下来要去挑战转折大故事啦！"]},"intro_twist_picnic":{"who":"anna","say":["新挑战来啦！先放本来想铺什么，可是遇上什么麻烦，于是想出什么办法，最后怎么开心啦？"]},"demo_twist_picnic":{"who":"anna","say":["春天里我们本来想在草坪铺开野餐花布，可是刮起大风差点把布吹跑，于是我们用四颗小石头压住四角，最后就能稳稳当当吃大餐啦！"]},"clear_twist_picnic":{"who":"anna","say":["太厉害了！你会用本来想、可是、于是、最后讲出有转折的好故事啦！"]},"intro_twist_sculpture":{"who":"elsa","say":["冰雕展遇到新考验啦！本来想、可是、于是、最后，快来排排好！"]},"demo_twist_sculpture":{"who":"elsa","say":["我们本来想堆一只晶莹剔透的冰天鹅，可是太阳公公好晒冰块快化掉啦，于是搭起冰雪遮阳罩，最后冰天鹅又闪闪发光啦！"]},"clear_twist_sculpture":{"who":"elsa","say":["真有办法！转折解困小故事讲得既顺畅又动听！"]},"intro_episode_bunny":{"who":"olaf","say":["五步故事山来啦！谁在哪儿、遇麻烦、心里觉得、想办法、最后结局！一步一步搭出来吧！"]},"demo_episode_bunny":{"who":"olaf","say":["可爱的小雪兔去雪林里玩耍，突然下起大雪找不到路啦，它心里有点小着急，于是跟着闪亮的星光脚印一直走，最后安全扑进妈妈怀里温暖抱抱！"]},"clear_episode_bunny":{"who":"olaf","say":["哇！你连小伙伴心里的感觉都讲出来啦，真是有爱心的故事大导演！"]},"intro_episode_aurora":{"who":"elsa","say":["最高峰的极光故事山啦！谁在哪儿、遇到什么麻烦、心里什么感受、用什么办法、最后看见什么呀？"]},"demo_episode_aurora":{"who":"elsa","say":["在水晶城堡的夜里，乌云突然把天黑黑遮住了，小导演深呼吸心里变勇敢，于是挥动冰雪魔法棒，最后点亮了漫天七彩极光！"]},"clear_episode_aurora":{"who":"elsa","say":["了不起！整座故事山五步一气呵成，艾莎为你颁发大导演金皇冠！"]},"studio_prompt":{"who":"olaf","say":["故事积木搭好啦！点小喇叭听示范，点中间绿色或金色按钮切换小接力和点卡模式，再按金色话筒录故事吧！"]},"rec_done_1":{"who":"anna","say":["哇，你的小声音又响亮又有感情，像森林小播音员！"]},"rec_done_2":{"who":"olaf","say":["哈哈，我听到了你的声音！讲得太精彩啦，我要再听一遍！"]},"rec_done_3":{"who":"elsa","say":["真是太棒了，你的声音比雪花魔法还要动听呢！"]},"mic_fallback":{"who":"elsa","say":["这里没找到小话筒也没关系哦，跟着艾莎大声讲一遍，同样能收获金星星！"]},"try_1":{"who":"olaf","say":["差一点点哦，再想想先做什么呀？"]},"try_2":{"who":"anna","say":["哎呀再找找看，哪一张更合拍呢？"]},"try_3":{"who":"elsa","say":["别着急，点一点卡片先听听它们是谁吧！"]},"assist_1":{"who":"elsa","say":["看呀，发金光的那张小卡片在向你招手呢！"]},"recast_order":{"who":"olaf","say":["嘿嘿，这张卡片也很有趣！咱们按先、接着、最后的顺序再排一排哦！"]},"recast_classify":{"who":"anna","say":["哈哈这个好玩，不过篮子要找同一类的好朋友哦！再仔细看看！"]},"recast_reason":{"who":"elsa","say":["嗯，想想上面那个小线索需要哪种办法和原因呢？试着换一张看看！"]},"cue_first":{"who":"olaf","say":["先说最开始，先怎么啦？"]},"cue_then":{"who":"anna","say":["接着呢，又发生了什么？"]},"cue_last":{"who":"elsa","say":["最后怎么样啦？"]},"cue_who":{"who":"olaf","say":["故事的主角是谁呀？"]},"cue_where":{"who":"elsa","say":["他在哪里呢？"]},"cue_what":{"who":"anna","say":["他正在干什么呀？"]},"cue_mood":{"who":"olaf","say":["大家觉得怎么样呀？"]},"cue_num1":{"who":"anna","say":["第一件是什么呢？"]},"cue_num2":{"who":"elsa","say":["第二件是什么呀？"]},"cue_num3":{"who":"olaf","say":["第三件是什么呢？"]},"cue_pick":{"who":"olaf","say":["你挑了什么宝贝呀？"]},"cue_why":{"who":"elsa","say":["为什么这样选呢，因为什么？"]},"cue_plan":{"who":"anna","say":["最开始，本来想做什么呀？"]},"cue_but":{"who":"olaf","say":["可是呀，突然遇到什么啦？"]},"cue_so":{"who":"elsa","say":["于是，想出什么办法呀？"]},"cue_problem":{"who":"olaf","say":["呀，遇到什么小麻烦了？"]},"cue_feel":{"who":"anna","say":["他心里当时觉得怎么样呀？"]},"cue_action":{"who":"elsa","say":["后来想了什么好办法呀？"]},"interview_intro":{"who":"olaf","say":["嗨小记者！今天过得怎么样？选一个图画主题，对着话筒讲讲今天的新鲜事吧！"]},"interview_play":{"who":"olaf","say":["今天去哪里玩啦？先玩了什么，接着玩了什么，最后开心吗？快对着话筒告诉我！"]},"interview_food":{"who":"olaf","say":["今天最喜欢吃哪样好吃的呀？我选什么，因为什么味道好棒？快讲给我听！"]},"interview_oops":{"who":"anna","say":["今天有没有遇到小小意外呀？本来想干嘛，可是怎么啦，最后怎么解决的？"]},"interview_bedtime":{"who":"elsa","say":["睡前回想今天最开心的三件事吧！第一、第二、第三，轻声讲进日记本里！"]},"eye_care_rest":{"who":"elsa","say":["小导演已经连续讲了十分钟精彩故事啦！快眨眨眼睛看看窗外远处，让小眼睛休息一下再回来哦！"]},"idle_1":{"who":"anna","say":["点下面发光的小图卡，它就会跳进上面亮晶晶的槽位里哦！"]},"idle_2":{"who":"olaf","say":["不知道先选哪个的话，就点亮着金色边框的卡片试试看！"]},"idle_3":{"who":"elsa","say":["我在听呢，慢慢想，用小手指点一点你喜欢的卡片！"]},"cheer_elsa":{"who":"elsa","say":["雪花魔法保佑你，小宝贝今天真勇敢！"]},"cheer_anna":{"who":"anna","say":["给你一个大大的公主拥抱，继续加油哦！"]},"cheer_olaf":{"who":"olaf","say":["雪宝最喜欢和你一起编故事啦，嘿嘿！"]},"free_train_intro":{"who":"anna","say":["欢迎来到自由故事魔法站！上方可以切换造句小火车和五步故事山，随时录下你的新故事哦！"]},"album_intro":{"who":"elsa","say":["这里是你的故事留声机，上方还能切换自由创作和雪宝日记本，点亮小徽章就能重温声音哦！"]},"card_portrait_elsa":{"who":"anna","say":["艾莎"]},"card_portrait_anna":{"who":"elsa","say":["安娜"]},"card_portrait_olaf":{"who":"olaf","say":["雪宝"]},"card_snowfall":{"who":"olaf","say":["下起大雪啦"]},"card_rollball":{"who":"olaf","say":["滚动大雪球"]},"card_olaf_born":{"who":"olaf","say":["雪宝醒过来"]},"card_mix_batter":{"who":"anna","say":["搅拌草莓面糊"]},"card_bake_oven":{"who":"anna","say":["送进小烤箱"]},"card_share_cake":{"who":"anna","say":["分享大蛋糕"]},"card_loc_garden":{"who":"elsa","say":["在冰雪花园里"]},"card_loc_castle":{"who":"elsa","say":["在水晶城堡里"]},"card_loc_hearth":{"who":"anna","say":["在暖暖壁炉边"]},"card_act_castle":{"who":"olaf","say":["堆冰雪小城堡"]},"card_act_cocoa":{"who":"anna","say":["喝香甜热可可"]},"card_act_rainbow":{"who":"elsa","say":["画七色彩虹"]},"card_act_sing":{"who":"olaf","say":["拿着话筒唱歌"]},"card_mood_happy":{"who":"olaf","say":["开心得不得了"]},"card_mood_warm":{"who":"anna","say":["心里暖融融的"]},"card_mood_surprise":{"who":"olaf","say":["觉得好惊喜"]},"card_strawberry":{"who":"elsa","say":["甜甜红草莓"]},"card_cookie":{"who":"elsa","say":["星星小饼干"]},"card_scarf":{"who":"anna","say":["暖和花围巾"]},"card_skates":{"who":"anna","say":["白色溜冰鞋"]},"card_lantern":{"who":"anna","say":["发光小灯笼"]},"card_beanie":{"who":"anna","say":["绒球毛线帽"]},"card_mittens":{"who":"anna","say":["软软厚手套"]},"card_icecream":{"who":"olaf","say":["草莓冰淇淋"]},"card_shell":{"who":"olaf","say":["海边小贝壳"]},"card_kite":{"who":"anna","say":["蝴蝶大风筝"]},"card_cloak":{"who":"anna","say":["紫红暖斗篷"]},"card_sunhat":{"who":"olaf","say":["夏天小草帽"]},"card_wind_snow":{"who":"olaf","say":["因为下大雪好冷呀"]},"card_umbrella":{"who":"olaf","say":["撑起小阳伞"]},"card_campfire":{"who":"olaf","say":["暖烘烘小火堆"]},"card_melting":{"who":"olaf","say":["因为太阳好晒会化掉"]},"card_party_flag":{"who":"elsa","say":["城堡在开派对"]},"card_sky_lanterns":{"who":"elsa","say":["放飞许愿天灯"]},"card_picnic_blanket":{"who":"anna","say":["铺开野餐花布"]},"card_gust_blow":{"who":"olaf","say":["刮起大风差点吹跑"]},"card_pin_stones":{"who":"anna","say":["用小石头压住四角"]},"card_picnic_feast":{"who":"anna","say":["稳稳当当吃大餐"]},"card_ice_swan":{"who":"elsa","say":["堆一只冰天鹅"]},"card_warm_sun":{"who":"olaf","say":["太阳晒得快化掉"]},"card_frost_dome":{"who":"elsa","say":["支起冰雪遮阳罩"]},"card_crystal_show":{"who":"elsa","say":["冰雕闪闪发光啦"]},"card_snow_bunny":{"who":"olaf","say":["小白兔去雪林玩"]},"card_feel_worried":{"who":"olaf","say":["心里有点小着急"]},"card_star_footprints":{"who":"olaf","say":["跟着星光找脚印"]},"card_bunny_hug":{"who":"olaf","say":["扑进妈妈怀里抱抱"]},"card_dark_sky":{"who":"elsa","say":["天突然黑下来啦"]},"card_feel_brave":{"who":"elsa","say":["心里深呼吸变勇敢"]},"card_magic_wand":{"who":"elsa","say":["挥动冰雪魔法棒"]},"card_aurora_crown":{"who":"elsa","say":["点亮最美极光夜空"]},"card_topic_play":{"who":"olaf","say":["说说今天去哪儿玩啦"]},"card_topic_food":{"who":"olaf","say":["说说今天吃了什么美味"]},"card_topic_oops":{"who":"anna","say":["说说遇到了什么小插曲"]},"card_topic_bedtime":{"who":"elsa","say":["说说今天开心的三件事"]}}};
   const lineOf = key => (LINES.lines && LINES.lines[key]) || null;
   const hasLineKey = key => !!lineOf(key);
 
@@ -1244,10 +1771,12 @@ function createGame() {
   }
   fillSnow($('snowBack'), 24, false);
   fillSnow($('snowFront'), 10, true);
-  /* Differentiated 4-Structure Stage Builders (Sequence, Sentence Train, Classify Basket, Reason Bridge) & Little Anchor Studio. */
+  /* Differentiated 6-Structure Stage Builders, Montessori Drag-and-Snap & 3-Tier Little Anchor Studio. */
   const stageState = {
     idx: -1, phase: '', stepIdx: -1, puzzleIdx: -1, assistCard: '', hintCard: '', demoHeard: false,
-    recorded: false, hasClip: false, recording: false, activeCardIdx: -1,
+    recorded: false, hasClip: false, recording: false, premiere: false, activeCardIdx: -1,
+    tier: (typeof save === 'object' && save.studioTier) || 'director',
+    voiceFx: 'normal',
   };
   let lastHoverMs = 0;
 
@@ -1281,7 +1810,7 @@ function createGame() {
   function renderCardTile(parent, opts) {
     const { x, y, w, h, cid, badgeKind, empty, active, glow, dim, actName, dataAttr, onSlotClick } = opts;
     const interactive = cid && !dim;
-    const cls = (interactive ? 'card-btn' : '') + (glow || active ? ' ux-pulse' : '');
+    const cls = (interactive ? 'card-btn' : '') + (glow || active ? ' ux-pulse' : '') + (empty && active ? ' ux-active-slot' : '');
     const meta = cid ? cardMetaOf(cid) : { label: '空位' };
     const g = el('g', Object.assign({
       class: cls,
@@ -1292,10 +1821,10 @@ function createGame() {
 
     const vis = el('g', { class: 'card-vis', filter: 'url(#softShadow)' }, g);
     const fill = empty ? 'rgba(18, 28, 62, .65)' : '#fff9ec';
-    const warmEdge = badgeKind === '1' || badgeKind === 'who' || badgeKind === 'pick';
+    const warmEdge = badgeKind === '1' || badgeKind === 'who' || badgeKind === 'pick' || badgeKind === 'plan' || badgeKind === 'but';
     const stroke = glow || active ? '#ffd27a' : (warmEdge ? '#ff9cc4' : '#7dd4ff');
     el('rect', {
-      width: w, height: h, rx: 22, fill, stroke,
+      width: w, height: h, rx: 20, fill, stroke,
       'stroke-width': glow || active ? 4.5 : 3.2,
       ...(empty ? { 'stroke-dasharray': '9 7' } : {}),
       ...(dim ? { opacity: '.28' } : {}),
@@ -1303,15 +1832,15 @@ function createGame() {
 
     if (badgeKind) {
       const bg = el('g', { transform: `translate(${w / 2} -2)` }, vis);
-      bg.innerHTML = uxSlotBadgeSvg(badgeKind, !!active, 16);
+      bg.innerHTML = uxSlotBadgeSvg(badgeKind, !!active, 15);
     }
 
     if (empty) {
-      const q = el('text', { x: w / 2, y: h / 2 + 14, 'text-anchor': 'middle', 'font-size': 42, fill: active ? '#ffd27a' : '#8da7db' }, vis);
+      const q = el('text', { x: w / 2, y: h / 2 + 14, 'text-anchor': 'middle', 'font-size': 38, fill: active ? '#ffd27a' : '#8da7db' }, vis);
       q.textContent = '?';
     } else if (cid) {
       const topPad = badgeKind ? 18 : 10;
-      const availW = w - 20, availH = h - topPad - 10;
+      const availW = w - 18, availH = h - topPad - 10;
       const [iw, ih] = SIZES[cid] || [200, 200];
       const sc = Math.min(availW / iw, availH / ih);
       const dw = iw * sc, dh = ih * sc;
@@ -1325,12 +1854,84 @@ function createGame() {
     return g;
   }
 
-  function bindChoiceCard(node, cid) {
-    const go = () => onCardPick(cid, node);
-    node.addEventListener('pointerenter', /** @param {PointerEvent} e */ e => { if (e.pointerType !== 'touch') onCardHover(cid); });
+  function svgPoint(clientX, clientY) {
+    const st = $('stage');
+    if (!st) return { x: 480, y: 260 };
+    const r = st.getBoundingClientRect();
+    if (!r.width || !r.height) return { x: 480, y: 260 };
+    return { x: (clientX - r.left) * (960 / r.width), y: (clientY - r.top) * (520 / r.height) };
+  }
+
+  function bindChoiceCard(node, cid, dims) {
+    const bw = (dims && dims.w) || 156, bh = (dims && dims.h) || 148;
+    let pointerId = -1, sx0 = 0, sy0 = 0, dragging = false, suppressClick = false;
+
+    const cleanupDrag = () => {
+      node.classList.remove('ux-dragging');
+      const dl = $('dragLayer');
+      if (dl) dl.textContent = '';
+      const activeSlot = $('slots') && $('slots').querySelector('.ux-active-slot');
+      if (activeSlot) activeSlot.classList.remove('ux-slot-magnet');
+    };
+
+    const nearSlot = sy => sy < 268;
+
+    node.addEventListener('pointerenter', /** @param {PointerEvent} e */ e => { if (e.pointerType !== 'touch' && !dragging) onCardHover(cid); });
     node.addEventListener('focus', () => onCardHover(cid));
-    node.addEventListener('click', go);
-    node.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+
+    node.addEventListener('pointerdown', /** @param {PointerEvent} e */ e => {
+      if (e.button && e.button !== 0) return;
+      pointerId = e.pointerId != null ? e.pointerId : 1;
+      sx0 = e.clientX; sy0 = e.clientY;
+      dragging = false; suppressClick = false;
+      try { if (node.setPointerCapture) node.setPointerCapture(pointerId); } catch (err) {}
+    });
+
+    node.addEventListener('pointermove', /** @param {PointerEvent} e */ e => {
+      if (pointerId < 0) return;
+      const dist = Math.hypot(e.clientX - sx0, e.clientY - sy0);
+      if (!dragging && dist > 12) {
+        dragging = true;
+        suppressClick = true;
+        onCardHover(cid);
+        node.classList.add('ux-dragging');
+        const dl = $('dragLayer');
+        if (dl) {
+          dl.textContent = '';
+          const pt = svgPoint(e.clientX, e.clientY);
+          const ghost = renderCardTile(dl, { x: pt.x - bw / 2, y: pt.y - bh / 2, w: bw, h: bh, cid, glow: true });
+          ghost.setAttribute('data-drag-ghost', '1');
+        }
+      }
+      if (dragging) {
+        const pt = svgPoint(e.clientX, e.clientY);
+        const dl = $('dragLayer');
+        const ghost = dl && dl.querySelector('[data-drag-ghost]');
+        if (ghost) ghost.setAttribute('transform', `translate(${(pt.x - bw / 2).toFixed(1)} ${(pt.y - bh / 2).toFixed(1)})`);
+        const activeSlot = $('slots') && $('slots').querySelector('.ux-active-slot');
+        if (activeSlot) activeSlot.classList.toggle('ux-slot-magnet', nearSlot(pt.y));
+      }
+    });
+
+    const endDrag = (e, commit) => {
+      if (pointerId < 0) return;
+      try { if (node.releasePointerCapture) node.releasePointerCapture(pointerId); } catch (err) {}
+      pointerId = -1;
+      if (dragging) {
+        dragging = false;
+        const pt = svgPoint(e.clientX || 0, e.clientY || 0);
+        cleanupDrag();
+        if (commit && nearSlot(pt.y)) onCardPick(cid, node);
+      }
+    };
+
+    node.addEventListener('pointerup', e => endDrag(e, true));
+    node.addEventListener('pointercancel', e => endDrag(e, false));
+    node.addEventListener('click', () => {
+      if (suppressClick) { suppressClick = false; return; }
+      onCardPick(cid, node);
+    });
+    node.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCardPick(cid, node); } });
   }
 
   function drawVisualHeader(host, mode, lv, g) {
@@ -1346,14 +1947,27 @@ function createGame() {
         inner += `<g transform="translate(${cx} 24)">${uxSlotBadgeSvg(String(i + 1), i === g.stepIdx || !!g.slots[i], 15)}</g>`;
         if (i < 2) inner += arr(cx + 21, cx + 45, 24);
       }
-    } else if (mode === 'sentence') {
+    } else if (mode === 'sentence' || mode === 'twist') {
       w = 320;
-      const kinds = ['who', 'where', 'what', 'mood'];
+      const kinds = uxSlotBadgesFor(lv, 4);
       inner = spk(28, 24, 17, true);
       for (let i = 0; i < 4; i++) {
         const cx = 84 + i * 62;
         inner += `<g transform="translate(${cx} 24)">${uxSlotBadgeSvg(kinds[i], i === g.stepIdx || !!g.slots[i], 15)}</g>`;
-        if (i < 3) inner += `<rect x="${cx + 21}" y="22" width="20" height="4" rx="2" fill="#ffd27a"/>`;
+        if (i < 3) {
+          inner += mode === 'sentence'
+            ? `<rect x="${cx + 21}" y="22" width="20" height="4" rx="2" fill="#ffd27a"/>`
+            : arr(cx + 20, cx + 42, 24);
+        }
+      }
+    } else if (mode === 'episode') {
+      w = 352;
+      const kinds = uxSlotBadgesFor(lv, 5);
+      inner = spk(26, 24, 16, true);
+      for (let i = 0; i < 5; i++) {
+        const cx = 76 + i * 60;
+        inner += `<g transform="translate(${cx} 24)">${uxSlotBadgeSvg(kinds[i], i === g.stepIdx || !!g.slots[i], 14)}</g>`;
+        if (i < 4) inner += arr(cx + 18, cx + 40, 24);
       }
     } else if (mode === 'classify') {
       w = 296;
@@ -1393,7 +2007,7 @@ function createGame() {
         + `<circle cx="232" cy="24" r="16" fill="${hasClip ? 'url(#goldGrad)' : '#253978'}" stroke="#fff7de" stroke-width="2"/><path d="${UX_STAR_D}" transform="translate(232 24) scale(11)" fill="${hasClip ? '#4a2605' : '#9eb6e6'}"/>`;
     }
 
-    const x = Math.round(449 - w / 2);
+    const x = Math.round(480 - w / 2);
     const hitY = h < 64 ? -(64 - h) / 2 : 0;
     const hitH = Math.max(64, h);
     host.insertAdjacentHTML('beforeend',
@@ -1417,7 +2031,7 @@ function createGame() {
     const lv = g.level();
     const choices = g.currentChoices();
     const skill = lv.skill;
-    const badges = uxSlotBadgesFor(lv);
+    const badges = uxSlotBadgesFor(lv, g.slots.length);
 
     if (skill === 'sequence') {
       drawVisualHeader(slotsBox, 'sequence', lv, g);
@@ -1444,7 +2058,7 @@ function createGame() {
           glow: g.assistCard === cid || g.hintCard === cid,
           dataAttr: ['data-cid', cid],
         });
-        bindChoiceCard(n, cid);
+        bindChoiceCard(n, cid, { w: bw, h: bh });
       });
     } else if (skill === 'sentence') {
       drawVisualHeader(slotsBox, 'sentence', lv, g);
@@ -1468,10 +2082,68 @@ function createGame() {
       choices.forEach((cid, i) => {
         const n = renderCardTile(cardsBox, {
           x: bx0 + i * (bw + bgap), y: 288, w: bw, h: bh, cid,
+          glow: !lv.openCompose && (g.assistCard === cid || g.hintCard === cid),
+          dataAttr: ['data-cid', cid],
+        });
+        bindChoiceCard(n, cid, { w: bw, h: bh });
+      });
+    } else if (skill === 'twist') {
+      drawVisualHeader(slotsBox, 'twist', lv, g);
+      const cw = 140, ch = 138, gap = 18;
+      const x0 = 480 - (4 * cw + 3 * gap) / 2;
+      for (let i = 0; i < 4; i++) {
+        const x = x0 + i * (cw + gap);
+        renderCardTile(slotsBox, {
+          x, y: 96, w: cw, h: ch,
+          cid: g.slots[i] || '',
+          badgeKind: badges[i],
+          empty: !g.slots[i],
+          active: i === g.stepIdx,
+          onSlotClick: true,
+        });
+        if (i < 3) {
+          if (i === 1) {
+            el('path', { d: `M${x + cw + 2} 164Q${x + cw + gap / 2} 134 ${x + cw + gap - 4} 164`, fill: 'none', stroke: '#ff9cc4', 'stroke-width': 3.5, 'stroke-linecap': 'round' }, slotsBox);
+          } else {
+            el('path', { d: `M${x + cw + 2} 165H${x + cw + gap - 4}L${x + cw + gap - 9} 160M${x + cw + gap - 4} 165L${x + cw + gap - 9} 170`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, slotsBox);
+          }
+        }
+      }
+      const bw = 142, bh = 148, bgap = 18, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
+      choices.forEach((cid, i) => {
+        const used = g.slots.includes(cid);
+        const n = renderCardTile(cardsBox, {
+          x: bx0 + i * (bw + bgap), y: 288, w: bw, h: bh, cid, dim: used,
+          glow: !used && (g.assistCard === cid || g.hintCard === cid),
+          dataAttr: ['data-cid', cid],
+        });
+        if (!used) bindChoiceCard(n, cid, { w: bw, h: bh });
+      });
+    } else if (skill === 'episode') {
+      drawVisualHeader(slotsBox, 'episode', lv, g);
+      const cw = 114, ch = 122, gap = 12;
+      const x0 = 480 - (5 * cw + 4 * gap) / 2;
+      const ys = [132, 108, 88, 108, 132];
+      const pts = ys.map((yy, i) => `${x0 + i * (cw + gap) + cw / 2} ${yy + ch / 2}`).join(' L ');
+      el('path', { d: `M ${pts}`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 4, 'stroke-dasharray': '8 6', opacity: '.65' }, slotsBox);
+      for (let i = 0; i < 5; i++) {
+        renderCardTile(slotsBox, {
+          x: x0 + i * (cw + gap), y: ys[i], w: cw, h: ch,
+          cid: g.slots[i] || '',
+          badgeKind: badges[i],
+          empty: !g.slots[i],
+          active: i === g.stepIdx,
+          onSlotClick: true,
+        });
+      }
+      const bw = 158, bh = 144, bgap = 26, bx0 = 480 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
+      choices.forEach((cid, i) => {
+        const n = renderCardTile(cardsBox, {
+          x: bx0 + i * (bw + bgap), y: 296, w: bw, h: bh, cid,
           glow: g.assistCard === cid || g.hintCard === cid,
           dataAttr: ['data-cid', cid],
         });
-        bindChoiceCard(n, cid);
+        bindChoiceCard(n, cid, { w: bw, h: bh });
       });
     } else if (skill === 'classify') {
       drawVisualHeader(slotsBox, 'classify', lv, g);
@@ -1496,7 +2168,7 @@ function createGame() {
           glow: !used && (g.assistCard === cid || g.hintCard === cid),
           dataAttr: ['data-cid', cid],
         });
-        if (!used) bindChoiceCard(n, cid);
+        if (!used) bindChoiceCard(n, cid, { w: bw, h: bh });
       });
     } else {
       drawVisualHeader(slotsBox, 'reason', lv, g);
@@ -1519,7 +2191,7 @@ function createGame() {
           glow: g.assistCard === cid || g.hintCard === cid,
           dataAttr: ['data-cid', cid],
         });
-        bindChoiceCard(n, cid);
+        bindChoiceCard(n, cid, { w: bw, h: bh });
       });
     }
 
@@ -1536,6 +2208,13 @@ function createGame() {
       const r = n.querySelector('rect');
       if (r) r.setAttribute('stroke', on ? '#ffd27a' : '#7dd4ff');
     });
+  }
+
+  function nudgeNextStudioCard(nextIdx) {
+    const box = $('studio');
+    if (!box) return;
+    const node = box.querySelector(`[data-studio-card="${nextIdx}"]`);
+    if (node) node.classList.add('ux-pulse');
   }
 
   function setStudioWaves(bars) {
@@ -1557,68 +2236,110 @@ function createGame() {
     box.textContent = '';
     const lv = g.level();
     const list = g.studioCards();
-    const badges = uxSlotBadgesFor(lv);
+    const n = Math.max(1, list.length);
+    const badges = uxSlotBadgesFor(lv, n);
+    const rec = stageState.recording;
+    const anchorLive = rec && stageState.tier === 'anchor';
 
     drawVisualHeader(box, 'studio', lv, g);
 
-    const n = Math.max(1, list.length);
-    const cw = n >= 4 ? 136 : (n === 3 ? 166 : 182);
-    const ch = n >= 4 ? 146 : 158;
-    const gap = n >= 4 ? 14 : (n === 3 ? 28 : 48);
+    const cardHost = anchorLive ? el('g', { transform: 'translate(144 48) scale(.70)' }, box) : box;
+    const ys5 = [122, 102, 86, 102, 122];
+    const cw = n >= 5 ? 114 : (n === 4 ? 136 : (n === 3 ? 166 : 182));
+    const ch = n >= 5 ? 124 : (n === 4 ? 142 : 156);
+    const gap = n >= 5 ? 12 : (n === 4 ? 14 : (n === 3 ? 28 : 48));
     const x0 = 480 - (n * cw + (n - 1) * gap) / 2;
 
-    if (lv.skill === 'reason' && list.length === 2) {
-      el('path', { d: `M${x0 + cw + 6} 168Q480 126 ${x0 + cw + gap - 8} 168`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 4, 'stroke-dasharray': '8 6' }, box);
+    if (lv.skill === 'reason' && n === 2) {
+      el('path', { d: `M${x0 + cw + 6} 168Q480 126 ${x0 + cw + gap - 8} 168`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 4, 'stroke-dasharray': '8 6' }, cardHost);
+    } else if (lv.skill === 'reason' && n === 4) {
+      el('path', { d: `M${x0 + cw + 2} 164Q${x0 + cw + gap / 2} 130 ${x0 + cw + gap - 2} 164`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.5, 'stroke-dasharray': '6 5' }, cardHost);
+      const x2 = x0 + 2 * (cw + gap);
+      el('path', { d: `M${x2 + cw + 2} 164Q${x2 + cw + gap / 2} 130 ${x2 + cw + gap - 2} 164`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.5, 'stroke-dasharray': '6 5' }, cardHost);
+    } else if (lv.skill === 'episode' && n === 5) {
+      const pts = ys5.map((yy, i) => `${x0 + i * (cw + gap) + cw / 2} ${yy + ch / 2}`).join(' L ');
+      el('path', { d: `M ${pts}`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 4, 'stroke-dasharray': '8 6', opacity: '.65' }, cardHost);
     }
 
     list.forEach((cid, i) => {
       const cx = x0 + i * (cw + gap);
-      if (lv.skill === 'sequence' && i < n - 1) {
-        el('path', { d: `M${cx + cw + 6} 171H${cx + cw + gap - 10}L${cx + cw + gap - 16} 165M${cx + cw + gap - 10} 171L${cx + cw + gap - 16} 177`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, box);
+      const cy = n >= 5 ? ys5[i] : 92;
+      if ((lv.skill === 'sequence' || lv.skill === 'twist') && i < n - 1) {
+        if (lv.skill === 'twist' && i === 1) {
+          el('path', { d: `M${cx + cw + 2} 164Q${cx + cw + gap / 2} 134 ${cx + cw + gap - 2} 164`, fill: 'none', stroke: '#ff9cc4', 'stroke-width': 3.5 }, cardHost);
+        } else {
+          el('path', { d: `M${cx + cw + 4} 166H${cx + cw + gap - 6}L${cx + cw + gap - 11} 160M${cx + cw + gap - 6} 166L${cx + cw + gap - 11} 172`, fill: 'none', stroke: '#ffd27a', 'stroke-width': 3.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, cardHost);
+        }
       } else if (lv.skill === 'sentence') {
-        if (i < n - 1) el('rect', { x: cx + cw - 2, y: 164, width: gap + 4, height: 8, rx: 4, fill: '#ffd27a' }, box);
-        el('circle', { cx: cx + 32, cy: 244, r: 11, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 2.8 }, box);
-        el('circle', { cx: cx + cw - 32, cy: 244, r: 11, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 2.8 }, box);
+        if (i < n - 1) el('rect', { x: cx + cw - 2, y: 162, width: gap + 4, height: 8, rx: 4, fill: '#ffd27a' }, cardHost);
+        el('circle', { cx: cx + 32, cy: 242, r: 11, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 2.8 }, cardHost);
+        el('circle', { cx: cx + cw - 32, cy: 242, r: 11, fill: '#263876', stroke: '#ffd27a', 'stroke-width': 2.8 }, cardHost);
       }
 
-      const cardNode = renderCardTile(box, {
-        x: cx, y: 92, w: cw, h: ch,
+      const cardNode = renderCardTile(cardHost, {
+        x: cx, y: cy, w: cw, h: ch,
         cid, badgeKind: badges[i],
         active: stageState.activeCardIdx === i,
         dataAttr: ['data-studio-card', String(i)],
       });
       cardNode.addEventListener('click', () => {
-        uxNudge(cardNode);
-        speakCard(cid);
-        highlightStudioCard(i);
+        if (typeof onStudioCardTap === 'function') onStudioCardTap(i, cid, cardNode);
+        else { uxNudge(cardNode); speakCard(cid); highlightStudioCard(i); }
       });
       cardNode.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); speakCard(cid); highlightStudioCard(i); }
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (typeof onStudioCardTap === 'function') onStudioCardTap(i, cid, cardNode);
+          else { speakCard(cid); highlightStudioCard(i); }
+        }
       });
     });
 
-    // 7-bar aurora waveform meter
-    const waveCols = ['#7dd4ff', '#9fe8ff', '#ff9cc4', '#ffd27a', '#ff9cc4', '#9fe8ff', '#7dd4ff'];
-    const wg = el('g', { id: 'studioWaves', transform: 'translate(480 278)' }, box);
-    for (let i = 0; i < 7; i++) {
-      el('rect', { x: (i - 3) * 26 - 6, y: 17, width: 12, height: 10, rx: 6, fill: waveCols[i], opacity: stageState.recording ? '.98' : '.42' }, wg);
+    if (anchorLive) {
+      box.insertAdjacentHTML('beforeend', `<circle cx="480" cy="296" r="110" fill="url(#warm)" opacity=".45" pointer-events="none"/>
+        <g transform="translate(480 250)">${uxIcon('crown', 28, '#ffd27a')}</g>`);
+    }
+    if (stageState.premiere) {
+      box.insertAdjacentHTML('beforeend', `<polygon points="480,68 250,480 710,480" fill="url(#warm)" opacity=".22" pointer-events="none"/>`);
     }
 
-    const rec = stageState.recording;
+    // 7-bar aurora waveform meter (center)
+    const waveCols = ['#7dd4ff', '#9fe8ff', '#ff9cc4', '#ffd27a', '#ff9cc4', '#9fe8ff', '#7dd4ff'];
+    const wg = el('g', { id: 'studioWaves', transform: 'translate(480 276)' }, box);
+    for (let i = 0; i < 7; i++) {
+      el('rect', { x: (i - 3) * 26 - 6, y: 17, width: 12, height: 10, rx: 6, fill: waveCols[i], opacity: stageState.recording || stageState.premiere ? '.98' : '.42' }, wg);
+    }
+
     const hasClip = stageState.hasClip;
-    let html = uxButton({ act: 'demo', ui: 'demo', icon: 'speaker', x: 296, y: 394, r: 38, cls: (!g.demoHeard && !rec) ? 'ux-pulse' : '' });
+    let html = '';
+    // Left 3-Tier Scaffold Selector (visible when idle)
+    if (!rec) {
+      const tiers = [['cloze', 184], ['director', 254], ['anchor', 324]];
+      for (const [tk, tx] of tiers) {
+        html += uxButton({ act: 'tier_' + tk, ui: `tier_${tk}`, icon: tk, x: tx, y: 298, r: 32, plate: stageState.tier === tk ? 'gold' : '' });
+      }
+    }
+    // Right 3 Voice Effect Chips (visible when clip exists & idle)
+    if (hasClip && !rec) {
+      const fxs = [['normal', 636], ['olaf', 706], ['hall', 776]];
+      for (const [fk, fxX] of fxs) {
+        html += uxButton({ act: 'fx_' + fk, ui: `fx_${fk}`, icon: 'fx_' + fk, x: fxX, y: 298, r: 32, plate: stageState.voiceFx === fk ? 'gold' : '' });
+      }
+    }
+
+    html += uxButton({ act: 'demo', ui: 'demo', icon: 'speaker', x: 296, y: 406, r: 38, cls: (!g.demoHeard && !rec) ? 'ux-pulse' : '' });
     if (rec) {
-      html += `<circle class="ux-ripple" cx="480" cy="388" r="52" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>`
-        + `<circle class="ux-ripple" cx="480" cy="388" r="52" fill="none" stroke="#ffb3c8" stroke-width="3" style="animation-delay:.6s" pointer-events="none"/>`
-        + uxButton({ act: 'mic', ui: 'stop', icon: 'stop', x: 480, y: 388, r: 50, plate: 'rec', cls: 'ux-pulse' });
+      html += `<circle class="ux-ripple" cx="480" cy="400" r="52" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>`
+        + `<circle class="ux-ripple" cx="480" cy="400" r="52" fill="none" stroke="#ffb3c8" stroke-width="3" style="animation-delay:.6s" pointer-events="none"/>`
+        + uxButton({ act: 'mic', ui: 'stop', icon: 'stop', x: 480, y: 400, r: 50, plate: 'rec', cls: 'ux-pulse' });
     } else {
-      html += uxButton({ act: 'mic', ui: 'mic', pic: 'prop_mic', x: 480, y: 388, r: 50, plate: 'gold', cls: (g.demoHeard && !hasClip) ? 'ux-pulse' : '' });
+      html += uxButton({ act: 'mic', ui: 'mic', pic: 'prop_mic', x: 480, y: 400, r: 50, plate: 'gold', cls: (g.demoHeard && !hasClip) ? 'ux-pulse' : '' });
     }
     if (hasClip) {
-      html += uxButton({ act: 'listen', ui: 'listen', icon: 'play', x: 626, y: 394, r: 36 });
-      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 738, y: 394, r: 40, plate: 'gold', cls: 'ux-pulse' });
+      html += uxButton({ act: 'listen', ui: 'listen', icon: 'play', x: 626, y: 406, r: 36 });
+      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 738, y: 406, r: 40, plate: 'gold', cls: 'ux-pulse' });
     } else {
-      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 668, y: 394, r: 38, plate: 'gold', cls: g.demoHeard ? 'ux-pulse' : '' });
+      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 668, y: 406, r: 38, plate: 'gold', cls: g.demoHeard ? 'ux-pulse' : '' });
     }
     box.insertAdjacentHTML('beforeend', html);
 
@@ -1628,6 +2349,12 @@ function createGame() {
       mic: () => onStudioMicToggle(),
       listen: () => onStudioListen(),
       done: () => onStudioDone(),
+      tier_cloze: () => setStudioTier('cloze'),
+      tier_director: () => setStudioTier('director'),
+      tier_anchor: () => setStudioTier('anchor'),
+      fx_normal: () => selectVoiceFx('normal'),
+      fx_olaf: () => selectVoiceFx('olaf'),
+      fx_hall: () => selectVoiceFx('hall'),
     });
   }
 
@@ -1649,8 +2376,14 @@ function createGame() {
       if (typeof syncHud === 'function') syncHud();
     }
   }
-  /* Host & Companion Wing Hero Rendering (Elsa, Anna & Olaf), Interactive Cheer Tap & Grounded Shadows. */
+  /* Host & Companion Wing Hero Rendering (Elsa, Anna & Olaf), Live Voice Puppet Bounce & Cheer Tap. */
   const heroDrawn = { built: false, leftWho: '', leftPose: '', rightWho: '', rightPose: '' };
+  const liveVoice = { active: false, energy: 0 };
+
+  function setLiveVoice(active, energy) {
+    liveVoice.active = !!active;
+    liveVoice.energy = Math.max(0, Math.min(1, energy || 0));
+  }
 
   function buildActors() {
     const box = $('actors');
@@ -1694,13 +2427,20 @@ function createGame() {
     if (!heroDrawn.built) buildActors();
     const lv = g.level();
     const [leftWho, rightWho] = pairForHost(lv.host);
-    const poseOf = who => {
+    const e = liveVoice.active ? liveVoice.energy : 0;
+    const poseOf = (who, isLeft) => {
       const h = g.heroes[who];
       if (!h) return 'idle';
       if (h.cheer > 0.05) return 'cheer';
+      if (g.phase === 'studio' && liveVoice.active) {
+        if (e > .42) return 'cheer';
+        if (e > .11 && isLeft) return 'speak';
+        if (e > .24 && !isLeft) return 'speak';
+        return 'idle';
+      }
       return g.phase === 'build' && who === lv.host ? 'speak' : 'idle';
     };
-    const lPose = poseOf(leftWho), rPose = poseOf(rightWho);
+    const lPose = poseOf(leftWho, true), rPose = poseOf(rightWho, false);
     const leftG = $('heroLeft'), rightG = $('heroRight');
 
     if (heroDrawn.leftWho !== leftWho || heroDrawn.leftPose !== lPose) {
@@ -1712,13 +2452,17 @@ function createGame() {
       heroDrawn.rightWho = rightWho; heroDrawn.rightPose = rPose;
     }
 
-    const lbob = Math.sin(now * 2.5) * 3 + (g.heroes[leftWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[leftWho].cheer * 10)) * 14 : 0);
-    const rbob = Math.cos(now * 2.3) * 3 + (g.heroes[rightWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[rightWho].cheer * 10)) * 14 : 0);
-    leftG.setAttribute('transform', `translate(92 ${(466 + lbob).toFixed(1)})`);
-    rightG.setAttribute('transform', `translate(868 ${(466 + rbob).toFixed(1)}) scale(-1 1)`);
+    const vBounceL = liveVoice.active ? -e * 18 : 0;
+    const vBounceR = liveVoice.active ? -e * 13 : 0;
+    const leanL = liveVoice.active ? (1 + e * .06) : 1;
+    const lbob = Math.sin(now * 2.5) * 3 + (g.heroes[leftWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[leftWho].cheer * 10)) * 14 : 0) + vBounceL;
+    const rbob = Math.cos(now * 2.3) * 3 + (g.heroes[rightWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[rightWho].cheer * 10)) * 14 : 0) + vBounceR;
+    leftG.setAttribute('transform', `translate(92 ${(466 + lbob).toFixed(1)}) scale(${leanL.toFixed(3)})`);
+    rightG.setAttribute('transform', `translate(868 ${(466 + rbob).toFixed(1)}) scale(${(-leanL).toFixed(3)} ${leanL.toFixed(3)})`);
   }
-  /* Particle bursts, confetti snowflakes & 14s idle guide sparkle ring over expected card. */
+  /* Particle bursts, confetti snowflakes, voice-driven mic sparkles & 14s idle guide ring. */
   const fxList = [];
+  let lastVoiceFxMs = 0;
 
   function uxConfetti(parent, x, y, count) {
     const host = parent || $('fx');
@@ -1728,6 +2472,23 @@ function createGame() {
       const sp = 55 + Math.random() * 95;
       const node = el('circle', { cx: x, cy: y, r: 3.2 + Math.random() * 2.4, fill: cols[i % cols.length] }, host);
       fxList.push({ node, x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 45, g: 210, t: 0, dur: .75 + Math.random() * .35 });
+    }
+  }
+
+  function fxVoiceSparkle(energy) {
+    if (!energy || energy < .16) return;
+    const now = performance.now();
+    if (now - lastVoiceFxMs < 150) return;
+    lastVoiceFxMs = now;
+    const host = $('fx');
+    if (!host) return;
+    const cols = ['#ffd27a', '#9fe8ff', '#ff9ec4', '#ffffff'];
+    const n = energy > .45 ? 3 : 1;
+    for (let i = 0; i < n; i++) {
+      const x = 440 + Math.random() * 80;
+      const y = 340 + Math.random() * 22;
+      const node = el('circle', { cx: x, cy: y, r: 2.5 + energy * 3, fill: cols[(Math.random() * cols.length) | 0] }, host);
+      fxList.push({ node, x, y, vx: (Math.random() - .5) * 46, vy: -70 - energy * 90, g: 40, t: 0, dur: .7 + Math.random() * .3 });
     }
   }
 
@@ -1768,14 +2529,23 @@ function createGame() {
         fxList.splice(i, 1);
       }
     }
+    if (typeof liveVoice === 'object' && liveVoice.active && liveVoice.energy > .16) fxVoiceSparkle(liveVoice.energy);
     if (g) renderIdleGuide(g, now);
   }
-  /* Enchanted Arendelle harp/celesta WebAudio score, tactile SFX & strict microphone mute while recording. */
+  /* Enchanted Arendelle harp/celesta WebAudio score, tactile SFX, Cloze/Premiere/Mic-Mute modes. */
   const AC = window.AudioContext || window.webkitAudioContext;
-  let audio = null, muted = !setting('sound'), voiceOn = false, micMute = false, bus = null, curLevel = 0;
+  let audio = null, muted = !setting('sound'), voiceOn = false, recMode = 'off', bus = null, curLevel = 0;
 
-  const soundWanted = () => !muted && !micMute && !(typeof isPortraitView === 'function' && isPortraitView());
-  const musicLevel = () => soundWanted() ? (voiceOn ? .03 : .11) : 0;
+  const isAudioAllowed = () => !muted && !(typeof isPortraitView === 'function' && isPortraitView());
+  const soundWanted = () => isAudioAllowed() && recMode !== 'rec_quiet' && recMode !== 'rec_cloze';
+  const sfxWanted = () => isAudioAllowed() && (recMode === 'off' || recMode === 'premiere');
+  const voiceWanted = () => isAudioAllowed() && recMode !== 'rec_quiet';
+  const musicLevel = () => {
+    if (!isAudioAllowed()) return 0;
+    if (recMode === 'rec_quiet' || recMode === 'rec_cloze') return 0;
+    if (recMode === 'premiere') return .032;
+    return voiceOn ? .03 : .11;
+  };
 
   function makeAudio() {
     if (audio || !AC) return;
@@ -1784,8 +2554,8 @@ function createGame() {
       const comp = audio.createDynamicsCompressor();
       comp.threshold.value = -16; comp.knee.value = 18; comp.ratio.value = 3;
       const music = audio.createGain(); music.gain.value = musicLevel();
-      const sfx = audio.createGain(); sfx.gain.value = soundWanted() ? .9 : 0;
-      const vGain = audio.createGain(); vGain.gain.value = 1;
+      const sfx = audio.createGain(); sfx.gain.value = sfxWanted() ? .9 : 0;
+      const vGain = audio.createGain(); vGain.gain.value = voiceWanted() ? 1 : 0;
       music.connect(comp); sfx.connect(comp); vGain.connect(comp); comp.connect(audio.destination);
       bus = { comp, music, sfx, voice: vGain };
     } catch (e) { audio = null; }
@@ -1795,13 +2565,18 @@ function createGame() {
     if (!audio || !bus) return;
     const t = audio.currentTime;
     bus.music.gain.setTargetAtTime(musicLevel(), t, .08);
-    bus.sfx.gain.setTargetAtTime(soundWanted() ? .9 : 0, t, .05);
+    bus.sfx.gain.setTargetAtTime(sfxWanted() ? .9 : 0, t, .05);
+    bus.voice.gain.setTargetAtTime(voiceWanted() ? 1 : 0, t, .04);
+  }
+
+  function setRecordingAudioMode(mode) {
+    recMode = mode || 'off';
+    if (recMode === 'rec_quiet' && typeof voice !== 'undefined') voice.stop();
+    refreshAudioGains();
   }
 
   function setMicMute(on) {
-    micMute = !!on;
-    if (micMute && typeof voice !== 'undefined') voice.stop();
-    refreshAudioGains();
+    setRecordingAudioMode(on ? 'rec_quiet' : 'off');
   }
 
   function unlockAudio() {
@@ -1818,7 +2593,7 @@ function createGame() {
   const midi = n => 440 * Math.pow(2, (n - 69) / 12);
 
   function envNote(t, f, dur, vol, type, dest, glideF) {
-    if (!audio || !bus || !soundWanted()) return;
+    if (!audio || !bus || !isAudioAllowed()) return;
     const o = audio.createOscillator(), g = audio.createGain();
     o.type = type || 'triangle';
     o.frequency.setValueAtTime(f, t);
@@ -1832,7 +2607,8 @@ function createGame() {
 
   function uxSfx(kind) {
     unlockAudio();
-    if (!audio || !soundWanted()) return;
+    if (!audio || !isAudioAllowed()) return;
+    if (!sfxWanted() && kind !== 'cloze_cue') return;
     const t = audio.currentTime;
     if (kind === 'tap' || kind === 'page') {
       envNote(t, midi(76), .11, .13, 'sine');
@@ -1847,8 +2623,14 @@ function createGame() {
     } else if (kind === 'mic_stop') {
       envNote(t, midi(84), .11, .13, 'sine');
       envNote(t + .08, midi(72), .18, .13, 'sine');
+    } else if (kind === 'premiere') {
+      [72, 76, 79, 84].forEach((m, i) => envNote(t + i * .08, midi(m), .36, .14, 'triangle'));
+    } else if (kind === 'cloze_cue') {
+      envNote(t, midi(79), .14, .11, 'sine');
+      envNote(t + .08, midi(84), .18, .11, 'sine');
     } else if (kind === 'wrong') {
-      envNote(t, midi(62), .15, .11, 'triangle', null, midi(58));
+      // Soft Montessori bubble boop instead of harsh downward buzz
+      envNote(t, midi(67), .14, .09, 'sine', null, midi(72));
     } else if (kind === 'star' || kind === 'cheer') {
       [72, 76, 79, 84, 88].forEach((m, i) => envNote(t + i * .06, midi(m), .34, .15, 'sine'));
     } else if (kind === 'gliss') {
@@ -1952,7 +2734,7 @@ function createGame() {
   })();
 
   const talkOnEvents = TK.talkOnEvents;
-  /* Story prologue, Chapter intro cards, 3-star Clear overlay (with Parent Tip) & Grand Finale celebration. */
+  /* Story prologue (distinct vignettes), Chapter intro cards, 3-star Clear, 10-min Eye-Care & Grand Finale. */
   let story = null;
   const storyIsOpen = () => !!story;
   const uxHooks = { replay: /** @type {(i: number) => void} */ (() => {}) };
@@ -1963,7 +2745,6 @@ function createGame() {
   function uxLine(key, opts) { return hasLineKey(key) ? voice.line(key, opts) : Promise.resolve(false); }
   function uxPreload(keys) { if (typeof voice !== 'undefined' && voice.preload) voice.preload(keys); }
   function uxStopVoice() { if (typeof voice !== 'undefined' && voice.stop) voice.stop(); }
-  function uxWait(ms) { return new Promise(ok => setTimeout(ok, ms)); }
 
   function uxScreen(name) { story = { name, onKey: null }; return story; }
   const uxAlive = s => story === s;
@@ -1993,6 +2774,7 @@ function createGame() {
     if (kind === 'mic') return `<rect x="${-s * .22}" y="${-s * .52}" width="${s * .44}" height="${s * .62}" rx="${s * .22}" fill="${c}"/><path d="M${-s * .42} ${-s * .05}A${s * .42} ${s * .42} 0 0 0 ${s * .42} ${-s * .05}M0 ${s * .38}V${s * .58}M${-s * .25} ${s * .58}H${s * .25}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
     if (kind === 'speaker') return `<path d="M${-s * .45} ${-s * .22}H${-s * .18}L${s * .14} ${-s * .48}V${s * .48}L${-s * .18} ${s * .22}H${-s * .45}Z" fill="${c}"/><path d="M${s * .28} ${-s * .26}A${s * .36} ${s * .36} 0 0 1 ${s * .28} ${s * .26}M${s * .45} ${-s * .44}A${s * .6} ${s * .6} 0 0 1 ${s * .45} ${s * .44}" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`;
     if (kind === 'train') return `<circle cx="${-s * .28}" cy="${-s * .44}" r="${s * .1}" fill="${c}" opacity=".65"/><circle cx="${-s * .12}" cy="${-s * .56}" r="${s * .07}" fill="${c}" opacity=".45"/><path d="M${-s * .42} ${-s * .1}V${-s * .32}H${-s * .26}V${-s * .1}H${s * .04}V${-s * .36}H${s * .48}V${s * .18}H${-s * .48}V${-s * .1}Z" fill="${c}"/><rect x="${s * .12}" y="${-s * .24}" width="${s * .24}" height="${s * .18}" rx="2" fill="#fff9ec" opacity=".88"/><circle cx="${-s * .26}" cy="${s * .32}" r="${s * .14}" fill="${c}"/><circle cx="${s * .24}" cy="${s * .32}" r="${s * .14}" fill="${c}"/>`;
+    if (kind === 'mountain') return `<path d="M${-s * .58} ${s * .42}L${-s * .14} ${-s * .36}L${s * .08} ${s * .06}L${s * .28} ${-s * .2}L${s * .6} ${s * .42}Z" fill="${c}"/><path d="${UX_STAR_D}" transform="translate(${-s * .14} ${-s * .52}) scale(${s * .2})" fill="#ffd27a"/>`;
     if (kind === 'fullscreen') return `<path d="M${-s * .48} ${-s * .16}V${-s * .48}H${-s * .16}M${s * .16} ${-s * .48}H${s * .48}V${-s * .16}M${s * .48} ${s * .16}V${s * .48}H${s * .16}M${-s * .16} ${s * .48}H${-s * .48}V${s * .16}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
     if (kind === 'lock') return `<path d="M${-s * .24} ${-s * .08}V${-s * .24}A${s * .24} ${s * .24} 0 0 1 ${s * .24} ${-s * .24}V${-s * .08}" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round"/><rect x="${-s * .38}" y="${-s * .08}" width="${s * .76}" height="${s * .58}" rx="${s * .14}" fill="${c}"/><circle cx="0" cy="${s * .2}" r="${s * .09}" fill="#1b264f"/>`;
     if (kind === 'album') return `<circle r="${s * .48}" fill="none" stroke="${c}" stroke-width="3"/><circle r="${s * .16}" fill="${c}"/>`;
@@ -2000,6 +2782,15 @@ function createGame() {
     if (kind === 'sticker') return `<path d="${UX_STAR_D}" transform="scale(${s * .68})" fill="${c}"/>`;
     if (kind === 'rooms') return `<rect x="${-s * .5}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${-s * .5}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/>`;
     if (kind === 'gear') return `<circle r="${s * .42}" fill="none" stroke="${c}" stroke-width="3.2" stroke-dasharray="5 3"/><circle r="${s * .16}" fill="${c}"/>`;
+    if (kind === 'cloze') return `<circle cx="${-s * .34}" cy="0" r="${s * .16}" fill="${c}"/><path d="M${-s * .14} 0H${s * .14}" stroke="${c}" stroke-width="3" stroke-linecap="round"/><circle cx="${s * .34}" cy="0" r="${s * .16}" fill="none" stroke="${c}" stroke-width="3" stroke-dasharray="4 3"/>`;
+    if (kind === 'director') return `<path d="M${-s * .24} ${-s * .36}V${s * .22}L${s * .06} ${s * .06}L${s * .22} ${s * .44}L${s * .36} ${s * .36}L${s * .18} ${-s * .02}L${s * .44} ${-s * .04}Z" fill="${c}"/><circle cx="${-s * .28}" cy="${-s * .44}" r="${s * .12}" fill="#ffd27a"/>`;
+    if (kind === 'anchor' || kind === 'crown') return `<path d="M${-s * .48} ${s * .3}L${-s * .54} ${-s * .24}L${-s * .2} ${s * .04}L0 ${-s * .42}L${s * .2} ${s * .04}L${s * .54} ${-s * .24}L${s * .48} ${s * .3}Z" fill="${c}"/>`;
+    if (kind === 'fx_normal') return `<circle cx="${-s * .15}" cy="${s * .24}" r="${s * .2}" fill="${c}"/><path d="M${s * .03} ${s * .24}V${-s * .42}L${s * .38} ${-s * .26}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+    if (kind === 'fx_olaf') return `<circle cx="0" cy="${-s * .22}" r="${s * .22}" fill="${c}"/><circle cx="0" cy="${s * .22}" r="${s * .3}" fill="${c}"/><path d="M${s * .08} ${-s * .24}L${s * .42} ${-s * .3}" stroke="#ff7a33" stroke-width="3.5" stroke-linecap="round"/>`;
+    if (kind === 'fx_hall') return `<circle cx="0" cy="0" r="${s * .16}" fill="${c}"/><circle cx="0" cy="0" r="${s * .34}" fill="none" stroke="${c}" stroke-width="2.4" opacity=".75"/><circle cx="0" cy="0" r="${s * .5}" fill="none" stroke="${c}" stroke-width="2" opacity=".45"/>`;
+    if (kind === 'download') return `<path d="M0 ${-s * .44}V${s * .16}M${-s * .26} ${-s * .06}L0 ${s * .2}L${s * .26} ${-s * .06}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M${-s * .44} ${s * .42}H${s * .44}" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/>`;
+    if (kind === 'diary') return `<rect x="${-s * .4}" y="${-s * .48}" width="${s * .8}" height="${s * .96}" rx="6" fill="none" stroke="${c}" stroke-width="3"/><path d="M${-s * .12} ${-s * .48}V${s * .48}M${s * .08} ${-s * .18}H${s * .26}M${s * .08} ${s * .06}H${s * .26}" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`;
+    if (kind === 'moon') return `<path d="M${s * .18} ${-s * .48}A${s * .48} ${s * .48} 0 1 0 ${s * .48} ${s * .18}A${s * .36} ${s * .36} 0 1 1 ${s * .18} ${-s * .48}Z" fill="${c}"/>`;
     return `<circle r="${s * .35}" fill="${c}"/>`;
   }
 
@@ -2028,24 +2819,38 @@ function createGame() {
     if (kind === 'what') {
       return `${ring}<circle r="${r}" fill="#ffaa33" stroke="${stroke}" stroke-width="${sw}"/><path d="M0 -9L2.5 -2.5L9 0L2.5 2.5L0 9L-2.5 2.5L-9 0L-2.5 -2.5Z" fill="#fff9ec"/>`;
     }
-    if (kind === 'mood') {
+    if (kind === 'mood' || kind === 'heart') {
       return `${ring}<circle r="${r}" fill="#a484ff" stroke="${stroke}" stroke-width="${sw}"/><circle cx="-4" cy="-3" r="1.8" fill="#fff9ec"/><circle cx="4" cy="-3" r="1.8" fill="#fff9ec"/><path d="M-5 3Q0 8 5 3" fill="none" stroke="#fff9ec" stroke-width="2.2" stroke-linecap="round"/>`;
     }
-    if (kind === 'pick') {
-      return `${ring}<circle r="${r}" fill="#ff7eb6" stroke="${stroke}" stroke-width="${sw}"/><path d="M-7 1L-2 6L8 -5" fill="none" stroke="#fff9ec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (kind === 'pick' || kind === 'end') {
+      return `${ring}<circle r="${r}" fill="${kind === 'end' ? '#49c598' : '#ff7eb6'}" stroke="${stroke}" stroke-width="${sw}"/><path d="M-7 1L-2 6L8 -5" fill="none" stroke="#fff9ec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
     }
-    if (kind === 'why') {
+    if (kind === 'why' || kind === 'so') {
       return `${ring}<circle r="${r}" fill="#ffbe3d" stroke="${stroke}" stroke-width="${sw}"/><circle cx="0" cy="-2" r="6" fill="#fff9ec"/><rect x="-3" y="4" width="6" height="4" rx="1.5" fill="#fff9ec"/>`;
+    }
+    if (kind === 'plan') {
+      return `${ring}<circle r="${r}" fill="#4db8ff" stroke="${stroke}" stroke-width="${sw}"/><path d="M-4 -7V8M-4 -6H6L3 -2L6 2H-4" fill="none" stroke="#fff9ec" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (kind === 'but' || kind === 'oops') {
+      return `${ring}<circle r="${r}" fill="#ff738f" stroke="${stroke}" stroke-width="${sw}"/><path d="M-2 -8L4 -1H-1L3 8" fill="none" stroke="#fff9ec" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (kind === 'wand') {
+      return `${ring}<circle r="${r}" fill="#45b7e8" stroke="${stroke}" stroke-width="${sw}"/><path d="M-6 6L4 -4M3 -8V-1M0 -5H7" fill="none" stroke="#fff9ec" stroke-width="2.5" stroke-linecap="round"/>`;
+    }
+    if (kind === 'star_end') {
+      return `${ring}<circle r="${r}" fill="#ffbe3d" stroke="${stroke}" stroke-width="${sw}"/><path d="${UX_STAR_D}" transform="scale(10)" fill="#fffdf5"/>`;
     }
     return `${ring}<circle r="${r}" fill="#263876" stroke="${stroke}" stroke-width="${sw}"/>`;
   }
 
-  function uxSlotBadgesFor(lv) {
+  function uxSlotBadgesFor(lv, count) {
     if (!lv) return [];
     if (lv.skill === 'sequence') return ['1', '2', '3'];
     if (lv.skill === 'sentence') return ['who', 'where', 'what', 'mood'];
     if (lv.skill === 'classify') return ['star1', 'star2', 'star3'];
-    if (lv.skill === 'reason') return ['pick', 'why'];
+    if (lv.skill === 'reason') return count === 4 ? ['pick', 'why', 'pick', 'why'] : ['pick', 'why'];
+    if (lv.skill === 'twist') return ['plan', 'but', 'so', 'end'];
+    if (lv.skill === 'episode') return ['who', 'oops', 'heart', 'wand', 'star_end'];
     return [];
   }
 
@@ -2069,11 +2874,6 @@ function createGame() {
     node.classList.add('ux-shake');
   }
 
-  function uxPopSlot(root, k) {
-    const n = root && root.querySelector(`[data-pop="${k}"]`);
-    if (n) n.classList.add('on');
-  }
-
   function uxBind(root, handlers) {
     if (!root) return;
     root.querySelectorAll('[data-act]').forEach(btn => {
@@ -2085,6 +2885,44 @@ function createGame() {
     });
   }
 
+  function storyBeatSceneHtml(key) {
+    if (key === 'p1') {
+      return `<image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".36"/>
+        <circle cx="480" cy="240" r="190" fill="url(#aurora)" opacity=".65"/>
+        <image href="${SRC('elsa_speak')}" x="210" y="130" width="246" height="250" preserveAspectRatio="xMidYMid meet" filter="url(#softShadow)"/>
+        <rect x="494" y="134" width="234" height="222" rx="30" fill="#fff9ec" opacity=".95" stroke="#ffd27a" stroke-width="4" filter="url(#softShadow)"/>
+        ${uxPic('prop_mic', 540, 152, 140, 184, '', 'meet')}`;
+    }
+    if (key === 'p2') {
+      const seq = ['card_snowfall', 'card_rollball', 'card_olaf_born'];
+      const seqHtml = seq.map((cid, k) => `<rect x="${190 + k * 140}" y="114" width="118" height="114" rx="22" fill="#fff9ec" stroke="#ffd27a" stroke-width="3.5" filter="url(#softShadow)"/>
+        ${uxPic(cid, 202 + k * 140, 126, 94, 90, '', 'meet')}`).join('');
+      return `<image href="${SRC('bg_garden')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".42"/>
+        ${seqHtml}
+        <image href="${SRC('anna_cheer')}" x="630" y="140" width="220" height="240" preserveAspectRatio="xMidYMid meet" filter="url(#softShadow)"/>`;
+    }
+    if (key === 'p3') {
+      return `<image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".34"/>
+        <circle cx="480" cy="250" r="200" fill="url(#warm)" opacity=".55"/>
+        <image href="${SRC('olaf_cheer')}" x="392" y="160" width="184" height="216" preserveAspectRatio="xMidYMid meet" filter="url(#softShadow)"/>
+        ${uxPic('card_sky_lanterns', 196, 154, 142, 134, '', 'meet')}
+        ${uxPic('card_aurora_crown', 622, 154, 146, 134, '', 'meet')}`;
+    }
+    if (key === 'win') {
+      return `<image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".34"/>
+        <circle cx="480" cy="230" r="210" fill="url(#warm)" opacity=".55"/>
+        ${uxPic('card_aurora_crown', 350, 42, 260, 150, '', 'meet')}
+        <image href="${SRC('elsa_cheer')}" x="220" y="180" width="166" height="240" preserveAspectRatio="xMidYMid meet"/>
+        <image href="${SRC('anna_cheer')}" x="406" y="186" width="166" height="232" preserveAspectRatio="xMidYMid meet"/>
+        <image href="${SRC('olaf_cheer')}" x="594" y="216" width="154" height="196" preserveAspectRatio="xMidYMid meet"/>`;
+    }
+    return `<image href="${SRC('key')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>`;
+  }
+
   function showStory(keys, done) {
     const s = uxScreen('story');
     uxPreload(keys);
@@ -2093,7 +2931,7 @@ function createGame() {
       if (!uxAlive(s)) return;
       const key = keys[idx];
       const root = uxPaint(`<g class="page">
-        <image href="${SRC('key')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        ${storyBeatSceneHtml(key)}
         <rect width="960" height="520" fill="url(#bottomFade)" opacity=".55" pointer-events="none"/>
         <g transform="translate(480 488)">${keys.map((_, k) => `<circle cx="${(k - (keys.length - 1) / 2) * 20}" cy="0" r="${k === idx ? 6 : 4.5}" fill="${k === idx ? '#ffd27a' : '#96b4e8'}"/>`).join('')}</g>
         ${uxButton({ act: 'next', ui: 'next', icon: 'next', x: 886, y: 452, r: 38, plate: 'gold' })}
@@ -2120,24 +2958,26 @@ function createGame() {
     const host = lv.host || 'elsa';
     const preview = lv.skill === 'reason' && lv.puzzles && lv.puzzles[0]
       ? [lv.puzzles[0].promptCard, ...lv.puzzles[0].answer]
-      : (lv.target || []).slice(0, 4);
-    const badges = uxSlotBadgesFor(lv);
-    const pn = Math.max(1, preview.length), pw = 104, ph = 104, pgap = pn >= 4 ? 22 : 38;
+      : (lv.target || []).slice(0, 5);
+    const badges = uxSlotBadgesFor(lv, preview.length);
+    const pn = Math.max(1, preview.length);
+    const pw = pn >= 5 ? 90 : 104, ph = pn >= 5 ? 90 : 104, pgap = pn >= 5 ? 16 : (pn >= 4 ? 22 : 38);
     const px0 = 480 - (pn * pw + (pn - 1) * pgap) / 2;
+    const py = pn >= 5 ? 224 : 214;
     const previewHtml = preview.map((cid, i) => {
       const px = px0 + i * (pw + pgap);
       const bk = lv.skill === 'reason' ? (i === 0 ? '' : badges[i - 1]) : badges[i];
       const conn = i < pn - 1
         ? (lv.skill === 'sentence'
-          ? `<rect x="${px + pw}" y="262" width="${pgap}" height="8" rx="4" fill="#ffd27a"/>`
-          : `<path d="M${px + pw + 6} 266H${px + pw + pgap - 8}L${px + pw + pgap - 14} 260M${px + pw + pgap - 8} 266L${px + pw + pgap - 14} 272" fill="none" stroke="#ffbe3d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`)
+          ? `<rect x="${px + pw}" y="${py + ph / 2 - 4}" width="${pgap}" height="8" rx="4" fill="#ffd27a"/>`
+          : `<path d="M${px + pw + 3} ${py + ph / 2}H${px + pw + pgap - 4}L${px + pw + pgap - 9} ${py + ph / 2 - 5}M${px + pw + pgap - 4} ${py + ph / 2}L${px + pw + pgap - 9} ${py + ph / 2 + 5}" fill="none" stroke="#ffbe3d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`)
         : '';
       const wheels = lv.skill === 'sentence'
-        ? `<circle cx="${px + 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/><circle cx="${px + pw - 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/>`
+        ? `<circle cx="${px + 26}" cy="${py + ph + 8}" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/><circle cx="${px + pw - 26}" cy="${py + ph + 8}" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/>`
         : '';
-      return `${conn}${wheels}<g><rect x="${px}" y="214" width="${pw}" height="${ph}" rx="20" fill="#eef6ff" stroke="#7dd4ff" stroke-width="2.8"/>
-        <image href="${SRC(cid)}" x="${px + 8}" y="222" width="${pw - 16}" height="${ph - 16}" preserveAspectRatio="xMidYMid meet"/>
-        ${bk ? `<g transform="translate(${px + pw / 2} 212)">${uxSlotBadgeSvg(bk, false, 14)}</g>` : ''}</g>`;
+      return `${conn}${wheels}<g><rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="18" fill="#eef6ff" stroke="#7dd4ff" stroke-width="2.6"/>
+        <image href="${SRC(cid)}" x="${px + 7}" y="${py + 7}" width="${pw - 14}" height="${ph - 14}" preserveAspectRatio="xMidYMid meet"/>
+        ${bk ? `<g transform="translate(${px + pw / 2} ${py - 2})">${uxSlotBadgeSvg(bk, false, 13)}</g>` : ''}</g>`;
     }).join('');
 
     const root = uxPaint(`<g class="page">
@@ -2199,8 +3039,9 @@ function createGame() {
       <rect x="-86" y="-26" width="172" height="52" rx="26" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
       ${innerHtml}</g>`;
 
+    const dotCols = ['#ff9cc4', '#7dd4ff', '#ffd27a', '#b79cff', '#49c598', '#ff8c66'];
     const starPill = pill(284, 382, `${uxPic('prop_star', -54, -15, 32, 28, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${totalStars}/${LEVELS.length * 3}</text>`);
-    const dotsPill = pill(480, 382, `${['#ff9cc4', '#7dd4ff', '#ffd27a', '#b79cff'].map((c, i) => `<circle cx="${-50 + i * 16}" cy="0" r="6" fill="${c}" stroke="#fff9ec" stroke-width="1.2"/>`).join('')}<text x="36" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${doneSkills}/4</text>`);
+    const dotsPill = pill(480, 382, `${dotCols.map((c, i) => `<circle cx="${-56 + i * 13}" cy="0" r="5" fill="${c}" stroke="#fff9ec" stroke-width="1"/>`).join('')}<text x="44" y="8" text-anchor="middle" font-size="21" font-weight="bold" fill="#fff5cf">${doneSkills}/6</text>`);
     const micPill = pill(676, 382, `${uxPic('prop_mic', -44, -17, 22, 34, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${save.recordingsCount || 0}</text>`);
 
     const root = uxPaint(`<g class="page">
@@ -2227,7 +3068,29 @@ function createGame() {
     uxConfetti(root.querySelector('.page'), 480, 170, 36);
     uxLine('end', { maxWait: 6000 });
   }
-  /* Title Screen, 8-Room Story Map, Zero-Reading Gameplay HUD, and Parent Structured-Expression Report Modal. */
+
+  function showEyeCareBreak(done) {
+    const s = uxScreen('eyeCare');
+    const root = uxPaint(`<g class="page">
+      <image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+      <rect width="960" height="520" fill="#0d1532" opacity=".76"/>
+      <circle cx="480" cy="210" r="150" fill="url(#warm)" opacity=".35"/>
+      <g transform="translate(480 130)">
+        <circle r="56" fill="#182552" stroke="#ffd27a" stroke-width="4" filter="url(#softShadow)"/>
+        <g>${uxIcon('moon', 50, '#ffd27a')}</g>
+        <path d="${UX_STAR_D}" transform="translate(-76 -30) scale(12)" fill="#9fe8ff"/>
+        <path d="${UX_STAR_D}" transform="translate(82 -24) scale(14)" fill="#ffd27a"/>
+      </g>
+      <image href="${SRC('olaf_idle')}" x="332" y="218" width="120" height="175" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('anna_idle')}" x="506" y="198" width="126" height="196" preserveAspectRatio="xMidYMid meet"/>
+      ${uxButton({ act: 'go', ui: 'continue', icon: 'play', x: 480, y: 446, r: 44, plate: 'gold', cls: 'ux-pulse' })}
+    </g>`);
+    const go = () => uxEnd(s, done);
+    s.onKey = go;
+    uxBind(root, { go });
+    uxLine('eye_care_rest', { maxWait: 8000 });
+  }
+  /* Title Screen, 12-Room Story Map, Zero-Reading HUD, and 2-Tab Parent Report + First/Latest WAV Export Modal. */
   const uxState = { modal: false };
 
   function syncHud() {
@@ -2239,10 +3102,10 @@ function createGame() {
     const dots = LEVELS.map((l, k) => {
       const done = !!(save.rooms && save.rooms[l.id] && save.rooms[l.id].cleared);
       const cur = k === game.index;
-      const r = cur ? 6.2 : (done ? 4.6 : 4);
+      const r = cur ? 5.6 : (done ? 4.2 : 3.6);
       const fill = cur ? '#ffd27a' : (done ? '#ffbe3d' : '#49629c');
-      const stroke = cur ? ' stroke="#fff9ec" stroke-width="1.8"' : '';
-      return `<circle cx="${104 + k * 15}" cy="46" r="${r}" fill="${fill}"${stroke}/>`;
+      const stroke = cur ? ' stroke="#fff9ec" stroke-width="1.6"' : '';
+      return `<circle cx="${98 + k * 14}" cy="46" r="${r}" fill="${fill}"${stroke}/>`;
     }).join('');
     hud.innerHTML = `<g class="hud-bar">
       <g class="ux-btn" data-act="prompt" role="button" tabindex="0" aria-label="再听一遍">
@@ -2255,7 +3118,7 @@ function createGame() {
         </g>
       </g>
       <g filter="url(#softShadow)">
-        <rect x="88" y="29" width="136" height="34" rx="17" fill="#162044" opacity=".9" stroke="#7dd4ff" stroke-width="2.2"/>
+        <rect x="84" y="30" width="182" height="32" rx="16" fill="#162044" opacity=".9" stroke="#7dd4ff" stroke-width="2"/>
         ${dots}
       </g>
       ${uxButton({ act: 'replay', ui: 'replay', icon: 'replay', x: 706, y: 45, r: 32 })}
@@ -2267,7 +3130,7 @@ function createGame() {
     uxBind(hud, {
       prompt: () => onHudPrompt(),
       replay: () => onHudReplay(),
-      home: () => { if (typeof stopStudioPlayback === 'function') stopStudioPlayback(); game.state = 'title'; showTitle(); },
+      home: () => { if (typeof stopStudioPlayback === 'function') stopStudioPlayback(); game.state = 'title'; maybeEyeCareBreak(showTitle); },
       hint: () => triggerHint(),
       fs: () => toggleFullscreen(),
     });
@@ -2285,11 +3148,12 @@ function createGame() {
         <rect x="255" y="18" width="450" height="62" rx="31" fill="#141c42" opacity=".88" stroke="#ffd27a" stroke-width="3"/>
         <text x="480" y="59" text-anchor="middle" font-size="35" fill="#fff9ec" letter-spacing="2">冰雪故事小导演</text>
       </g>
-      ${uxButton({ act: 'play', ui: playUi, icon: 'play', x: 480, y: 266, r: 54, plate: 'gold', cls: 'ux-pulse' })}
-      ${uxButton({ act: 'rooms', ui: 'rooms', icon: 'rooms', x: 306, y: 408, r: 38 })}
-      ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 422, y: 408, r: 38 })}
-      ${uxButton({ act: 'album', ui: 'album', pic: 'prop_mic', x: 538, y: 408, r: 38 })}
-      ${uxButton({ act: 'meet', ui: 'meet', icon: 'meet', x: 654, y: 408, r: 38, plate: 'gold' })}
+      ${uxButton({ act: 'play', ui: playUi, icon: 'play', x: 480, y: 262, r: 52, plate: 'gold', cls: 'ux-pulse' })}
+      ${uxButton({ act: 'rooms', ui: 'rooms', icon: 'rooms', x: 256, y: 408, r: 38 })}
+      ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 368, y: 408, r: 38 })}
+      ${uxButton({ act: 'interview', ui: 'interview', pic: 'portrait_olaf', x: 480, y: 408, r: 38, plate: 'gold' })}
+      ${uxButton({ act: 'album', ui: 'album', pic: 'prop_mic', x: 592, y: 408, r: 38 })}
+      ${uxButton({ act: 'meet', ui: 'meet', icon: 'meet', x: 704, y: 408, r: 38, plate: 'gold' })}
       ${uxButton({ act: 'gear', ui: 'settings', icon: 'gear', x: 902, y: 458, r: 34 })}
     </g>`);
 
@@ -2299,6 +3163,7 @@ function createGame() {
       play: launch,
       rooms: () => { unlockAudio(); uxEnd(s, () => showRooms()); },
       train: () => { unlockAudio(); uxEnd(s, () => showFreeTrain()); },
+      interview: () => { unlockAudio(); uxEnd(s, () => { if (typeof showInterview === 'function') showInterview(); }); },
       album: () => { unlockAudio(); uxEnd(s, () => showAlbum()); },
       meet: () => { unlockAudio(); uxEnd(s, () => showMeet()); },
     });
@@ -2331,34 +3196,35 @@ function createGame() {
     }
     const cards = LEVELS.map((lv, i) => {
       const col = i % 4, row = (i / 4) | 0;
-      const x = 68 + col * 212, y = 92 + row * 182;
+      const x = 64 + col * 212, y = 84 + row * 142;
       const open = i < unlocked;
       const rSave = save.rooms && save.rooms[lv.id];
       const stars = (rSave && rSave.stars) || [false, false, false];
-      const starRow = stars.map((g, k) => `<path d="${UX_STAR_D}" transform="translate(${62 + k * 34} 134) scale(14)" fill="${g ? '#ffd27a' : '#233262'}" stroke="#fff5cf" stroke-width=".08"/>`).join('');
+      const crown = rSave && rSave.tier3 ? `<g transform="translate(172 52)">${uxIcon('crown', 14, '#ffb703')}</g>` : '';
+      const starRow = stars.map((g, k) => `<path d="${UX_STAR_D}" transform="translate(${64 + k * 34} 109) scale(12)" fill="${g ? '#ffd27a' : '#233262'}" stroke="#fff5cf" stroke-width=".08"/>`).join('');
       return `<g class="ux-btn" data-act="${open ? 'pick' : ''}" data-room="${i}" data-ui="${open ? 'room_' + lv.id : ''}" data-state="${open ? 'open' : 'lock'}" role="button" tabindex="${open ? 0 : -1}" aria-label="${lv.title}" transform="translate(${x} ${y})">
         <g class="btn-vis" filter="url(#softShadow)">
-          <rect width="192" height="158" rx="22" fill="${open ? '#fff9ec' : '#1b264f'}" stroke="${open ? '#ffd27a' : '#4a6099'}" stroke-width="3.5"/>
-          <image href="${SRC(lv.bg)}" x="8" y="8" width="176" height="104" clip-path="url(#rcClip)" preserveAspectRatio="xMidYMid slice" opacity="${open ? .24 : .12}"/>
-          <image href="${SRC(lv.coverCard)}" x="46" y="14" width="100" height="96" preserveAspectRatio="xMidYMid meet" opacity="${open ? 1 : .24}"/>
-          <circle cx="26" cy="26" r="15" fill="${open ? 'url(#goldGrad)' : '#263876'}" stroke="#fff9ec" stroke-width="2"/>
-          <text x="26" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="${open ? '#4a2605' : '#8da7db'}">${lv.badge}</text>
+          <rect width="196" height="128" rx="20" fill="${open ? '#fff9ec' : '#1b264f'}" stroke="${open ? '#ffd27a' : '#4a6099'}" stroke-width="3.2"/>
+          <image href="${SRC(lv.bg)}" x="8" y="8" width="180" height="82" clip-path="url(#rcClip)" preserveAspectRatio="xMidYMid slice" opacity="${open ? .24 : .12}"/>
+          <image href="${SRC(lv.coverCard)}" x="54" y="10" width="88" height="80" preserveAspectRatio="xMidYMid meet" opacity="${open ? 1 : .24}"/>
+          <circle cx="24" cy="24" r="14" fill="${open ? 'url(#goldGrad)' : '#263876'}" stroke="#fff9ec" stroke-width="2"/>
+          <text x="24" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="${open ? '#4a2605' : '#8da7db'}">${lv.badge}</text>
           ${open
-            ? `<image href="${SRC('portrait_' + lv.host)}" x="150" y="10" width="34" height="34" preserveAspectRatio="xMidYMid meet"/>`
-            : `<g transform="translate(96 62)">${uxIcon('lock', 36, '#9cb6e8')}</g>`}
+            ? `<image href="${SRC('portrait_' + lv.host)}" x="156" y="8" width="32" height="32" preserveAspectRatio="xMidYMid meet"/>${crown}`
+            : `<g transform="translate(98 52)">${uxIcon('lock', 30, '#9cb6e8')}</g>`}
           ${starRow}
         </g>
       </g>`;
     }).join('');
     const root = uxPaint(`<g class="page">
-      <defs><clipPath id="rcClip"><rect x="8" y="8" width="176" height="104" rx="16"/></clipPath></defs>
+      <defs><clipPath id="rcClip"><rect x="8" y="8" width="180" height="82" rx="14"/></clipPath></defs>
       <image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
       <rect width="960" height="520" fill="#101836" opacity=".64"/>
-      ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 48, r: 34 })}
+      ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 46, r: 32 })}
       <g filter="url(#softShadow)">
-        <rect x="394" y="22" width="172" height="44" rx="22" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
-        ${uxPic('prop_star', 418, 29, 32, 30, '', 'meet')}
-        <text x="500" y="52" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${totalStars}/${LEVELS.length * 3}</text>
+        <rect x="394" y="20" width="172" height="44" rx="22" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
+        ${uxPic('prop_star', 418, 27, 32, 30, '', 'meet')}
+        <text x="500" y="50" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${totalStars}/${LEVELS.length * 3}</text>
       </g>
       ${cards}
     </g>`);
@@ -2378,52 +3244,183 @@ function createGame() {
     const modal = $('modal');
     if (!modal || uxState.modal) return;
     uxState.modal = true;
-    const mins = Math.max(1, Math.round((save.totalPlaySeconds || 0) / 60));
-    const skList = [
-      ['sequence', '时间顺序 (先→接着→最后)', '#ff9cc4'],
-      ['sentence', '完整句子 (谁·在哪儿·干什么)', '#7dd4ff'],
-      ['classify', '总分归类 (总数+一二三)', '#ffd27a'],
-      ['reason', '因果理由 (我选…因为…)', '#b79cff'],
-    ];
+    let tab = 'stats';
     let tipIdx = 0;
+    let pageIdx = 0;
+    let toast = '';
+    let exportItems = [];
+
+    const fmtSec = ms => ms ? (ms / 1000).toFixed(1) + '秒' : '—';
+    const fmtDate = ts => {
+      if (!ts) return '';
+      const d = new Date(ts);
+      return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    };
+
+    const refreshExportItems = async () => {
+      const keySet = new Set(await recorder.listClipKeys());
+      const items = [];
+      for (const lv of LEVELS) {
+        const lk = 'room_' + lv.id;
+        const fk = lk + '_first';
+        if (keySet.has(lk)) {
+          const rSave = (save.rooms && save.rooms[lv.id]) || {};
+          items.push({
+            kind: 'room', key: lk, firstKey: keySet.has(fk) ? fk : '',
+            title: `${lv.badge}. ${lv.title}`,
+            sub: `首次 ${fmtSec(rSave.firstSpeechMs)} · 最新 ${fmtSec(rSave.lastSpeechMs)}`,
+          });
+        }
+      }
+      for (const c of save.creations || []) {
+        if (!keySet.has(c.id)) continue;
+        items.push({
+          kind: 'free', key: c.id, firstKey: '',
+          title: c.mode === 'mountain' ? '自由故事山作品' : '自由造句列车作品',
+          sub: `${fmtDate(c.createdAt)} · 开口 ${fmtSec(c.activeSpeechMs || c.durationMs)}`,
+        });
+      }
+      for (const d of save.diary || []) {
+        if (!keySet.has(d.id)) continue;
+        const tp = (INTERVIEW_TOPICS || []).find(t => t.id === d.topicId);
+        items.push({
+          kind: 'diary', key: d.id, firstKey: '',
+          title: `雪宝日记：${tp ? tp.title : d.topicId}`,
+          sub: `${fmtDate(d.createdAt)} · 开口 ${fmtSec(d.activeSpeechMs || d.durationMs)}`,
+        });
+      }
+      exportItems = items;
+    };
+
+    const stopModalAudio = () => {
+      recorder.stopPlay();
+      setRecordingAudioMode('off');
+    };
+
     const drawModal = () => {
-      const bars = skList.map(([k, lbl, col], idx) => {
-        const val = Math.min(2, (save.skills && save.skills[k]) || 0);
-        const y = 104 + idx * 36;
-        return `<text x="48" y="${y}" font-size="16" fill="#233262">${lbl}</text>
-          <rect x="300" y="${y - 14}" width="180" height="16" rx="8" fill="#e1ecff"/>
-          <rect x="300" y="${y - 14}" width="${Math.round((val / 2) * 180)}" height="16" rx="8" fill="${col}"/>
-          <text x="494" y="${y}" font-size="15" fill="#4e5d8c">${val}/2</text>`;
-      }).join('');
-      const tipLines = wrap(LEVELS[tipIdx].parentTip || '', 28).slice(0, 2);
-      modal.innerHTML = `<rect width="960" height="520" fill="#0d1430" opacity=".82"/>
-        <g transform="translate(180 38)" filter="url(#softShadow)">
-          <rect width="600" height="444" rx="28" fill="#fff9ec" stroke="#ffd27a" stroke-width="4"/>
-          <text x="300" y="42" text-anchor="middle" font-size="26" fill="#1e2a58">家长表达力报告与设置</text>
-          <text x="300" y="72" text-anchor="middle" font-size="16" fill="#4e5d8c">本地录音：${save.recordingsCount || 0} 次 · 自由造句：${save.freeSentences || 0} 句 · 累计探索：${mins} 分钟</text>
+      const mins = Math.max(1, Math.round((save.totalPlaySeconds || 0) / 60));
+      const avgSec = save.speechSamples > 0 ? ((save.totalSpeechMs / save.speechSamples) / 1000).toFixed(1) : '0.0';
+      const worksCount = (save.creations || []).length + (save.diary || []).length;
+
+      const tabsHtml = `<g transform="translate(150 56)">
+        <g class="ux-btn" data-m="tab_stats"><rect width="170" height="34" rx="17" fill="${tab === 'stats' ? 'url(#goldGrad)' : '#eef5ff'}" stroke="#d6a44e" stroke-width="2"/><text x="85" y="23" text-anchor="middle" font-size="15" fill="#1e2a58">表达力报告与设置</text></g>
+        <g class="ux-btn" data-m="tab_export" transform="translate(190 0)"><rect width="170" height="34" rx="17" fill="${tab === 'export' ? 'url(#goldGrad)' : '#eef5ff'}" stroke="#d6a44e" stroke-width="2"/><text x="85" y="23" text-anchor="middle" font-size="15" fill="#1e2a58">首次/最新对比与导出</text></g>
+      </g>`;
+
+      let bodyHtml;
+      if (tab === 'stats') {
+        const skList = [
+          ['sequence', '1. 时间顺序 (先·接着·最后)', '#ff9cc4'],
+          ['sentence', '2. 完整句子 (谁·在哪·干什么)', '#7dd4ff'],
+          ['classify', '3. 总分归类 (总括+一二三)', '#ffd27a'],
+          ['reason', '4. 因果理由 (我选…因为…)', '#b79cff'],
+          ['twist', '5. 转折解困 (本来想·可是·于是)', '#49c598'],
+          ['episode', '6. 完整故事山 (五要素+心里感受)', '#ff8c66'],
+        ];
+        const bars = skList.map(([k, lbl, col], idx) => {
+          const val = Math.min(2, (save.skills && save.skills[k]) || 0);
+          const y = 148 + idx * 27;
+          return `<text x="36" y="${y}" font-size="14" fill="#233262">${lbl}</text>
+            <rect x="292" y="${y - 13}" width="276" height="14" rx="7" fill="#e1ecff"/>
+            <rect x="292" y="${y - 13}" width="${Math.round((val / 2) * 276)}" height="14" rx="7" fill="${col}"/>
+            <text x="582" y="${y}" font-size="14" fill="#4e5d8c">${val}/2</text>`;
+        }).join('');
+        const tipLines = wrap(LEVELS[tipIdx].parentTip || '', 32).slice(0, 2);
+        bodyHtml = `<text x="330" y="116" text-anchor="middle" font-size="14" fill="#4e5d8c">录音：${save.recordingsCount || 0}次 · 平均开口：${avgSec}秒 · 创作/日记：${worksCount}篇 · 探索：${mins}分</text>
           ${bars}
-          <g class="ux-btn" data-m="nextTip" transform="translate(48 242)">
-            <rect width="504" height="82" rx="16" fill="#eef5ff" stroke="#7dd4ff" stroke-width="2"/>
-            <text x="16" y="24" font-size="14" fill="#b8326a">今日亲子日常提问建议（点我换一条）：</text>
-            ${tipLines.map((ln, i) => `<text x="16" y="${48 + i * 22}" font-size="15" fill="#1e2a58">${ln}</text>`).join('')}
+          <g class="ux-btn" data-m="nextTip" transform="translate(36 312)">
+            <rect width="588" height="72" rx="14" fill="#eef5ff" stroke="#7dd4ff" stroke-width="2"/>
+            <text x="14" y="22" font-size="13" fill="#b8326a">亲子日常提问建议（点我换一条 · 第${tipIdx + 1}/${LEVELS.length}关）：</text>
+            ${tipLines.map((ln, i) => `<text x="14" y="${44 + i * 20}" font-size="14" fill="#1e2a58">${ln}</text>`).join('')}
           </g>
-          <g class="ux-btn" data-m="subs" transform="translate(48 342)"><rect width="160" height="48" rx="14" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="17" fill="#1e2a58">字幕：${setting('subtitles') ? '开' : '关'}</text></g>
-          <g class="ux-btn" data-m="snd" transform="translate(220 342)"><rect width="160" height="48" rx="14" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="17" fill="#1e2a58">声音：${setting('sound') ? '开' : '关'}</text></g>
-          <g class="ux-btn" data-m="close" transform="translate(392 342)"><rect width="160" height="48" rx="14" fill="url(#goldGrad)" stroke="#d6a44e" stroke-width="2"/><text x="80" y="31" text-anchor="middle" font-size="19" fill="#4a2605">关闭返回</text></g>
+          <g class="ux-btn" data-m="subs" transform="translate(36 400)"><rect width="132" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="66" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">字幕：${setting('subtitles') ? '开' : '关'}</text></g>
+          <g class="ux-btn" data-m="snd" transform="translate(180 400)"><rect width="132" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="66" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">声音：${setting('sound') ? '开' : '关'}</text></g>
+          <g class="ux-btn" data-m="eye" transform="translate(324 400)"><rect width="156" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="78" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">10分护眼：${setting('eyeCare') ? '开' : '关'}</text></g>
+          <g class="ux-btn" data-m="close" transform="translate(492 400)"><rect width="132" height="44" rx="12" fill="url(#goldGrad)" stroke="#d6a44e" stroke-width="2"/><text x="66" y="28" text-anchor="middle" font-size="17" fill="#4a2605">关闭返回</text></g>`;
+      } else {
+        const perPage = 5;
+        const maxPage = Math.max(0, Math.ceil(exportItems.length / perPage) - 1);
+        pageIdx = Math.max(0, Math.min(maxPage, pageIdx));
+        const slice = exportItems.slice(pageIdx * perPage, (pageIdx + 1) * perPage);
+        const rowsHtml = slice.length
+          ? slice.map((it, idx) => {
+            const ry = 108 + idx * 54;
+            const firstBtn = it.firstKey ? `<g class="ux-btn" data-m="play_${it.firstKey}" transform="translate(310 8)"><rect width="74" height="32" rx="10" fill="#fff0c4" stroke="#e2a832" stroke-width="1.5"/><text x="37" y="21" text-anchor="middle" font-size="13" fill="#4a2605">▶ 首次</text></g>` : '';
+            const latestLabel = it.kind === 'room' ? '▶ 最新' : '▶ 播放';
+            const delBtn = it.kind !== 'room' ? `<g class="ux-btn" data-m="del_${it.kind}_${it.key}" transform="translate(546 8)"><rect width="42" height="32" rx="10" fill="#ffe4ec" stroke="#e26a8b" stroke-width="1.5"/><text x="21" y="21" text-anchor="middle" font-size="13" fill="#8b1e3f">删</text></g>` : '';
+            return `<g transform="translate(36 ${ry})">
+              <rect width="588" height="48" rx="12" fill="#eef5ff" stroke="#bfd6f6" stroke-width="1.5"/>
+              <text x="14" y="21" font-size="14" fill="#1e2a58">${it.title}</text>
+              <text x="14" y="39" font-size="12" fill="#526594">${it.sub}</text>
+              ${firstBtn}
+              <g class="ux-btn" data-m="play_${it.key}" transform="translate(392 8)"><rect width="74" height="32" rx="10" fill="#dbeeff" stroke="#6aaee6" stroke-width="1.5"/><text x="37" y="21" text-anchor="middle" font-size="13" fill="#123a66">${latestLabel}</text></g>
+              <g class="ux-btn" data-m="exp_${it.key}" transform="translate(474 8)"><rect width="66" height="32" rx="10" fill="#e2f7ec" stroke="#49b683" stroke-width="1.5"/><text x="33" y="21" text-anchor="middle" font-size="13" fill="#0f5937">导出</text></g>
+              ${delBtn}
+            </g>`;
+          }).join('')
+          : `<text x="330" y="240" text-anchor="middle" font-size="16" fill="#5a6d9c">还没有本地录音哦，先去录一段故事吧！</text>`;
+
+        bodyHtml = `${rowsHtml}
+          <text x="330" y="390" text-anchor="middle" font-size="13" fill="#b8326a">${toast}</text>
+          <g class="ux-btn" data-m="prevPage" transform="translate(36 400)"><rect width="120" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="60" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">上一页</text></g>
+          <text x="242" y="427" text-anchor="middle" font-size="14" fill="#4e5d8c">第 ${pageIdx + 1}/${maxPage + 1} 页</text>
+          <g class="ux-btn" data-m="nextPage" transform="translate(324 400)"><rect width="120" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="60" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">下一页</text></g>
+          <g class="ux-btn" data-m="close" transform="translate(492 400)"><rect width="132" height="44" rx="12" fill="url(#goldGrad)" stroke="#d6a44e" stroke-width="2"/><text x="66" y="28" text-anchor="middle" font-size="17" fill="#4a2605">关闭返回</text></g>`;
+      }
+
+      modal.innerHTML = `<rect width="960" height="520" fill="#0d1430" opacity=".82"/>
+        <g transform="translate(150 28)" filter="url(#softShadow)">
+          <rect width="660" height="464" rx="28" fill="#fff9ec" stroke="#ffd27a" stroke-width="4"/>
+          <text x="330" y="40" text-anchor="middle" font-size="24" fill="#1e2a58">家长表达力成长报告与设置</text>
+          ${tabsHtml}
+          ${bodyHtml}
         </g>`;
+
       modal.querySelectorAll('[data-m]').forEach(b => {
-        b.addEventListener('click', () => {
-          const m = b.getAttribute('data-m');
+        b.addEventListener('click', async () => {
+          const m = b.getAttribute('data-m') || '';
           if (m === 'subs') { setSetting('subtitles', !setting('subtitles')); drawModal(); }
           else if (m === 'snd') { setSetting('sound', !setting('sound')); drawModal(); }
+          else if (m === 'eye') { setSetting('eyeCare', !setting('eyeCare')); drawModal(); }
           else if (m === 'nextTip') { tipIdx = (tipIdx + 1) % LEVELS.length; drawModal(); }
-          else { uxState.modal = false; modal.textContent = ''; }
+          else if (m === 'tab_stats') { stopModalAudio(); tab = 'stats'; drawModal(); }
+          else if (m === 'tab_export') { stopModalAudio(); tab = 'export'; await refreshExportItems(); drawModal(); }
+          else if (m === 'prevPage') { pageIdx = Math.max(0, pageIdx - 1); drawModal(); }
+          else if (m === 'nextPage') { pageIdx++; drawModal(); }
+          else if (m.startsWith('play_')) {
+            const k = m.slice(5);
+            const blob = await recorder.loadClip(k);
+            if (blob) { setRecordingAudioMode('rec_quiet'); recorder.play(blob, () => setRecordingAudioMode('off')); }
+          } else if (m.startsWith('exp_')) {
+            const k = m.slice(4);
+            const blob = await recorder.loadClip(k);
+            if (blob) {
+              await recorder.exportWav(blob, `story_${k}.wav`);
+              toast = '已导出为本地 WAV 音频！';
+              drawModal();
+            }
+          } else if (m.startsWith('del_')) {
+            const rest = m.slice(4);
+            const sep = rest.indexOf('_');
+            const kind = rest.slice(0, sep), k = rest.slice(sep + 1);
+            await recorder.deleteClip(k);
+            if (kind === 'free') save.creations = (save.creations || []).filter(c => c.id !== k);
+            else if (kind === 'diary') save.diary = (save.diary || []).filter(d => d.id !== k);
+            saveWrite();
+            await refreshExportItems();
+            toast = '已删除该条作品。';
+            drawModal();
+          } else {
+            stopModalAudio();
+            uxState.modal = false;
+            modal.textContent = '';
+          }
         });
       });
     };
     drawModal();
   }
-  /* Extras: Zero-Reading Meet Heroes Trio, Pure-Picture 4-Car Free Sentence Train & Visual Story Voice Album. */
+  /* Extras: Meet Trio, Olaf Daily Reporter Interview Mode, 4-Car/5-Mountain Free Studio (30-clip Portfolio) & 3-Tab Album. */
 
   function showMeet() {
     const s = uxScreen('meet');
@@ -2461,16 +3458,224 @@ function createGame() {
     uxLine('me_elsa', { maxWait: 4500 });
   }
 
+  function showInterview() {
+    const s = uxScreen('interview');
+    const topics = INTERVIEW_TOPICS || [];
+    loadArt(topics.map(t => t.card), ART_PATIENCE);
+
+    let activeTopic = null;
+    let recBusy = false;
+    let playBusy = false;
+    let clipBlob = null;
+    let voiceFx = 'normal';
+
+    const updateIntWaves = bars => {
+      const wg = $('intWaves');
+      if (!wg) return;
+      wg.querySelectorAll('rect').forEach((r, i) => {
+        const v = bars ? Math.max(.14, Math.min(1, bars[i] || .14)) : .14;
+        const h = Math.round(8 + v * 34);
+        r.setAttribute('y', String(22 - Math.round(h / 2)));
+        r.setAttribute('height', String(h));
+      });
+    };
+
+    const updateIntOlaf = energy => {
+      const olaf = $('intOlaf');
+      if (olaf) {
+        const e = energy || 0;
+        const dy = -Math.round(e * 18);
+        olaf.setAttribute('transform', `translate(86 ${430 + dy})`);
+        const imgNode = olaf.querySelector('image');
+        const want = e > .4 ? 'olaf_cheer' : (e > .1 ? 'olaf_speak' : 'olaf_idle');
+        if (imgNode && !imgNode.getAttribute('href').includes(want)) imgNode.setAttribute('href', SRC(want));
+      }
+      if (energy > .16 && typeof fxVoiceSparkle === 'function') fxVoiceSparkle(energy);
+    };
+
+    const cleanup = () => {
+      if (recBusy) { recorder.stop(); recBusy = false; }
+      playBusy = false;
+      recorder.stopPlay();
+      setRecordingAudioMode('off');
+      saveWrite();
+    };
+
+    const render = () => {
+      if (!uxAlive(s)) return;
+      if (!activeTopic) {
+        const gridHtml = topics.map((tp, i) => {
+          const col = i % 2, row = (i / 2) | 0;
+          const x = 216 + col * 284, y = 104 + row * 188;
+          const badgeHtml = tp.badges.map((bk, bi) => `<g transform="translate(${74 + bi * 46} 148)">${uxSlotBadgeSvg(bk, false, 14)}</g>`).join('');
+          return `<g class="ux-btn" data-topic="${tp.id}" role="button" tabindex="0" aria-label="${tp.title}" transform="translate(${x} ${y})">
+            <g class="btn-vis" filter="url(#softShadow)">
+              <rect width="244" height="162" rx="26" fill="#fff9ec" stroke="#ffd27a" stroke-width="4"/>
+              <image href="${SRC(tp.card)}" x="52" y="14" width="140" height="114" preserveAspectRatio="xMidYMid meet"/>
+              ${badgeHtml}
+            </g>
+          </g>`;
+        }).join('');
+
+        const root = uxPaint(`<g class="page">
+          <image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+          <rect width="960" height="520" fill="#101836" opacity=".56"/>
+          ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 46, r: 32 })}
+          <g filter="url(#softShadow)">
+            <rect x="410" y="18" width="140" height="52" rx="26" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
+            <image href="${SRC('portrait_olaf')}" x="424" y="24" width="40" height="40" preserveAspectRatio="xMidYMid meet"/>
+            ${uxPic('prop_mic', 494, 24, 28, 40, '', 'meet')}
+          </g>
+          <image href="${SRC('olaf_cheer')}" x="44" y="250" width="140" height="186" preserveAspectRatio="xMidYMid meet"/>
+          <image href="${SRC('anna_idle')}" x="790" y="220" width="124" height="214" preserveAspectRatio="xMidYMid meet" transform="scale(-1 1) translate(-1704 0)"/>
+          ${gridHtml}
+        </g>`);
+
+        const back = () => { cleanup(); uxEnd(s, () => showTitle()); };
+        s.onKey = back;
+        uxBind(root, { back });
+        root.querySelectorAll('[data-topic]').forEach(btn => {
+          const tid = btn.getAttribute('data-topic');
+          const goTopic = () => {
+            activeTopic = topics.find(t => t.id === tid) || null;
+            clipBlob = null;
+            uxSfx('tap');
+            render();
+            if (activeTopic) uxLine(activeTopic.voiceKey, { interrupt: true, maxWait: 7500 });
+          };
+          btn.addEventListener('click', goTopic);
+          btn.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goTopic(); } });
+        });
+        return;
+      }
+
+      const tp = activeTopic;
+      const badgeStrip = tp.badges.map((bk, bi) => `<g transform="translate(${480 + (bi - (tp.badges.length - 1) / 2) * 56} 234)">${uxSlotBadgeSvg(bk, recBusy, 16)}</g>`).join('');
+      const waveCols = ['#7dd4ff', '#9fe8ff', '#ff9cc4', '#ffd27a', '#ff9cc4', '#9fe8ff', '#7dd4ff'];
+      const wavesHtml = waveCols.map((c, i) => `<rect x="${(i - 3) * 26 - 6}" y="17" width="12" height="10" rx="6" fill="${c}" opacity="${recBusy || playBusy ? '.98' : '.42'}"/>`).join('');
+
+      let fxHtml = '';
+      if (clipBlob && !recBusy) {
+        const fxs = [['normal', 636], ['olaf', 706], ['hall', 776]];
+        for (const [fk, fxX] of fxs) fxHtml += uxButton({ act: 'fx_' + fk, ui: `fx_${fk}`, icon: 'fx_' + fk, x: fxX, y: 298, r: 32, plate: voiceFx === fk ? 'gold' : '' });
+      }
+      const micRipple = recBusy ? `<circle class="ux-ripple" cx="480" cy="400" r="52" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
+      const micBtn = micRipple + uxButton(recBusy
+        ? { act: 'intMic', ui: 'stop', icon: 'stop', x: 480, y: 400, r: 50, plate: 'rec', cls: 'ux-pulse' }
+        : { act: 'intMic', ui: 'mic', pic: 'prop_mic', x: 480, y: 400, r: 50, plate: 'gold' });
+      const playBtn = clipBlob && !recBusy ? uxButton({ act: 'intPlay', ui: 'listen', icon: 'play', x: 646, y: 406, r: 38, plate: 'gold' }) : '';
+
+      const root = uxPaint(`<g class="page">
+        <image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".52"/>
+        ${uxButton({ act: 'backTopic', ui: 'back', icon: 'back', x: 56, y: 46, r: 32 })}
+        <g id="intOlaf" transform="translate(86 430)"><image href="${SRC('olaf_idle')}" x="-64" y="-190" width="128" height="190" preserveAspectRatio="xMidYMax meet"/></g>
+        <g filter="url(#softShadow)">
+          <rect x="358" y="42" width="244" height="172" rx="28" fill="#fff9ec" stroke="#ffd27a" stroke-width="4.5"/>
+          <image href="${SRC(tp.card)}" x="394" y="54" width="172" height="148" preserveAspectRatio="xMidYMid meet"/>
+        </g>
+        ${badgeStrip}
+        <g id="intWaves" transform="translate(480 276)">${wavesHtml}</g>
+        ${fxHtml}
+        ${uxButton({ act: 'askAgain', ui: 'demo', icon: 'speaker', x: 314, y: 406, r: 38 })}
+        ${micBtn}
+        ${playBtn}
+      </g>`);
+
+      const backTopic = () => {
+        cleanup();
+        activeTopic = null;
+        clipBlob = null;
+        render();
+      };
+      s.onKey = backTopic;
+
+      const playCurrent = () => {
+        if (!clipBlob || recBusy) return;
+        playBusy = true;
+        render();
+        setRecordingAudioMode('premiere');
+        recorder.play(clipBlob, () => {
+          playBusy = false;
+          setRecordingAudioMode('off');
+          updateIntWaves(null);
+          updateIntOlaf(0);
+          if (uxAlive(s)) render();
+        }, { fx: voiceFx, onBars: updateIntWaves, onEnergy: updateIntOlaf });
+      };
+
+      uxBind(root, {
+        backTopic,
+        askAgain: () => { if (!recBusy) uxLine(tp.voiceKey, { interrupt: true, maxWait: 7500 }); },
+        fx_normal: () => { voiceFx = 'normal'; playCurrent(); },
+        fx_olaf: () => { voiceFx = 'olaf'; playCurrent(); },
+        fx_hall: () => { voiceFx = 'hall'; playCurrent(); },
+        intPlay: playCurrent,
+        intMic: async () => {
+          unlockAudio();
+          if (recBusy) {
+            const res = await recorder.stop();
+            recBusy = false;
+            setRecordingAudioMode('off');
+            updateIntWaves(null);
+            updateIntOlaf(0);
+            uxSfx('mic_stop');
+            if (res && res.blob) {
+              clipBlob = res.blob;
+              const did = 'diary_' + Date.now();
+              const meta = { createdAt: Date.now(), topicId: tp.id, durationMs: res.durationMs || 0, activeSpeechMs: res.activeSpeechMs || 0 };
+              await recorder.saveClip(did, res.blob);
+              await recorder.saveMeta(did, meta);
+              save.diary = [{ id: did, topicId: tp.id, createdAt: meta.createdAt, durationMs: meta.durationMs, activeSpeechMs: meta.activeSpeechMs }, ...(save.diary || [])];
+              while (save.diary.length > 30) {
+                const dropped = save.diary.pop();
+                if (dropped) recorder.deleteClip(dropped.id);
+              }
+              save.recordingsCount = (save.recordingsCount || 0) + 1;
+              save.speechSamples = (save.speechSamples || 0) + 1;
+              save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
+              saveWrite();
+              render();
+              playCurrent();
+              uxConfetti(root.querySelector('.page'), 480, 220, 26);
+            } else render();
+            return;
+          }
+          setRecordingAudioMode('rec_quiet');
+          const st = await recorder.start(
+            fd => { updateIntWaves(fd.bars); updateIntOlaf(fd.energy); },
+            () => { if (recBusy && uxAlive(s)) root.querySelector('[data-act="intMic"]').dispatchEvent(new MouseEvent('click')); },
+          );
+          if (!st.ok) {
+            setRecordingAudioMode('off');
+            uxLine('mic_fallback', { interrupt: true, maxWait: 4500 });
+            return;
+          }
+          recBusy = true;
+          uxSfx('mic_start');
+          render();
+        },
+      });
+    };
+
+    render();
+    uxLine('interview_intro', { maxWait: 6500 });
+  }
+
   function showFreeTrain() {
     const s = uxScreen('freeTrain');
-    loadArt(FREE_TRAIN_POOL.slots.flat(), ART_PATIENCE);
+    loadArt([...FREE_TRAIN_POOL.slots.flat(), ...FREE_MOUNTAIN_POOL.slots.flat()], ART_PATIENCE);
+    let mode = 'train';
     let picked = FREE_TRAIN_POOL.slots.map(row => row[0]);
     let recBusy = false;
     let clipBlob = null;
+    let voiceFx = 'normal';
     let activeCarIdx = -1;
     let playSeq = 0;
 
     let render = () => {};
+
+    const poolFor = () => mode === 'mountain' ? FREE_MOUNTAIN_POOL : FREE_TRAIN_POOL;
 
     const readTrain = async () => {
       if (!uxAlive(s)) return;
@@ -2493,58 +3698,75 @@ function createGame() {
       }
     };
 
-    const carKinds = ['who', 'where', 'what', 'mood'];
     render = () => {
       if (!uxAlive(s)) return;
+      const isMt = mode === 'mountain';
+      const pool = poolFor();
+      const kinds = isMt ? ['who', 'oops', 'heart', 'wand', 'star_end'] : ['who', 'where', 'what', 'mood'];
+      const n = pool.slots.length;
+      const cw = isMt ? 120 : 154;
+      const ch = isMt ? 104 : 114;
+      const gap = isMt ? 16 : 22;
+      const x0 = isMt ? (456 - (n * cw + (n - 1) * gap) / 2) : 110;
+      const mtYs = [110, 96, 82, 96, 110];
+
+      const arcHtml = isMt
+        ? `<path d="M ${mtYs.map((yy, i) => `${x0 + i * (cw + gap) + cw / 2} ${yy + ch / 2}`).join(' L ')}" fill="none" stroke="#ffd27a" stroke-width="3.5" stroke-dasharray="7 5" opacity=".65"/>`
+        : '';
+
       const carsHtml = picked.map((cid, i) => {
-        const x = 110 + i * 188;
+        const x = x0 + i * (cw + gap);
+        const y = isMt ? mtYs[i] : 84;
         const meta = CARD_META[cid] || { label: cid };
         const hot = activeCarIdx === i;
-        return `<g class="card-btn${hot ? ' ux-pulse' : ''}" data-car="${i}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${x} 44)">
-          ${i < 3 ? '<rect x="164" y="60" width="26" height="8" rx="4" fill="#ffd27a"/>' : ''}
-          <circle cx="38" cy="136" r="12" fill="#263876" stroke="#ffd27a" stroke-width="3"/>
-          <circle cx="128" cy="136" r="12" fill="#263876" stroke="#ffd27a" stroke-width="3"/>
+        const conn = !isMt && i < 3 ? `<rect x="${cw - 2}" y="54" width="${gap + 4}" height="8" rx="4" fill="#ffd27a"/>` : '';
+        const wheels = !isMt ? `<circle cx="36" cy="${ch + 8}" r="11" fill="#263876" stroke="#ffd27a" stroke-width="2.6"/><circle cx="${cw - 36}" cy="${ch + 8}" r="11" fill="#263876" stroke="#ffd27a" stroke-width="2.6"/>` : '';
+        return `<g class="card-btn${hot ? ' ux-pulse' : ''}" data-car="${i}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${x} ${y})">
+          ${conn}${wheels}
           <g class="card-vis" filter="url(#softShadow)">
-            <rect width="166" height="128" rx="22" fill="#fff9ec" stroke="${hot ? '#ffd27a' : '#7dd4ff'}" stroke-width="${hot ? 4.5 : 3.5}"/>
-            <g transform="translate(83 -2)">${uxSlotBadgeSvg(carKinds[i], hot, 16)}</g>
-            <image href="${SRC(cid)}" x="23" y="18" width="120" height="98" preserveAspectRatio="xMidYMid meet"/>
+            <rect width="${cw}" height="${ch}" rx="20" fill="#fff9ec" stroke="${hot ? '#ffd27a' : '#7dd4ff'}" stroke-width="${hot ? 4.5 : 3.2}"/>
+            <g transform="translate(${cw / 2} -2)">${uxSlotBadgeSvg(kinds[i], hot, 15)}</g>
+            <image href="${SRC(cid)}" x="${(cw - 88) / 2}" y="16" width="88" height="86" preserveAspectRatio="xMidYMid meet"/>
           </g>
         </g>`;
       }).join('');
 
-      const rowsHtml = FREE_TRAIN_POOL.slots.map((row, sIdx) => {
-        const x0 = 110 + sIdx * 188;
+      const rowsHtml = pool.slots.map((row, sIdx) => {
+        const colX = x0 + sIdx * (cw + gap);
         const twoByTwo = row.length === 4;
         return row.map((cid, rIdx) => {
           const active = picked[sIdx] === cid;
           const meta = CARD_META[cid] || { label: cid };
-          const w = twoByTwo ? 80 : 158;
-          const h = twoByTwo ? 80 : 70;
-          const tx = twoByTwo ? x0 + (rIdx % 2) * 86 : x0 + 4;
-          const ty = twoByTwo ? 230 + ((rIdx / 2) | 0) * 90 : 212 + rIdx * 82;
-          const iw = twoByTwo ? 64 : 74;
-          const ih = twoByTwo ? 64 : 58;
+          const w = twoByTwo ? Math.floor((cw - 6) / 2) : cw - 4;
+          const h = twoByTwo ? 78 : 70;
+          const tx = twoByTwo ? colX + (rIdx % 2) * (w + 6) : colX + 2;
+          const ty = twoByTwo ? 244 + ((rIdx / 2) | 0) * 90 : 230 + rIdx * 82;
+          const iw = twoByTwo ? Math.min(54, w - 10) : 72;
+          const ih = twoByTwo ? 58 : 56;
           return `<g class="card-btn" data-pick-slot="${sIdx}" data-pick-cid="${cid}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${tx} ${ty})">
             <g class="card-vis" filter="url(#softShadow)">
-              <rect width="${w}" height="${h}" rx="18" fill="${active ? '#ffe08a' : '#fff9ec'}" stroke="${active ? '#f59e0b' : '#7ea9e8'}" stroke-width="${active ? 3.5 : 2.5}"/>
+              <rect width="${w}" height="${h}" rx="16" fill="${active ? '#ffe08a' : '#fff9ec'}" stroke="${active ? '#f59e0b' : '#7ea9e8'}" stroke-width="${active ? 3.2 : 2.4}"/>
               <image href="${SRC(cid)}" x="${(w - iw) / 2}" y="${(h - ih) / 2}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid meet"/>
             </g>
           </g>`;
         }).join('');
       }).join('');
 
-      const playBtn = uxButton({ act: 'speakTrain', ui: 'demo', icon: 'speaker', x: 894, y: 146, r: 36, plate: 'gold' });
-      const micRipple = recBusy ? `<circle class="ux-ripple" cx="894" cy="258" r="44" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
+      const playBtn = uxButton({ act: 'speakTrain', ui: 'demo', icon: 'speaker', x: 892, y: 122, r: 36, plate: 'gold' });
+      const micRipple = recBusy ? `<circle class="ux-ripple" cx="892" cy="236" r="44" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
       const micBtn = micRipple + uxButton(recBusy
-        ? { act: 'freeMic', ui: 'stop', icon: 'stop', x: 894, y: 258, r: 42, plate: 'rec', cls: 'ux-pulse' }
-        : { act: 'freeMic', ui: 'mic', pic: 'prop_mic', x: 894, y: 258, r: 42, plate: 'gold' });
-      const listenBtn = clipBlob ? uxButton({ act: 'freePlay', ui: 'listen', icon: 'play', x: 894, y: 368, r: 34 }) : '';
+        ? { act: 'freeMic', ui: 'stop', icon: 'stop', x: 892, y: 236, r: 42, plate: 'rec', cls: 'ux-pulse' }
+        : { act: 'freeMic', ui: 'mic', pic: 'prop_mic', x: 892, y: 236, r: 42, plate: 'gold' });
+      const listenBtn = clipBlob ? uxButton({ act: 'freePlay', ui: 'listen', icon: 'play', x: 892, y: 348, r: 34 }) : '';
+      const fxBtn = clipBlob && !recBusy ? uxButton({ act: 'cycleFx', ui: `fx_${voiceFx}`, icon: 'fx_' + voiceFx, x: 892, y: 446, r: 32, plate: voiceFx === 'normal' ? '' : 'gold' }) : '';
 
       const root = uxPaint(`<g class="page">
         <image href="${SRC('bg_garden')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
         <rect width="960" height="520" fill="#101836" opacity=".54"/>
-        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 48, y: 46, r: 32 })}
-        ${carsHtml}${rowsHtml}${playBtn}${micBtn}${listenBtn}
+        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 52, y: 46, r: 32 })}
+        ${uxButton({ act: 'modeTrain', ui: 'mode_train', icon: 'train', x: 430, y: 46, r: 32, plate: !isMt ? 'gold' : '' })}
+        ${uxButton({ act: 'modeMountain', ui: 'mode_mountain', icon: 'mountain', x: 526, y: 46, r: 32, plate: isMt ? 'gold' : '' })}
+        ${arcHtml}${carsHtml}${rowsHtml}${playBtn}${micBtn}${listenBtn}${fxBtn}
       </g>`);
 
       const cleanup = () => {
@@ -2552,15 +3774,39 @@ function createGame() {
         activeCarIdx = -1;
         if (recBusy) { recorder.stop(); recBusy = false; }
         recorder.stopPlay();
-        setMicMute(false);
+        setRecordingAudioMode('off');
         saveWrite();
       };
       const back = () => { cleanup(); uxEnd(s, () => showTitle()); };
       s.onKey = back;
 
+      const playBlob = b => {
+        setRecordingAudioMode('premiere');
+        recorder.play(b, () => setRecordingAudioMode('off'), { fx: voiceFx });
+      };
+
       uxBind(root, {
         back,
+        modeTrain: () => {
+          if (recBusy || mode === 'train') return;
+          playSeq++; activeCarIdx = -1; mode = 'train';
+          picked = FREE_TRAIN_POOL.slots.map(row => row[0]);
+          clipBlob = null; uxSfx('tap'); render();
+        },
+        modeMountain: () => {
+          if (recBusy || mode === 'mountain') return;
+          playSeq++; activeCarIdx = -1; mode = 'mountain';
+          picked = FREE_MOUNTAIN_POOL.slots.map(row => row[0]);
+          clipBlob = null; uxSfx('tap'); render();
+        },
         speakTrain: () => readTrain(),
+        cycleFx: () => {
+          if (!clipBlob || recBusy) return;
+          const order = ['normal', 'olaf', 'hall'];
+          voiceFx = order[(order.indexOf(voiceFx) + 1) % order.length];
+          render();
+          playBlob(clipBlob);
+        },
         freeMic: async () => {
           unlockAudio();
           playSeq++;
@@ -2568,22 +3814,32 @@ function createGame() {
           if (recBusy) {
             const res = await recorder.stop();
             recBusy = false;
-            setMicMute(false);
+            setRecordingAudioMode('off');
             uxSfx('mic_stop');
             if (res && res.blob) {
               clipBlob = res.blob;
+              const fid = 'free_' + Date.now();
+              const meta = { createdAt: Date.now(), mode, cards: picked.slice(), durationMs: res.durationMs || 0, activeSpeechMs: res.activeSpeechMs || 0 };
+              await recorder.saveClip(fid, res.blob);
+              await recorder.saveMeta(fid, meta);
+              save.creations = [{ id: fid, mode, cards: picked.slice(), createdAt: meta.createdAt, durationMs: meta.durationMs, activeSpeechMs: meta.activeSpeechMs, timeline: [] }, ...(save.creations || [])];
+              while (save.creations.length > 30) {
+                const dropped = save.creations.pop();
+                if (dropped) recorder.deleteClip(dropped.id);
+              }
               save.recordingsCount = (save.recordingsCount || 0) + 1;
+              save.speechSamples = (save.speechSamples || 0) + 1;
+              save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
               saveWrite();
-              recorder.saveClip('free_train_latest', res.blob);
               render();
-              recorder.play(res.blob);
+              playBlob(res.blob);
             } else render();
             return;
           }
-          setMicMute(true);
-          const st = await recorder.start(null, () => { if (recBusy) root.querySelector('[data-act="freeMic"]').dispatchEvent(new MouseEvent('click')); });
+          setRecordingAudioMode('rec_quiet');
+          const st = await recorder.start(null, () => { if (recBusy && uxAlive(s)) root.querySelector('[data-act="freeMic"]').dispatchEvent(new MouseEvent('click')); });
           if (!st.ok) {
-            setMicMute(false);
+            setRecordingAudioMode('off');
             uxLine('mic_fallback', { interrupt: true, maxWait: 4500 });
             readTrain();
             return;
@@ -2592,11 +3848,7 @@ function createGame() {
           uxSfx('mic_start');
           render();
         },
-        freePlay: () => {
-          if (!clipBlob) return;
-          setMicMute(true);
-          recorder.play(clipBlob, () => setMicMute(false));
-        },
+        freePlay: () => { if (clipBlob) playBlob(clipBlob); },
       });
 
       root.querySelectorAll('[data-pick-cid]').forEach(btn => {
@@ -2625,75 +3877,123 @@ function createGame() {
 
   function showAlbum() {
     const s = uxScreen('album');
-    loadArt(LEVELS.map(l => l.coverCard), ART_PATIENCE);
+    loadArt([...LEVELS.map(l => l.coverCard), ...INTERVIEW_TOPICS.map(t => t.card)], ART_PATIENCE);
+    let tab = 'stories';
+    let voiceFx = 'normal';
     let playingId = '';
+
+    const meterSvg = on => `<rect x="34" y="88" width="96" height="26" rx="13" fill="${on ? '#ff9cc4' : '#ffe6a3'}" stroke="#ff9cc4" stroke-width="2"/>
+      ${uxPic('prop_mic', 46, 90, 14, 21, '', 'meet')}
+      <rect x="68" y="97" width="4" height="8" rx="2" fill="#d64579"/>
+      <rect x="76" y="93" width="4" height="16" rx="2" fill="#d64579"/>
+      <rect x="84" y="95" width="4" height="12" rx="2" fill="#d64579"/>
+      <rect x="92" y="97" width="4" height="8" rx="2" fill="#d64579"/>`;
+
     const render = async () => {
       if (!uxAlive(s)) return;
       const keys = new Set(await recorder.listClipKeys());
       if (!uxAlive(s)) return;
-      const discs = LEVELS.map((lv, i) => {
-        const col = i % 4, row = (i / 4) | 0;
-        const x = 104 + col * 196, y = 94 + row * 186;
-        const hasRec = keys.has('room_' + lv.id);
-        const on = playingId === lv.id;
-        const statusPill = hasRec
-          ? `<rect x="36" y="114" width="100" height="30" rx="15" fill="${on ? '#ff9cc4' : '#ffe6a3'}" stroke="#ff9cc4" stroke-width="2"/>
-             ${uxPic('prop_mic', 50, 117, 16, 24, '', 'meet')}
-             <rect x="74" y="125" width="5" height="8" rx="2.5" fill="#d64579"/>
-             <rect x="83" y="121" width="5" height="16" rx="2.5" fill="#d64579"/>
-             <rect x="92" y="123" width="5" height="12" rx="2.5" fill="#d64579"/>
-             <rect x="101" y="125" width="5" height="8" rx="2.5" fill="#d64579"/>`
-          : `<rect x="36" y="114" width="100" height="30" rx="15" fill="#253978" stroke="#7dd4ff" stroke-width="2"/>
-             <g transform="translate(86 129)">${uxIcon('speaker', 15, '#a8ccff')}</g>`;
-        return `<g class="ux-btn${on ? ' ux-pulse' : ''}" data-disc="${lv.id}" data-has="${hasRec ? '1' : '0'}" role="button" tabindex="0" aria-label="${lv.title}" transform="translate(${x} ${y})">
-          <g class="btn-vis" filter="url(#softShadow)">
-            <rect width="172" height="158" rx="24" fill="${hasRec ? '#fff9ec' : '#1b264f'}" stroke="${on ? '#ff9cc4' : (hasRec ? '#ffd27a' : '#4d659c')}" stroke-width="${on ? 5 : 3.5}"/>
-            <image href="${SRC('portrait_' + lv.host)}" x="10" y="10" width="38" height="38" preserveAspectRatio="xMidYMid meet"/>
-            <image href="${SRC(lv.coverCard)}" x="44" y="20" width="102" height="84" preserveAspectRatio="xMidYMid meet" opacity="${hasRec ? 1 : .58}"/>
-            ${statusPill}
-          </g>
-        </g>`;
-      }).join('');
+      let discs;
+      if (tab === 'stories') {
+        discs = LEVELS.map((lv, i) => {
+          const col = i % 4, row = (i / 4) | 0;
+          const x = 68 + col * 210, y = 92 + row * 138;
+          const hasRec = keys.has('room_' + lv.id);
+          const on = playingId === lv.id;
+          const pill = hasRec ? meterSvg(on) : `<rect x="34" y="88" width="96" height="26" rx="13" fill="#253978" stroke="#7dd4ff" stroke-width="2"/><g transform="translate(82 101)">${uxIcon('speaker', 13, '#a8ccff')}</g>`;
+          return `<g class="ux-btn${on ? ' ux-pulse' : ''}" data-play-key="room_${lv.id}" data-lv="${lv.id}" role="button" tabindex="0" aria-label="${lv.title}" transform="translate(${x} ${y})">
+            <g class="btn-vis" filter="url(#softShadow)">
+              <rect width="194" height="124" rx="22" fill="${hasRec ? '#fff9ec' : '#1b264f'}" stroke="${on ? '#ff9cc4' : (hasRec ? '#ffd27a' : '#4d659c')}" stroke-width="${on ? 4.5 : 3}"/>
+              <image href="${SRC('portrait_' + lv.host)}" x="10" y="10" width="32" height="32" preserveAspectRatio="xMidYMid meet"/>
+              <image href="${SRC(lv.coverCard)}" x="56" y="10" width="84" height="72" preserveAspectRatio="xMidYMid meet" opacity="${hasRec ? 1 : .58}"/>
+              <text x="172" y="28" text-anchor="middle" font-size="14" font-weight="bold" fill="${hasRec ? '#8a5a10' : '#7c96c8'}">${lv.badge}</text>
+              ${pill}
+            </g>
+          </g>`;
+        }).join('');
+      } else if (tab === 'free') {
+        const list = (save.creations || []).filter(c => keys.has(c.id)).slice(0, 12);
+        discs = list.length ? list.map((c, i) => {
+          const col = i % 4, row = (i / 4) | 0;
+          const x = 68 + col * 210, y = 92 + row * 138;
+          const on = playingId === c.id;
+          const c0 = (c.cards && c.cards[0]) || 'portrait_olaf';
+          const cLast = (c.cards && c.cards[c.cards.length - 1]) || 'card_mood_happy';
+          return `<g class="ux-btn${on ? ' ux-pulse' : ''}" data-play-key="${c.id}" role="button" tabindex="0" aria-label="自由创作" transform="translate(${x} ${y})">
+            <g class="btn-vis" filter="url(#softShadow)">
+              <rect width="194" height="124" rx="22" fill="#fff9ec" stroke="${on ? '#ff9cc4' : '#ffd27a'}" stroke-width="${on ? 4.5 : 3}"/>
+              <image href="${SRC(c0)}" x="22" y="12" width="68" height="68" preserveAspectRatio="xMidYMid meet"/>
+              <image href="${SRC(cLast)}" x="104" y="12" width="68" height="68" preserveAspectRatio="xMidYMid meet"/>
+              <g transform="translate(97 22)">${uxIcon(c.mode === 'mountain' ? 'mountain' : 'train', 14, '#7ea9e8')}</g>
+              ${meterSvg(on)}
+            </g>
+          </g>`;
+        }).join('') : `<image href="${SRC('olaf_idle')}" x="424" y="190" width="112" height="175" preserveAspectRatio="xMidYMid meet"/>`;
+      } else {
+        const list = (save.diary || []).filter(d => keys.has(d.id)).slice(0, 12);
+        discs = list.length ? list.map((d, i) => {
+          const col = i % 4, row = (i / 4) | 0;
+          const x = 68 + col * 210, y = 92 + row * 138;
+          const on = playingId === d.id;
+          const tp = INTERVIEW_TOPICS.find(t => t.id === d.topicId) || INTERVIEW_TOPICS[0];
+          return `<g class="ux-btn${on ? ' ux-pulse' : ''}" data-play-key="${d.id}" role="button" tabindex="0" aria-label="${tp.title}" transform="translate(${x} ${y})">
+            <g class="btn-vis" filter="url(#softShadow)">
+              <rect width="194" height="124" rx="22" fill="#fff9ec" stroke="${on ? '#ff9cc4' : '#ffd27a'}" stroke-width="${on ? 4.5 : 3}"/>
+              <image href="${SRC('portrait_olaf')}" x="10" y="10" width="32" height="32" preserveAspectRatio="xMidYMid meet"/>
+              <image href="${SRC(tp.card)}" x="56" y="10" width="84" height="72" preserveAspectRatio="xMidYMid meet"/>
+              ${meterSvg(on)}
+            </g>
+          </g>`;
+        }).join('') : `<image href="${SRC('olaf_idle')}" x="424" y="190" width="112" height="175" preserveAspectRatio="xMidYMid meet"/>`;
+      }
 
       const root = uxPaint(`<g class="page">
         <image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
         <rect width="960" height="520" fill="#101836" opacity=".62"/>
-        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 48, r: 34 })}
-        <g filter="url(#softShadow)">
-          <rect x="422" y="20" width="116" height="46" rx="23" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
-          ${uxPic('prop_mic', 442, 24, 24, 38, '', 'meet')}
-          <rect x="478" y="36" width="6" height="14" rx="3" fill="#7dd4ff"/>
-          <rect x="490" y="30" width="6" height="26" rx="3" fill="#ff9cc4"/>
-          <rect x="502" y="34" width="6" height="18" rx="3" fill="#ffd27a"/>
-        </g>
+        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 46, r: 32 })}
+        ${uxButton({ act: 'tab_stories', ui: 'tab_stories', icon: 'rooms', x: 356, y: 46, r: 32, plate: tab === 'stories' ? 'gold' : '' })}
+        ${uxButton({ act: 'tab_free', ui: 'tab_free', icon: 'mountain', x: 446, y: 46, r: 32, plate: tab === 'free' ? 'gold' : '' })}
+        ${uxButton({ act: 'tab_diary', ui: 'tab_diary', icon: 'diary', x: 536, y: 46, r: 32, plate: tab === 'diary' ? 'gold' : '' })}
+        ${uxButton({ act: 'fx_normal', ui: 'fx_normal', icon: 'fx_normal', x: 720, y: 46, r: 32, plate: voiceFx === 'normal' ? 'gold' : '' })}
+        ${uxButton({ act: 'fx_olaf', ui: 'fx_olaf', icon: 'fx_olaf', x: 796, y: 46, r: 32, plate: voiceFx === 'olaf' ? 'gold' : '' })}
+        ${uxButton({ act: 'fx_hall', ui: 'fx_hall', icon: 'fx_hall', x: 872, y: 46, r: 32, plate: voiceFx === 'hall' ? 'gold' : '' })}
         ${discs}
       </g>`);
-      const back = () => { recorder.stopPlay(); setMicMute(false); uxEnd(s, () => showTitle()); };
+      const back = () => { recorder.stopPlay(); setRecordingAudioMode('off'); uxEnd(s, () => showTitle()); };
       s.onKey = back;
-      uxBind(root, { back });
-      root.querySelectorAll('[data-disc]').forEach(d => {
-        const lid = d.getAttribute('data-disc');
-        const playDisc = async () => {
-          const lv = LEVELS.find(x => x.id === lid);
-          if (!lv) return;
-          playingId = lid;
-          const blob = await recorder.loadClip('room_' + lid);
+      uxBind(root, {
+        back,
+        tab_stories: () => { recorder.stopPlay(); setRecordingAudioMode('off'); playingId = ''; tab = 'stories'; render(); },
+        tab_free: () => { recorder.stopPlay(); setRecordingAudioMode('off'); playingId = ''; tab = 'free'; render(); },
+        tab_diary: () => { recorder.stopPlay(); setRecordingAudioMode('off'); playingId = ''; tab = 'diary'; render(); },
+        fx_normal: () => { voiceFx = 'normal'; render(); },
+        fx_olaf: () => { voiceFx = 'olaf'; render(); },
+        fx_hall: () => { voiceFx = 'hall'; render(); },
+      });
+      root.querySelectorAll('[data-play-key]').forEach(d => {
+        const key = d.getAttribute('data-play-key');
+        const lid = d.getAttribute('data-lv') || '';
+        const playItem = async () => {
+          playingId = lid || key;
+          const blob = await recorder.loadClip(key);
           if (blob) {
-            setMicMute(true);
+            const meta = await recorder.loadMeta(key);
+            setRecordingAudioMode('premiere');
             render();
-            recorder.play(blob, () => { playingId = ''; setMicMute(false); if (uxAlive(s)) render(); });
-          } else {
-            recorder.stopPlay();
-            setMicMute(false);
-            render();
-            uxLine(lv.demoKey, { interrupt: true, maxWait: 7000 }).then(() => {
-              playingId = '';
-              if (uxAlive(s)) render();
+            recorder.play(blob, () => { playingId = ''; setRecordingAudioMode('off'); if (uxAlive(s)) render(); }, {
+              fx: voiceFx,
+              timeline: (meta && meta.timeline) || [],
             });
+          } else if (lid) {
+            const lv = LEVELS.find(x => x.id === lid);
+            recorder.stopPlay();
+            setRecordingAudioMode('off');
+            render();
+            if (lv) uxLine(lv.demoKey, { interrupt: true, maxWait: 9000 }).then(() => { playingId = ''; if (uxAlive(s)) render(); });
           }
         };
-        d.addEventListener('click', playDisc);
-        d.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playDisc(); } });
+        d.addEventListener('click', playItem);
+        d.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playItem(); } });
       });
     };
     render();
@@ -2799,21 +4099,44 @@ function createGame() {
     if (bPressed && !padLastB) { const back = $('overlay').querySelector('[data-act="back"]'); if (back) back.dispatchEvent(new MouseEvent('click')); }
     padLastB = bPressed;
   }
-  /* Orchestration: main game flow, Stage 1 builder, Stage 2 local voice recording studio, animation loop & boot. */
-  const playFlow = { phase: 'title', studioTimer: 0, studioNonce: 0 };
+  /* Orchestration: main flow, Stage 1 builder, 3-Tier Studio, VAD Cloze, Premiere Playback & 10-min Eye-Care. */
+  const playFlow = {
+    phase: 'title', studioTimer: 0, studioNonce: 0,
+    recStartMs: 0, recTimeline: [], clozeResolve: null,
+  };
   uxHooks.replay = i => openRoom(i);
 
   const sessionClips = new Map();
+  const sessionMetas = new Map();
+  let sessionPlaySec = 0;
+  let pendingEyeCare = false;
+
+  function maybeEyeCareBreak(nextFn) {
+    if (pendingEyeCare && setting('eyeCare') && typeof showEyeCareBreak === 'function') {
+      pendingEyeCare = false;
+      sessionPlaySec = 0;
+      showEyeCareBreak(nextFn);
+      return;
+    }
+    nextFn();
+  }
 
   function stopStudioPlayback() {
     playFlow.studioNonce++;
     clearInterval(playFlow.studioTimer);
     playFlow.studioTimer = 0;
+    if (typeof playFlow.clozeResolve === 'function') {
+      const r = playFlow.clozeResolve;
+      playFlow.clozeResolve = null;
+      r();
+    }
     if (recorder.recording) recorder.stop();
     recorder.stopPlay();
     stageState.recording = false;
+    stageState.premiere = false;
     stageState.activeCardIdx = -1;
-    setMicMute(false);
+    setLiveVoice(false, 0);
+    setRecordingAudioMode('off');
     setStudioWaves(null);
   }
 
@@ -2835,7 +4158,7 @@ function createGame() {
         save.flags.prologue = true; saveWrite();
         showStory(['p1', 'p2', 'p3'], go);
       });
-    } else go();
+    } else maybeEyeCareBreak(go);
   }
 
   function openRoom(idx) {
@@ -2845,7 +4168,9 @@ function createGame() {
     playFlow.phase = 'story';
     loadArt(roomArt(lv), ART_PATIENCE).then(async () => {
       const existingClip = await recorder.loadClip('room_' + lv.id);
+      const existingMeta = await recorder.loadMeta('room_' + lv.id);
       if (existingClip) sessionClips.set(lv.id, existingClip);
+      if (existingMeta) sessionMetas.set(lv.id, existingMeta);
       showChapter(idx, () => {
         playFlow.phase = 'play';
         game.start(idx);
@@ -2884,6 +4209,14 @@ function createGame() {
     }
   }
 
+  function recastKeyFor(lv, misses) {
+    if (misses >= 2) return 'assist_1';
+    if (lv.skill === 'sequence' || lv.skill === 'twist' || lv.skill === 'episode') return 'recast_order';
+    if (lv.skill === 'classify') return 'recast_classify';
+    if (lv.skill === 'reason') return 'recast_reason';
+    return 'try_1';
+  }
+
   function onCardPick(cid, btnNode) {
     if (!canPlay() || game.phase !== 'build') return;
     unlockAudio();
@@ -2895,9 +4228,10 @@ function createGame() {
     if (!ok) {
       uxNudge(btnNode);
       renderStage(game, false);
+      const rk = recastKeyFor(game.level(), game.misses);
       speakCard(cid).then(() => {
         if (myNonce === pickNonce && canPlay() && game.phase === 'build') {
-          TK.say(game.misses >= 1 ? 'assist_1' : 'try_1', { tag: 'try', maxWait: 3500 });
+          TK.say(rk, { tag: 'try', maxWait: 5000 });
         }
       });
       return;
@@ -2909,37 +4243,161 @@ function createGame() {
     renderStage(game, false);
   }
 
-  function runStudioCardWalk(count) {
-    clearInterval(playFlow.studioTimer);
-    let c = 0;
-    highlightStudioCard(0);
-    playFlow.studioTimer = setInterval(() => {
-      if (game.state !== 'play' || game.phase !== 'studio' || storyIsOpen()) {
-        clearInterval(playFlow.studioTimer);
-        highlightStudioCard(-1);
-        return;
-      }
-      c = (c + 1) % Math.max(1, count);
-      highlightStudioCard(c);
-    }, 1800);
+  function cueForSlot(lv, i) {
+    if (!lv) return 'cue_first';
+    if (lv.skill === 'sequence') return ['cue_first', 'cue_then', 'cue_last'][i] || 'cue_last';
+    if (lv.skill === 'sentence') return ['cue_who', 'cue_where', 'cue_what', 'cue_mood'][i] || 'cue_mood';
+    if (lv.skill === 'classify') return ['cue_num1', 'cue_num2', 'cue_num3'][i] || 'cue_num3';
+    if (lv.skill === 'reason') return i % 2 === 0 ? 'cue_pick' : 'cue_why';
+    if (lv.skill === 'twist') return ['cue_plan', 'cue_but', 'cue_so', 'cue_last'][i] || 'cue_last';
+    if (lv.skill === 'episode') return ['cue_who', 'cue_problem', 'cue_feel', 'cue_action', 'cue_last'][i] || 'cue_last';
+    return 'cue_first';
   }
 
-  function onStudioDemo() {
+  function setStudioTier(t) {
+    if (stageState.recording) return;
+    unlockAudio();
+    stageState.tier = t;
+    save.studioTier = t;
+    saveWrite();
+    uxSfx('tap');
+    TK.say('ui_tier_' + t, { interrupt: true, tag: 'ui', subtitle: false, maxWait: 3000 });
+    stageState.idx = -1;
+    renderStage(game, true);
+  }
+
+  function selectVoiceFx(fx) {
+    if (stageState.recording) return;
+    unlockAudio();
+    stageState.voiceFx = fx;
+    uxSfx('tap');
+    stageState.idx = -1;
+    renderStage(game, true);
+    TK.say('ui_fx_' + fx, { interrupt: true, tag: 'ui', subtitle: false, maxWait: 2500 }).then(() => {
+      if (canPlay() && game.phase === 'studio' && stageState.hasClip && !stageState.recording) onStudioListen();
+    });
+  }
+
+  function onStudioCardTap(idx, cid, cardNode) {
+    if (stageState.recording) {
+      highlightStudioCard(idx);
+      const ms = Math.max(0, Date.now() - playFlow.recStartMs);
+      playFlow.recTimeline.push({ cardIdx: idx, ms });
+      if (typeof playFlow.clozeResolve === 'function') {
+        const r = playFlow.clozeResolve;
+        playFlow.clozeResolve = null;
+        r();
+      }
+      return;
+    }
+    uxNudge(cardNode);
+    speakCard(cid);
+    highlightStudioCard(idx);
+  }
+
+  async function onStudioDemo() {
     if (!canPlay() || game.phase !== 'studio' || stageState.recording) return;
     unlockAudio();
-    setMicMute(false);
+    setRecordingAudioMode('off');
     recorder.stopPlay();
     game.markDemoHeard();
     audioOnEvents(game.drain());
     const lv = game.level();
+    const cards = game.studioCards();
     const nonce = ++playFlow.studioNonce;
-    runStudioCardWalk(game.studioCards().length);
-    TK.say(lv.demoKey, { interrupt: true, tag: 'demo', maxWait: 10000 }).then(() => {
+
+    if (game.isCustomSentence()) {
+      for (let i = 0; i < cards.length; i++) {
+        if (nonce !== playFlow.studioNonce || game.phase !== 'studio' || stageState.recording) return;
+        highlightStudioCard(i);
+        const m = cardMetaOf(cards[i]);
+        if (m && m.voiceKey && hasLineKey(m.voiceKey)) {
+          await voice.line(m.voiceKey, { interrupt: true, tag: 'demo', maxWait: 3000, subtitle: false });
+        }
+      }
+      if (nonce === playFlow.studioNonce) {
+        highlightStudioCard(-1);
+        renderStage(game, true);
+      }
+      return;
+    }
+
+    clearInterval(playFlow.studioTimer);
+    let c = 0;
+    const stepMs = Math.max(1200, Math.round(7800 / Math.max(1, cards.length)));
+    highlightStudioCard(0);
+    playFlow.studioTimer = setInterval(() => {
+      if (nonce !== playFlow.studioNonce || game.phase !== 'studio' || storyIsOpen()) {
+        clearInterval(playFlow.studioTimer);
+        return;
+      }
+      c = Math.min(cards.length - 1, c + 1);
+      highlightStudioCard(c);
+    }, stepMs);
+
+    TK.say(lv.demoKey, { interrupt: true, tag: 'demo', maxWait: 14000 }).then(() => {
       if (nonce !== playFlow.studioNonce) return;
       clearInterval(playFlow.studioTimer);
       highlightStudioCard(-1);
       renderStage(game, true);
     });
+  }
+
+  function playStudioPremiere(lid, blob, meta, celebrateNew) {
+    if (!blob) return;
+    const nonce = ++playFlow.studioNonce;
+    stageState.premiere = true;
+    stageState.idx = -1;
+    renderStage(game, true);
+    uxSfx('premiere');
+    setTimeout(() => {
+      if (nonce !== playFlow.studioNonce || !canPlay()) return;
+      setRecordingAudioMode('premiere');
+      recorder.play(blob, () => {
+        stageState.premiere = false;
+        setLiveVoice(false, 0);
+        setRecordingAudioMode('off');
+        setStudioWaves(null);
+        highlightStudioCard(-1);
+        if (nonce === playFlow.studioNonce && canPlay()) {
+          stageState.idx = -1;
+          renderStage(game, true);
+          uxConfetti($('fx'), 480, 220, celebrateNew ? 34 : 20);
+          if (celebrateNew) TK.say('rec_done_' + (1 + Math.floor(Math.random() * 3)), { interrupt: true, maxWait: 5000 });
+        }
+      }, {
+        fx: stageState.voiceFx,
+        timeline: (meta && meta.timeline) || [],
+        onCard: idx => { if (nonce === playFlow.studioNonce) highlightStudioCard(idx); },
+        onBars: bars => setStudioWaves(bars),
+        onEnergy: energy => setLiveVoice(true, energy),
+      });
+    }, 520);
+  }
+
+  async function runClozeLoop(lv, cards, nonce) {
+    for (let i = 0; i < cards.length; i++) {
+      if (nonce !== playFlow.studioNonce || !stageState.recording) return;
+      highlightStudioCard(i);
+      const ms = Math.max(0, Date.now() - playFlow.recStartMs);
+      if (i > 0) playFlow.recTimeline.push({ cardIdx: i, ms });
+      const cueKey = cueForSlot(lv, i);
+      await TK.say(cueKey, { interrupt: true, tag: 'cue', maxWait: 3200, subtitle: false });
+      if (nonce !== playFlow.studioNonce || !stageState.recording) return;
+      await new Promise(resolve => {
+        const done = () => {
+          clearTimeout(t);
+          if (playFlow.clozeResolve === done) playFlow.clozeResolve = null;
+          resolve(undefined);
+        };
+        const t = setTimeout(done, 6200);
+        playFlow.clozeResolve = done;
+      });
+      if (nonce === playFlow.studioNonce && stageState.recording && i < cards.length - 1) uxSfx('cloze_cue');
+    }
+    if (nonce === playFlow.studioNonce && stageState.recording) {
+      setTimeout(() => { if (nonce === playFlow.studioNonce && stageState.recording) onStudioMicToggle(); }, 700);
+    }
   }
 
   async function onStudioMicToggle() {
@@ -2950,31 +4408,48 @@ function createGame() {
 
     if (stageState.recording) {
       clearInterval(playFlow.studioTimer);
+      if (typeof playFlow.clozeResolve === 'function') {
+        const r = playFlow.clozeResolve;
+        playFlow.clozeResolve = null;
+        r();
+      }
       highlightStudioCard(-1);
       const res = await recorder.stop();
       stageState.recording = false;
-      setMicMute(false);
+      setLiveVoice(false, 0);
+      setRecordingAudioMode('off');
       setStudioWaves(null);
       uxSfx('mic_stop');
       if (res && res.blob) {
+        const meta = {
+          createdAt: Date.now(),
+          durationMs: res.durationMs || 0,
+          activeSpeechMs: res.activeSpeechMs || 0,
+          tier: stageState.tier,
+          timeline: playFlow.recTimeline.slice(),
+        };
         sessionClips.set(lv.id, res.blob);
+        sessionMetas.set(lv.id, meta);
         stageState.hasClip = true;
         await recorder.saveClip('room_' + lv.id, res.blob);
+        await recorder.saveMeta('room_' + lv.id, meta);
+        const firstExisting = await recorder.loadClip('room_' + lv.id + '_first');
+        if (!firstExisting) {
+          await recorder.saveClip('room_' + lv.id + '_first', res.blob);
+          await recorder.saveMeta('room_' + lv.id + '_first', meta);
+        }
         save.recordingsCount = (save.recordingsCount || 0) + 1;
+        save.speechSamples = (save.speechSamples || 0) + 1;
+        save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
+        const rSave = markRoom(lv.id, { recorded: true, stars: [true, true, true] });
+        if (!Number.isFinite(rSave.firstSpeechMs)) rSave.firstSpeechMs = res.activeSpeechMs || 0;
+        rSave.lastSpeechMs = res.activeSpeechMs || 0;
+        rSave.recCount = (rSave.recCount || 0) + 1;
+        if (stageState.tier === 'anchor') rSave.tier3 = true;
         saveWrite();
         game.markRecorded();
         audioOnEvents(game.drain());
-        uxConfetti($('fx'), 480, 240, 32);
-        stageState.idx = -1;
-        renderStage(game, true);
-        // Play back the child's own recording cleanly, then celebrate!
-        setMicMute(true);
-        recorder.play(res.blob, () => {
-          setMicMute(false);
-          if (nonce === playFlow.studioNonce && canPlay()) {
-            TK.say('rec_done_' + (1 + Math.floor(Math.random() * 3)), { interrupt: true, maxWait: 5000 });
-          }
-        });
+        playStudioPremiere(lv.id, res.blob, meta, true);
       } else {
         stageState.idx = -1;
         renderStage(game, true);
@@ -2983,20 +4458,41 @@ function createGame() {
     }
 
     recorder.stopPlay();
-    setMicMute(true);
+    const tier = stageState.tier || 'director';
+    setRecordingAudioMode(tier === 'cloze' ? 'rec_cloze' : 'rec_quiet');
+    playFlow.recStartMs = Date.now();
+    playFlow.recTimeline = [{ cardIdx: 0, ms: 0 }];
+    const cards = game.studioCards();
+    let clozeBeatBursts = 0;
+
     const res = await recorder.start(
-      bars => setStudioWaves(bars),
+      frameData => {
+        setStudioWaves(frameData.bars);
+        setLiveVoice(true, frameData.energy);
+        if (tier === 'cloze' && typeof playFlow.clozeResolve === 'function') {
+          if (frameData.vad.speechBursts > clozeBeatBursts && frameData.vad.silenceAfterSpeechMs >= 1450) {
+            clozeBeatBursts = frameData.vad.speechBursts;
+            const r = playFlow.clozeResolve;
+            playFlow.clozeResolve = null;
+            r();
+          }
+        } else if (tier === 'director' && frameData.vad.speechBursts > 0 && frameData.vad.silenceAfterSpeechMs >= 2600) {
+          if (stageState.activeCardIdx >= 0 && stageState.activeCardIdx + 1 < cards.length) {
+            nudgeNextStudioCard(stageState.activeCardIdx + 1);
+          }
+        }
+      },
       () => { if (stageState.recording) onStudioMicToggle(); },
     );
     if (!res.ok) {
-      setMicMute(false);
+      setLiveVoice(false, 0);
+      setRecordingAudioMode('off');
       stageState.recording = false;
       setStudioWaves(null);
       game.markDemoHeard();
       renderStage(game, true);
-      runStudioCardWalk(game.studioCards().length);
       TK.say('mic_fallback', { interrupt: true, tag: 'demo', maxWait: 6000 }).then(() => {
-        if (nonce === playFlow.studioNonce) TK.say(lv.demoKey, { tag: 'demo', maxWait: 9500 });
+        if (nonce === playFlow.studioNonce) onStudioDemo();
       });
       return;
     }
@@ -3004,7 +4500,8 @@ function createGame() {
     uxSfx('mic_start');
     stageState.idx = -1;
     renderStage(game, true);
-    runStudioCardWalk(game.studioCards().length);
+    if (tier === 'cloze') runClozeLoop(lv, cards, nonce);
+    else highlightStudioCard(0);
   }
 
   async function onStudioListen() {
@@ -3014,14 +4511,11 @@ function createGame() {
     let blob = sessionClips.get(lv.id);
     if (!blob) blob = await recorder.loadClip('room_' + lv.id);
     if (!blob) { onStudioDemo(); return; }
+    let meta = sessionMetas.get(lv.id);
+    if (!meta) meta = await recorder.loadMeta('room_' + lv.id);
     sessionClips.set(lv.id, blob);
-    setMicMute(true);
-    runStudioCardWalk(game.studioCards().length);
-    recorder.play(blob, () => {
-      setMicMute(false);
-      clearInterval(playFlow.studioTimer);
-      highlightStudioCard(-1);
-    });
+    if (meta) sessionMetas.set(lv.id, meta);
+    playStudioPremiere(lv.id, blob, meta, false);
   }
 
   function onStudioDone() {
@@ -3059,13 +4553,13 @@ function createGame() {
     playFlow.phase = 'clear';
     const stars = [true, !!(game.demoHeard || game.recorded), !!game.recorded];
     markRoom(lv.id, { cleared: true, recorded: !!game.recorded, stars });
-    if (!save.skills) save.skills = { sequence: 0, sentence: 0, classify: 0, reason: 0 };
+    if (!save.skills) save.skills = { sequence: 0, sentence: 0, classify: 0, reason: 0, twist: 0, episode: 0 };
     save.skills[lv.skill] = Math.min(2, (save.skills[lv.skill] || 0) + 1);
     saveWrite();
 
     showClear(lvIdx, () => {
-      if (lvIdx >= LEVELS.length - 1) showStory(['win', 'end'], () => showFinale(showTitle));
-      else openRoom(lvIdx + 1);
+      if (lvIdx >= LEVELS.length - 1) showStory(['win', 'end'], () => maybeEyeCareBreak(() => showFinale(showTitle)));
+      else maybeEyeCareBreak(() => openRoom(lvIdx + 1));
     });
   }
 
@@ -3084,7 +4578,14 @@ function createGame() {
       }
       renderHeroes(game, tSec);
       secAcc += dt;
-      if (secAcc >= 1) { save.totalPlaySeconds += Math.floor(secAcc); secAcc %= 1; saveSoon(); }
+      if (secAcc >= 1) {
+        const inc = Math.floor(secAcc);
+        secAcc %= 1;
+        save.totalPlaySeconds += inc;
+        sessionPlaySec += inc;
+        if (sessionPlaySec >= 600) pendingEyeCare = true;
+        saveSoon();
+      }
     } else if (heroDrawn.built && game.state !== 'play') {
       renderHeroes(game, tSec);
     }
@@ -3099,9 +4600,11 @@ function createGame() {
   if (DEV && qaMode === 'unlock') {
     save.unlocked.rooms = LEVELS.length;
     for (const lv of LEVELS) markRoom(lv.id, { cleared: true, recorded: true, stars: [true, true, true] });
-    save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2 };
-    save.recordingsCount = 4;
-    save.freeSentences = 3;
+    save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2, twist: 2, episode: 2 };
+    save.recordingsCount = 6;
+    save.speechSamples = 6;
+    save.totalSpeechMs = 36000;
+    save.freeSentences = 4;
   }
 
   loadArt(titlePlan.title, ART_PATIENCE).then(() => {
@@ -3109,7 +4612,7 @@ function createGame() {
     if (DEV && qaMode === 'win') {
       save.unlocked.rooms = LEVELS.length;
       for (const lv of LEVELS) markRoom(lv.id, { cleared: true, recorded: true, stars: [true, true, true] });
-      save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2 };
+      save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2, twist: 2, episode: 2 };
       showStory(['win', 'end'], () => showFinale(showTitle));
     } else {
       showTitle();

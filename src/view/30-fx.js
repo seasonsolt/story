@@ -1,5 +1,6 @@
-  /* Particle bursts, confetti snowflakes & 14s idle guide sparkle ring over expected card. */
+  /* Particle bursts, confetti snowflakes, voice-driven mic sparkles & 14s idle guide ring. */
   const fxList = [];
+  let lastVoiceFxMs = 0;
 
   function uxConfetti(parent, x, y, count) {
     const host = parent || $('fx');
@@ -9,6 +10,23 @@
       const sp = 55 + Math.random() * 95;
       const node = el('circle', { cx: x, cy: y, r: 3.2 + Math.random() * 2.4, fill: cols[i % cols.length] }, host);
       fxList.push({ node, x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 45, g: 210, t: 0, dur: .75 + Math.random() * .35 });
+    }
+  }
+
+  function fxVoiceSparkle(energy) {
+    if (!energy || energy < .16) return;
+    const now = performance.now();
+    if (now - lastVoiceFxMs < 150) return;
+    lastVoiceFxMs = now;
+    const host = $('fx');
+    if (!host) return;
+    const cols = ['#ffd27a', '#9fe8ff', '#ff9ec4', '#ffffff'];
+    const n = energy > .45 ? 3 : 1;
+    for (let i = 0; i < n; i++) {
+      const x = 440 + Math.random() * 80;
+      const y = 340 + Math.random() * 22;
+      const node = el('circle', { cx: x, cy: y, r: 2.5 + energy * 3, fill: cols[(Math.random() * cols.length) | 0] }, host);
+      fxList.push({ node, x, y, vx: (Math.random() - .5) * 46, vy: -70 - energy * 90, g: 40, t: 0, dur: .7 + Math.random() * .3 });
     }
   }
 
@@ -49,5 +67,6 @@
         fxList.splice(i, 1);
       }
     }
+    if (typeof liveVoice === 'object' && liveVoice.active && liveVoice.energy > .16) fxVoiceSparkle(liveVoice.energy);
     if (g) renderIdleGuide(g, now);
   }

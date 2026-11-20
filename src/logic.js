@@ -51,7 +51,7 @@ function createGame() {
       g.demoHeard = false;
       g.recorded = false;
       g.studioPlayed = false;
-      const nSlots = lv.skill === 'sentence' ? 4 : (lv.skill === 'reason' ? 2 : 3);
+      const nSlots = lv.skill === 'episode' ? 5 : ((lv.skill === 'sentence' || lv.skill === 'twist') ? 4 : (lv.skill === 'reason' ? 2 : 3));
       g.slots = new Array(nSlots).fill('');
       for (const k of ['elsa', 'anna', 'olaf']) {
         g.heroes[k] = { state: k === lv.host ? 'speak' : 'idle', cheer: 0 };
@@ -74,8 +74,8 @@ function createGame() {
     currentChoices() {
       const lv = g.level();
       if (!lv) return [];
-      if (lv.skill === 'sequence' || lv.skill === 'classify') return lv.choices.slice();
-      if (lv.skill === 'sentence') return (lv.steps[g.stepIdx] || []).slice();
+      if (lv.skill === 'sequence' || lv.skill === 'classify' || lv.skill === 'twist') return lv.choices.slice();
+      if (lv.skill === 'sentence' || lv.skill === 'episode') return (lv.steps[g.stepIdx] || []).slice();
       const puz = g.currentPuzzle();
       if (lv.skill === 'reason' && puz) return g.stepIdx === 0 ? puz.pickChoices.slice() : puz.whyChoices.slice();
       return [];
@@ -84,7 +84,7 @@ function createGame() {
     expectedCardId() {
       const lv = g.level();
       if (!lv || g.phase !== 'build') return '';
-      if (lv.skill === 'sequence' || lv.skill === 'sentence') return lv.target[g.stepIdx] || '';
+      if (lv.skill === 'sequence' || lv.skill === 'sentence' || lv.skill === 'twist' || lv.skill === 'episode') return lv.target[g.stepIdx] || '';
       if (lv.skill === 'classify') {
         return lv.target.find(id => !g.slots.includes(id)) || '';
       }
@@ -97,10 +97,15 @@ function createGame() {
       const lv = g.level();
       if (!lv) return [];
       if (lv.skill === 'reason' && Array.isArray(lv.puzzles)) {
-        const last = lv.puzzles[lv.puzzles.length - 1];
-        return last ? last.answer.slice() : [];
+        return lv.puzzles.flatMap(p => (Array.isArray(p.answer) ? p.answer : []));
       }
       return g.slots.filter(Boolean);
+    },
+
+    isCustomSentence() {
+      const lv = g.level();
+      if (!lv || lv.skill !== 'sentence' || !lv.openCompose) return false;
+      return g.slots.some((c, i) => c && c !== lv.target[i]);
     },
 
     resetIdle() {
@@ -115,9 +120,11 @@ function createGame() {
       if (!choices.includes(cardId)) return false;
       g.resetIdle();
 
-      const valid = lv.skill === 'classify'
-        ? lv.target.includes(cardId) && !g.slots.includes(cardId)
-        : cardId === g.expectedCardId();
+      const valid = (lv.skill === 'sentence' && lv.openCompose)
+        ? true
+        : (lv.skill === 'classify'
+          ? lv.target.includes(cardId) && !g.slots.includes(cardId)
+          : cardId === g.expectedCardId());
 
       if (!valid) {
         g.misses++;

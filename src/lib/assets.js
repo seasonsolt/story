@@ -11,6 +11,7 @@
     const out = [], add = n => { if (n && !out.includes(n)) out.push(n); };
     if (level) {
       add(level.bg);
+      add(level.coverCard);
       for (const c of level.choices || []) add(c);
       for (const row of level.steps || []) for (const c of row || []) add(c);
       for (const p of level.puzzles || []) {

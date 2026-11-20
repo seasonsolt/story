@@ -1,4 +1,4 @@
-/* Test harness for 冰雪故事小导演: loads src/*.js (or built story.html <script id="logic">) and solves all 8 rooms in Node. */
+/* Test harness for 冰雪故事小导演: loads src/*.js (or built story.html <script id="logic">) and solves all 12 rooms in Node. */
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const DT = 1 / 60;
 
-const EXPORTS = `;({ createGame, LEVELS, CARD_META, FREE_TRAIN_POOL, SKILL_NAMES, IDLE_HINT_SEC })`;
+const EXPORTS = `;({ createGame, LEVELS, CARD_META, FREE_TRAIN_POOL, FREE_MOUNTAIN_POOL, INTERVIEW_TOPICS, SKILL_NAMES, IDLE_HINT_SEC })`;
 
 export function loadLogic({ html = null } = {}) {
   let code, source;

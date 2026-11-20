@@ -1,4 +1,4 @@
-/* All 8 structured-expression story levels (纯中文) and Free Train sandbox pool. Zero DOM access. */
+/* All 12 structured-expression story levels (纯中文), Free Studio pools, and Olaf Daily Reporter topics. Zero DOM access. */
 
 const CARD_META = {
   portrait_elsa: { label: '艾莎', speech: '艾莎', voiceKey: 'card_portrait_elsa' },
@@ -42,6 +42,27 @@ const CARD_META = {
   card_melting: { label: '怕晒化', speech: '因为太阳好晒会化掉', voiceKey: 'card_melting' },
   card_party_flag: { label: '开派对', speech: '城堡在开派对', voiceKey: 'card_party_flag' },
   card_sky_lanterns: { label: '放天灯', speech: '放飞许愿天灯', voiceKey: 'card_sky_lanterns' },
+
+  card_picnic_blanket: { label: '铺野餐布', speech: '铺开野餐花布', voiceKey: 'card_picnic_blanket' },
+  card_gust_blow: { label: '大风吹', speech: '刮起大风差点吹跑', voiceKey: 'card_gust_blow' },
+  card_pin_stones: { label: '石头压', speech: '用小石头压住四角', voiceKey: 'card_pin_stones' },
+  card_picnic_feast: { label: '稳稳美食', speech: '稳稳当当吃大餐', voiceKey: 'card_picnic_feast' },
+  card_ice_swan: { label: '小冰雕', speech: '堆一只冰天鹅', voiceKey: 'card_ice_swan' },
+  card_warm_sun: { label: '大太阳', speech: '太阳晒得快化掉', voiceKey: 'card_warm_sun' },
+  card_frost_dome: { label: '冰霜罩', speech: '支起冰雪遮阳罩', voiceKey: 'card_frost_dome' },
+  card_crystal_show: { label: '闪亮亮', speech: '冰雕闪闪发光啦', voiceKey: 'card_crystal_show' },
+  card_snow_bunny: { label: '小雪兔', speech: '小白兔去雪林玩', voiceKey: 'card_snow_bunny' },
+  card_feel_worried: { label: '好着急', speech: '心里有点小着急', voiceKey: 'card_feel_worried' },
+  card_star_footprints: { label: '找脚印', speech: '跟着星光找脚印', voiceKey: 'card_star_footprints' },
+  card_bunny_hug: { label: '抱妈妈', speech: '扑进妈妈怀里抱抱', voiceKey: 'card_bunny_hug' },
+  card_dark_sky: { label: '夜黑黑', speech: '天突然黑下来啦', voiceKey: 'card_dark_sky' },
+  card_feel_brave: { label: '鼓起勇气', speech: '心里深呼吸变勇敢', voiceKey: 'card_feel_brave' },
+  card_magic_wand: { label: '挥仙女棒', speech: '挥动冰雪魔法棒', voiceKey: 'card_magic_wand' },
+  card_aurora_crown: { label: '极光亮', speech: '点亮最美极光夜空', voiceKey: 'card_aurora_crown' },
+  card_topic_play: { label: '今天玩什么', speech: '说说今天去哪儿玩啦', voiceKey: 'card_topic_play' },
+  card_topic_food: { label: '今天吃什么', speech: '说说今天吃了什么美味', voiceKey: 'card_topic_food' },
+  card_topic_oops: { label: '今天小插曲', speech: '说说遇到了什么小插曲', voiceKey: 'card_topic_oops' },
+  card_topic_bedtime: { label: '开心三件事', speech: '说说今天开心的三件事', voiceKey: 'card_topic_bedtime' },
 };
 
 const SKILL_NAMES = {
@@ -49,6 +70,8 @@ const SKILL_NAMES = {
   sentence: '完整句子',
   classify: '总分归类',
   reason: '因果理由',
+  twist: '转折解困',
+  episode: '完整故事山',
 };
 
 const FREE_TRAIN_POOL = {
@@ -60,6 +83,24 @@ const FREE_TRAIN_POOL = {
     ['card_mood_happy', 'card_mood_warm', 'card_mood_surprise'],
   ],
 };
+
+const FREE_MOUNTAIN_POOL = {
+  labels: ['谁', '遇麻烦', '心里觉得', '想办法', '最后结局'],
+  slots: [
+    ['portrait_elsa', 'portrait_anna', 'portrait_olaf', 'card_snow_bunny'],
+    ['card_gust_blow', 'card_warm_sun', 'card_dark_sky', 'card_wind_snow'],
+    ['card_feel_worried', 'card_feel_brave', 'card_mood_surprise'],
+    ['card_pin_stones', 'card_frost_dome', 'card_star_footprints', 'card_magic_wand'],
+    ['card_picnic_feast', 'card_crystal_show', 'card_bunny_hug', 'card_aurora_crown'],
+  ],
+};
+
+const INTERVIEW_TOPICS = [
+  { id: 'play', title: '今天去哪儿玩', card: 'card_topic_play', voiceKey: 'interview_play', badges: ['1', '2', '3'], cues: ['cue_first', 'cue_then', 'cue_last'] },
+  { id: 'food', title: '最爱吃的小美味', card: 'card_topic_food', voiceKey: 'interview_food', badges: ['pick', 'why'], cues: ['cue_pick', 'cue_why'] },
+  { id: 'oops', title: '遇到小插曲怎么办', card: 'card_topic_oops', voiceKey: 'interview_oops', badges: ['plan', 'but', 'end'], cues: ['cue_plan', 'cue_but', 'cue_last'] },
+  { id: 'bedtime', title: '今天开心三件事', card: 'card_topic_bedtime', voiceKey: 'interview_bedtime', badges: ['star1', 'star2', 'star3'], cues: ['cue_num1', 'cue_num2', 'cue_num3'] },
+];
 
 const LEVELS = [
   {
@@ -100,6 +141,7 @@ const LEVELS = [
     badge: '3',
     coverCard: 'card_act_castle',
     skill: 'sentence',
+    openCompose: true,
     bg: 'bg_garden',
     host: 'elsa',
     scaffoldLabels: ['谁', '在哪儿', '干什么', '怎么样'],
@@ -121,6 +163,7 @@ const LEVELS = [
     badge: '4',
     coverCard: 'card_act_cocoa',
     skill: 'sentence',
+    openCompose: true,
     bg: 'bg_cozy',
     host: 'anna',
     scaffoldLabels: ['谁', '在哪儿', '干什么', '怎么样'],
@@ -221,5 +264,81 @@ const LEVELS = [
     demoKey: 'demo_reason_finale',
     clearKey: 'clear_reason_finale',
     parentTip: '周末一起挑三样毛绒玩具摆成小剧场，请“小导演”连说顺序、原因和结尾！',
+  },
+  {
+    id: 'twist_picnic',
+    title: '风吹野餐布',
+    badge: '9',
+    coverCard: 'card_picnic_blanket',
+    skill: 'twist',
+    bg: 'bg_garden',
+    host: 'anna',
+    scaffoldLabels: ['本来想', '可是', '于是', '最后'],
+    choices: ['card_gust_blow', 'card_picnic_feast', 'card_picnic_blanket', 'card_pin_stones'],
+    target: ['card_picnic_blanket', 'card_gust_blow', 'card_pin_stones', 'card_picnic_feast'],
+    introKey: 'intro_twist_picnic',
+    demoKey: 'demo_twist_picnic',
+    clearKey: 'clear_twist_picnic',
+    parentTip: '生活里遇到小波折（例如积木倒了、风吹跑了），引导孩子说“本来想……可是……于是……最后……”。',
+  },
+  {
+    id: 'twist_sculpture',
+    title: '守护冰天鹅',
+    badge: '10',
+    coverCard: 'card_ice_swan',
+    skill: 'twist',
+    bg: 'bg_palace',
+    host: 'elsa',
+    scaffoldLabels: ['本来想', '可是', '于是', '最后'],
+    choices: ['card_frost_dome', 'card_ice_swan', 'card_crystal_show', 'card_warm_sun'],
+    target: ['card_ice_swan', 'card_warm_sun', 'card_frost_dome', 'card_crystal_show'],
+    introKey: 'intro_twist_sculpture',
+    demoKey: 'demo_twist_sculpture',
+    clearKey: 'clear_twist_sculpture',
+    parentTip: '读到绘本转折页先停下来猜一猜：“呀，可是发生什么啦？接下来想什么办法好呢？”',
+  },
+  {
+    id: 'episode_bunny',
+    title: '迷路小雪兔',
+    badge: '11',
+    coverCard: 'card_snow_bunny',
+    skill: 'episode',
+    bg: 'bg_garden',
+    host: 'olaf',
+    scaffoldLabels: ['谁和在哪', '遇麻烦', '心里觉得', '想办法', '最后结局'],
+    steps: [
+      ['card_snow_bunny', 'card_cookie', 'card_skates'],
+      ['card_snowfall', 'card_act_sing', 'card_strawberry'],
+      ['card_feel_worried', 'card_mood_happy', 'card_mood_warm'],
+      ['card_star_footprints', 'card_icecream', 'card_shell'],
+      ['card_bunny_hug', 'card_wind_snow', 'card_melting'],
+    ],
+    target: ['card_snow_bunny', 'card_snowfall', 'card_feel_worried', 'card_star_footprints', 'card_bunny_hug'],
+    introKey: 'intro_episode_bunny',
+    demoKey: 'demo_episode_bunny',
+    clearKey: 'clear_episode_bunny',
+    parentTip: '多问“他心里当时觉得怎么样呀？”，帮助孩子把感受词放进完整故事山里！',
+  },
+  {
+    id: 'episode_aurora',
+    title: '寻找极光星',
+    badge: '12',
+    coverCard: 'card_aurora_crown',
+    skill: 'episode',
+    bg: 'bg_palace',
+    host: 'elsa',
+    scaffoldLabels: ['谁和在哪', '遇麻烦', '心里觉得', '想办法', '最后结局'],
+    steps: [
+      ['card_loc_castle', 'card_shell', 'card_sunhat'],
+      ['card_dark_sky', 'card_share_cake', 'card_kite'],
+      ['card_feel_brave', 'card_feel_worried', 'card_mood_surprise'],
+      ['card_magic_wand', 'card_mix_batter', 'card_mittens'],
+      ['card_aurora_crown', 'card_dark_sky', 'card_wind_snow'],
+    ],
+    target: ['card_loc_castle', 'card_dark_sky', 'card_feel_brave', 'card_magic_wand', 'card_aurora_crown'],
+    introKey: 'intro_episode_aurora',
+    demoKey: 'demo_episode_aurora',
+    clearKey: 'clear_episode_aurora',
+    parentTip: '睡前用五个手指头一起复述一个五步小故事山：谁、遇麻烦、心里觉得、想办法、最后结局！',
   },
 ];

@@ -34,6 +34,15 @@ ATLASES = {
         ['card_wind_snow', 'card_umbrella', 'card_campfire', 'card_melting'],
         ['card_party_flag', 'card_sky_lanterns', 'prop_mic', 'prop_star'],
     ],
+    'atlas_cards_4': [
+        ['card_picnic_blanket', 'card_gust_blow', 'card_pin_stones', 'card_picnic_feast'],
+        ['card_ice_swan', 'card_warm_sun', 'card_frost_dome', 'card_crystal_show'],
+        ['card_snow_bunny', 'card_feel_worried', 'card_star_footprints', 'card_bunny_hug'],
+    ],
+    'atlas_cards_5': [
+        ['card_dark_sky', 'card_feel_brave', 'card_magic_wand', 'card_aurora_crown'],
+        ['card_topic_play', 'card_topic_food', 'card_topic_oops', 'card_topic_bedtime'],
+    ],
 }
 
 HERO_STANDALONES = {

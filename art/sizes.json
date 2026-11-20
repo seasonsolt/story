@@ -49,6 +49,11 @@
     202,
     110
   ],
+  "card_aurora_crown": [
+    220,
+    174,
+    110
+  ],
   "card_bake_oven": [
     220,
     204,
@@ -58,6 +63,11 @@
     208,
     220,
     104
+  ],
+  "card_bunny_hug": [
+    220,
+    205,
+    110
   ],
   "card_campfire": [
     220,
@@ -72,6 +82,41 @@
   "card_cookie": [
     220,
     193,
+    110
+  ],
+  "card_crystal_show": [
+    220,
+    201,
+    110
+  ],
+  "card_dark_sky": [
+    220,
+    160,
+    110
+  ],
+  "card_feel_brave": [
+    220,
+    155,
+    110
+  ],
+  "card_feel_worried": [
+    220,
+    166,
+    110
+  ],
+  "card_frost_dome": [
+    220,
+    201,
+    110
+  ],
+  "card_gust_blow": [
+    220,
+    165,
+    110
+  ],
+  "card_ice_swan": [
+    220,
+    218,
     110
   ],
   "card_icecream": [
@@ -103,6 +148,11 @@
     220,
     201,
     110
+  ],
+  "card_magic_wand": [
+    208,
+    220,
+    104
   ],
   "card_melting": [
     220,
@@ -144,6 +194,21 @@
     81,
     110
   ],
+  "card_picnic_blanket": [
+    220,
+    128,
+    110
+  ],
+  "card_picnic_feast": [
+    220,
+    155,
+    110
+  ],
+  "card_pin_stones": [
+    220,
+    142,
+    110
+  ],
   "card_rollball": [
     220,
     134,
@@ -174,9 +239,19 @@
     177,
     110
   ],
+  "card_snow_bunny": [
+    220,
+    174,
+    110
+  ],
   "card_snowfall": [
     220,
     188,
+    110
+  ],
+  "card_star_footprints": [
+    220,
+    181,
     110
   ],
   "card_strawberry": [
@@ -189,10 +264,35 @@
     144,
     110
   ],
+  "card_topic_bedtime": [
+    220,
+    195,
+    110
+  ],
+  "card_topic_food": [
+    220,
+    176,
+    110
+  ],
+  "card_topic_oops": [
+    220,
+    192,
+    110
+  ],
+  "card_topic_play": [
+    220,
+    199,
+    110
+  ],
   "card_umbrella": [
     220,
     196,
     110
+  ],
+  "card_warm_sun": [
+    193,
+    220,
+    96
   ],
   "card_wind_snow": [
     220,

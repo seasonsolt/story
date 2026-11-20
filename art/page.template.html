@@ -46,6 +46,8 @@
   @keyframes uxPop { 0% { opacity: 0; transform: scale(.45); } 65% { transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
   .ux-pop { opacity: 0; transform: scale(.45); }
   .ux-pop.on { opacity: 1; transform: scale(1); animation: uxPop .42s cubic-bezier(.2, .9, .3, 1.3) both; }
+  .ux-slot-magnet .card-vis { transform: scale(1.07); filter: drop-shadow(0 0 18px rgba(255, 210, 122, .95)); }
+  .ux-dragging { opacity: .28; }
   @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
   .page { animation: pageIn .32s ease; }
 
@@ -86,6 +88,7 @@
   <g id="slots"></g>
   <g id="cards"></g>
   <g id="studio"></g>
+  <g id="dragLayer" pointer-events="none"></g>
   <g id="fx"></g>
   <g id="snowFront" aria-hidden="true"></g>
   <rect width="960" height="520" fill="url(#vignette)" pointer-events="none"/>

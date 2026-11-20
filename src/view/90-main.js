@@ -1,18 +1,41 @@
-  /* Orchestration: main game flow, Stage 1 builder, Stage 2 local voice recording studio, animation loop & boot. */
-  const playFlow = { phase: 'title', studioTimer: 0, studioNonce: 0 };
+  /* Orchestration: main flow, Stage 1 builder, 3-Tier Studio, VAD Cloze, Premiere Playback & 10-min Eye-Care. */
+  const playFlow = {
+    phase: 'title', studioTimer: 0, studioNonce: 0,
+    recStartMs: 0, recTimeline: [], clozeResolve: null,
+  };
   uxHooks.replay = i => openRoom(i);
 
   const sessionClips = new Map();
+  const sessionMetas = new Map();
+  let sessionPlaySec = 0;
+  let pendingEyeCare = false;
+
+  function maybeEyeCareBreak(nextFn) {
+    if (pendingEyeCare && setting('eyeCare') && typeof showEyeCareBreak === 'function') {
+      pendingEyeCare = false;
+      sessionPlaySec = 0;
+      showEyeCareBreak(nextFn);
+      return;
+    }
+    nextFn();
+  }
 
   function stopStudioPlayback() {
     playFlow.studioNonce++;
     clearInterval(playFlow.studioTimer);
     playFlow.studioTimer = 0;
+    if (typeof playFlow.clozeResolve === 'function') {
+      const r = playFlow.clozeResolve;
+      playFlow.clozeResolve = null;
+      r();
+    }
     if (recorder.recording) recorder.stop();
     recorder.stopPlay();
     stageState.recording = false;
+    stageState.premiere = false;
     stageState.activeCardIdx = -1;
-    setMicMute(false);
+    setLiveVoice(false, 0);
+    setRecordingAudioMode('off');
     setStudioWaves(null);
   }
 
@@ -34,7 +57,7 @@
         save.flags.prologue = true; saveWrite();
         showStory(['p1', 'p2', 'p3'], go);
       });
-    } else go();
+    } else maybeEyeCareBreak(go);
   }
 
   function openRoom(idx) {
@@ -44,7 +67,9 @@
     playFlow.phase = 'story';
     loadArt(roomArt(lv), ART_PATIENCE).then(async () => {
       const existingClip = await recorder.loadClip('room_' + lv.id);
+      const existingMeta = await recorder.loadMeta('room_' + lv.id);
       if (existingClip) sessionClips.set(lv.id, existingClip);
+      if (existingMeta) sessionMetas.set(lv.id, existingMeta);
       showChapter(idx, () => {
         playFlow.phase = 'play';
         game.start(idx);
@@ -83,6 +108,14 @@
     }
   }
 
+  function recastKeyFor(lv, misses) {
+    if (misses >= 2) return 'assist_1';
+    if (lv.skill === 'sequence' || lv.skill === 'twist' || lv.skill === 'episode') return 'recast_order';
+    if (lv.skill === 'classify') return 'recast_classify';
+    if (lv.skill === 'reason') return 'recast_reason';
+    return 'try_1';
+  }
+
   function onCardPick(cid, btnNode) {
     if (!canPlay() || game.phase !== 'build') return;
     unlockAudio();
@@ -94,9 +127,10 @@
     if (!ok) {
       uxNudge(btnNode);
       renderStage(game, false);
+      const rk = recastKeyFor(game.level(), game.misses);
       speakCard(cid).then(() => {
         if (myNonce === pickNonce && canPlay() && game.phase === 'build') {
-          TK.say(game.misses >= 1 ? 'assist_1' : 'try_1', { tag: 'try', maxWait: 3500 });
+          TK.say(rk, { tag: 'try', maxWait: 5000 });
         }
       });
       return;
@@ -108,37 +142,161 @@
     renderStage(game, false);
   }
 
-  function runStudioCardWalk(count) {
-    clearInterval(playFlow.studioTimer);
-    let c = 0;
-    highlightStudioCard(0);
-    playFlow.studioTimer = setInterval(() => {
-      if (game.state !== 'play' || game.phase !== 'studio' || storyIsOpen()) {
-        clearInterval(playFlow.studioTimer);
-        highlightStudioCard(-1);
-        return;
-      }
-      c = (c + 1) % Math.max(1, count);
-      highlightStudioCard(c);
-    }, 1800);
+  function cueForSlot(lv, i) {
+    if (!lv) return 'cue_first';
+    if (lv.skill === 'sequence') return ['cue_first', 'cue_then', 'cue_last'][i] || 'cue_last';
+    if (lv.skill === 'sentence') return ['cue_who', 'cue_where', 'cue_what', 'cue_mood'][i] || 'cue_mood';
+    if (lv.skill === 'classify') return ['cue_num1', 'cue_num2', 'cue_num3'][i] || 'cue_num3';
+    if (lv.skill === 'reason') return i % 2 === 0 ? 'cue_pick' : 'cue_why';
+    if (lv.skill === 'twist') return ['cue_plan', 'cue_but', 'cue_so', 'cue_last'][i] || 'cue_last';
+    if (lv.skill === 'episode') return ['cue_who', 'cue_problem', 'cue_feel', 'cue_action', 'cue_last'][i] || 'cue_last';
+    return 'cue_first';
   }
 
-  function onStudioDemo() {
+  function setStudioTier(t) {
+    if (stageState.recording) return;
+    unlockAudio();
+    stageState.tier = t;
+    save.studioTier = t;
+    saveWrite();
+    uxSfx('tap');
+    TK.say('ui_tier_' + t, { interrupt: true, tag: 'ui', subtitle: false, maxWait: 3000 });
+    stageState.idx = -1;
+    renderStage(game, true);
+  }
+
+  function selectVoiceFx(fx) {
+    if (stageState.recording) return;
+    unlockAudio();
+    stageState.voiceFx = fx;
+    uxSfx('tap');
+    stageState.idx = -1;
+    renderStage(game, true);
+    TK.say('ui_fx_' + fx, { interrupt: true, tag: 'ui', subtitle: false, maxWait: 2500 }).then(() => {
+      if (canPlay() && game.phase === 'studio' && stageState.hasClip && !stageState.recording) onStudioListen();
+    });
+  }
+
+  function onStudioCardTap(idx, cid, cardNode) {
+    if (stageState.recording) {
+      highlightStudioCard(idx);
+      const ms = Math.max(0, Date.now() - playFlow.recStartMs);
+      playFlow.recTimeline.push({ cardIdx: idx, ms });
+      if (typeof playFlow.clozeResolve === 'function') {
+        const r = playFlow.clozeResolve;
+        playFlow.clozeResolve = null;
+        r();
+      }
+      return;
+    }
+    uxNudge(cardNode);
+    speakCard(cid);
+    highlightStudioCard(idx);
+  }
+
+  async function onStudioDemo() {
     if (!canPlay() || game.phase !== 'studio' || stageState.recording) return;
     unlockAudio();
-    setMicMute(false);
+    setRecordingAudioMode('off');
     recorder.stopPlay();
     game.markDemoHeard();
     audioOnEvents(game.drain());
     const lv = game.level();
+    const cards = game.studioCards();
     const nonce = ++playFlow.studioNonce;
-    runStudioCardWalk(game.studioCards().length);
-    TK.say(lv.demoKey, { interrupt: true, tag: 'demo', maxWait: 10000 }).then(() => {
+
+    if (game.isCustomSentence()) {
+      for (let i = 0; i < cards.length; i++) {
+        if (nonce !== playFlow.studioNonce || game.phase !== 'studio' || stageState.recording) return;
+        highlightStudioCard(i);
+        const m = cardMetaOf(cards[i]);
+        if (m && m.voiceKey && hasLineKey(m.voiceKey)) {
+          await voice.line(m.voiceKey, { interrupt: true, tag: 'demo', maxWait: 3000, subtitle: false });
+        }
+      }
+      if (nonce === playFlow.studioNonce) {
+        highlightStudioCard(-1);
+        renderStage(game, true);
+      }
+      return;
+    }
+
+    clearInterval(playFlow.studioTimer);
+    let c = 0;
+    const stepMs = Math.max(1200, Math.round(7800 / Math.max(1, cards.length)));
+    highlightStudioCard(0);
+    playFlow.studioTimer = setInterval(() => {
+      if (nonce !== playFlow.studioNonce || game.phase !== 'studio' || storyIsOpen()) {
+        clearInterval(playFlow.studioTimer);
+        return;
+      }
+      c = Math.min(cards.length - 1, c + 1);
+      highlightStudioCard(c);
+    }, stepMs);
+
+    TK.say(lv.demoKey, { interrupt: true, tag: 'demo', maxWait: 14000 }).then(() => {
       if (nonce !== playFlow.studioNonce) return;
       clearInterval(playFlow.studioTimer);
       highlightStudioCard(-1);
       renderStage(game, true);
     });
+  }
+
+  function playStudioPremiere(lid, blob, meta, celebrateNew) {
+    if (!blob) return;
+    const nonce = ++playFlow.studioNonce;
+    stageState.premiere = true;
+    stageState.idx = -1;
+    renderStage(game, true);
+    uxSfx('premiere');
+    setTimeout(() => {
+      if (nonce !== playFlow.studioNonce || !canPlay()) return;
+      setRecordingAudioMode('premiere');
+      recorder.play(blob, () => {
+        stageState.premiere = false;
+        setLiveVoice(false, 0);
+        setRecordingAudioMode('off');
+        setStudioWaves(null);
+        highlightStudioCard(-1);
+        if (nonce === playFlow.studioNonce && canPlay()) {
+          stageState.idx = -1;
+          renderStage(game, true);
+          uxConfetti($('fx'), 480, 220, celebrateNew ? 34 : 20);
+          if (celebrateNew) TK.say('rec_done_' + (1 + Math.floor(Math.random() * 3)), { interrupt: true, maxWait: 5000 });
+        }
+      }, {
+        fx: stageState.voiceFx,
+        timeline: (meta && meta.timeline) || [],
+        onCard: idx => { if (nonce === playFlow.studioNonce) highlightStudioCard(idx); },
+        onBars: bars => setStudioWaves(bars),
+        onEnergy: energy => setLiveVoice(true, energy),
+      });
+    }, 520);
+  }
+
+  async function runClozeLoop(lv, cards, nonce) {
+    for (let i = 0; i < cards.length; i++) {
+      if (nonce !== playFlow.studioNonce || !stageState.recording) return;
+      highlightStudioCard(i);
+      const ms = Math.max(0, Date.now() - playFlow.recStartMs);
+      if (i > 0) playFlow.recTimeline.push({ cardIdx: i, ms });
+      const cueKey = cueForSlot(lv, i);
+      await TK.say(cueKey, { interrupt: true, tag: 'cue', maxWait: 3200, subtitle: false });
+      if (nonce !== playFlow.studioNonce || !stageState.recording) return;
+      await new Promise(resolve => {
+        const done = () => {
+          clearTimeout(t);
+          if (playFlow.clozeResolve === done) playFlow.clozeResolve = null;
+          resolve(undefined);
+        };
+        const t = setTimeout(done, 6200);
+        playFlow.clozeResolve = done;
+      });
+      if (nonce === playFlow.studioNonce && stageState.recording && i < cards.length - 1) uxSfx('cloze_cue');
+    }
+    if (nonce === playFlow.studioNonce && stageState.recording) {
+      setTimeout(() => { if (nonce === playFlow.studioNonce && stageState.recording) onStudioMicToggle(); }, 700);
+    }
   }
 
   async function onStudioMicToggle() {
@@ -149,31 +307,48 @@
 
     if (stageState.recording) {
       clearInterval(playFlow.studioTimer);
+      if (typeof playFlow.clozeResolve === 'function') {
+        const r = playFlow.clozeResolve;
+        playFlow.clozeResolve = null;
+        r();
+      }
       highlightStudioCard(-1);
       const res = await recorder.stop();
       stageState.recording = false;
-      setMicMute(false);
+      setLiveVoice(false, 0);
+      setRecordingAudioMode('off');
       setStudioWaves(null);
       uxSfx('mic_stop');
       if (res && res.blob) {
+        const meta = {
+          createdAt: Date.now(),
+          durationMs: res.durationMs || 0,
+          activeSpeechMs: res.activeSpeechMs || 0,
+          tier: stageState.tier,
+          timeline: playFlow.recTimeline.slice(),
+        };
         sessionClips.set(lv.id, res.blob);
+        sessionMetas.set(lv.id, meta);
         stageState.hasClip = true;
         await recorder.saveClip('room_' + lv.id, res.blob);
+        await recorder.saveMeta('room_' + lv.id, meta);
+        const firstExisting = await recorder.loadClip('room_' + lv.id + '_first');
+        if (!firstExisting) {
+          await recorder.saveClip('room_' + lv.id + '_first', res.blob);
+          await recorder.saveMeta('room_' + lv.id + '_first', meta);
+        }
         save.recordingsCount = (save.recordingsCount || 0) + 1;
+        save.speechSamples = (save.speechSamples || 0) + 1;
+        save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
+        const rSave = markRoom(lv.id, { recorded: true, stars: [true, true, true] });
+        if (!Number.isFinite(rSave.firstSpeechMs)) rSave.firstSpeechMs = res.activeSpeechMs || 0;
+        rSave.lastSpeechMs = res.activeSpeechMs || 0;
+        rSave.recCount = (rSave.recCount || 0) + 1;
+        if (stageState.tier === 'anchor') rSave.tier3 = true;
         saveWrite();
         game.markRecorded();
         audioOnEvents(game.drain());
-        uxConfetti($('fx'), 480, 240, 32);
-        stageState.idx = -1;
-        renderStage(game, true);
-        // Play back the child's own recording cleanly, then celebrate!
-        setMicMute(true);
-        recorder.play(res.blob, () => {
-          setMicMute(false);
-          if (nonce === playFlow.studioNonce && canPlay()) {
-            TK.say('rec_done_' + (1 + Math.floor(Math.random() * 3)), { interrupt: true, maxWait: 5000 });
-          }
-        });
+        playStudioPremiere(lv.id, res.blob, meta, true);
       } else {
         stageState.idx = -1;
         renderStage(game, true);
@@ -182,20 +357,41 @@
     }
 
     recorder.stopPlay();
-    setMicMute(true);
+    const tier = stageState.tier || 'director';
+    setRecordingAudioMode(tier === 'cloze' ? 'rec_cloze' : 'rec_quiet');
+    playFlow.recStartMs = Date.now();
+    playFlow.recTimeline = [{ cardIdx: 0, ms: 0 }];
+    const cards = game.studioCards();
+    let clozeBeatBursts = 0;
+
     const res = await recorder.start(
-      bars => setStudioWaves(bars),
+      frameData => {
+        setStudioWaves(frameData.bars);
+        setLiveVoice(true, frameData.energy);
+        if (tier === 'cloze' && typeof playFlow.clozeResolve === 'function') {
+          if (frameData.vad.speechBursts > clozeBeatBursts && frameData.vad.silenceAfterSpeechMs >= 1450) {
+            clozeBeatBursts = frameData.vad.speechBursts;
+            const r = playFlow.clozeResolve;
+            playFlow.clozeResolve = null;
+            r();
+          }
+        } else if (tier === 'director' && frameData.vad.speechBursts > 0 && frameData.vad.silenceAfterSpeechMs >= 2600) {
+          if (stageState.activeCardIdx >= 0 && stageState.activeCardIdx + 1 < cards.length) {
+            nudgeNextStudioCard(stageState.activeCardIdx + 1);
+          }
+        }
+      },
       () => { if (stageState.recording) onStudioMicToggle(); },
     );
     if (!res.ok) {
-      setMicMute(false);
+      setLiveVoice(false, 0);
+      setRecordingAudioMode('off');
       stageState.recording = false;
       setStudioWaves(null);
       game.markDemoHeard();
       renderStage(game, true);
-      runStudioCardWalk(game.studioCards().length);
       TK.say('mic_fallback', { interrupt: true, tag: 'demo', maxWait: 6000 }).then(() => {
-        if (nonce === playFlow.studioNonce) TK.say(lv.demoKey, { tag: 'demo', maxWait: 9500 });
+        if (nonce === playFlow.studioNonce) onStudioDemo();
       });
       return;
     }
@@ -203,7 +399,8 @@
     uxSfx('mic_start');
     stageState.idx = -1;
     renderStage(game, true);
-    runStudioCardWalk(game.studioCards().length);
+    if (tier === 'cloze') runClozeLoop(lv, cards, nonce);
+    else highlightStudioCard(0);
   }
 
   async function onStudioListen() {
@@ -213,14 +410,11 @@
     let blob = sessionClips.get(lv.id);
     if (!blob) blob = await recorder.loadClip('room_' + lv.id);
     if (!blob) { onStudioDemo(); return; }
+    let meta = sessionMetas.get(lv.id);
+    if (!meta) meta = await recorder.loadMeta('room_' + lv.id);
     sessionClips.set(lv.id, blob);
-    setMicMute(true);
-    runStudioCardWalk(game.studioCards().length);
-    recorder.play(blob, () => {
-      setMicMute(false);
-      clearInterval(playFlow.studioTimer);
-      highlightStudioCard(-1);
-    });
+    if (meta) sessionMetas.set(lv.id, meta);
+    playStudioPremiere(lv.id, blob, meta, false);
   }
 
   function onStudioDone() {
@@ -258,13 +452,13 @@
     playFlow.phase = 'clear';
     const stars = [true, !!(game.demoHeard || game.recorded), !!game.recorded];
     markRoom(lv.id, { cleared: true, recorded: !!game.recorded, stars });
-    if (!save.skills) save.skills = { sequence: 0, sentence: 0, classify: 0, reason: 0 };
+    if (!save.skills) save.skills = { sequence: 0, sentence: 0, classify: 0, reason: 0, twist: 0, episode: 0 };
     save.skills[lv.skill] = Math.min(2, (save.skills[lv.skill] || 0) + 1);
     saveWrite();
 
     showClear(lvIdx, () => {
-      if (lvIdx >= LEVELS.length - 1) showStory(['win', 'end'], () => showFinale(showTitle));
-      else openRoom(lvIdx + 1);
+      if (lvIdx >= LEVELS.length - 1) showStory(['win', 'end'], () => maybeEyeCareBreak(() => showFinale(showTitle)));
+      else maybeEyeCareBreak(() => openRoom(lvIdx + 1));
     });
   }
 
@@ -283,7 +477,14 @@
       }
       renderHeroes(game, tSec);
       secAcc += dt;
-      if (secAcc >= 1) { save.totalPlaySeconds += Math.floor(secAcc); secAcc %= 1; saveSoon(); }
+      if (secAcc >= 1) {
+        const inc = Math.floor(secAcc);
+        secAcc %= 1;
+        save.totalPlaySeconds += inc;
+        sessionPlaySec += inc;
+        if (sessionPlaySec >= 600) pendingEyeCare = true;
+        saveSoon();
+      }
     } else if (heroDrawn.built && game.state !== 'play') {
       renderHeroes(game, tSec);
     }
@@ -298,9 +499,11 @@
   if (DEV && qaMode === 'unlock') {
     save.unlocked.rooms = LEVELS.length;
     for (const lv of LEVELS) markRoom(lv.id, { cleared: true, recorded: true, stars: [true, true, true] });
-    save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2 };
-    save.recordingsCount = 4;
-    save.freeSentences = 3;
+    save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2, twist: 2, episode: 2 };
+    save.recordingsCount = 6;
+    save.speechSamples = 6;
+    save.totalSpeechMs = 36000;
+    save.freeSentences = 4;
   }
 
   loadArt(titlePlan.title, ART_PATIENCE).then(() => {
@@ -308,7 +511,7 @@
     if (DEV && qaMode === 'win') {
       save.unlocked.rooms = LEVELS.length;
       for (const lv of LEVELS) markRoom(lv.id, { cleared: true, recorded: true, stars: [true, true, true] });
-      save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2 };
+      save.skills = { sequence: 2, sentence: 2, classify: 2, reason: 2, twist: 2, episode: 2 };
       showStory(['win', 'end'], () => showFinale(showTitle));
     } else {
       showTitle();

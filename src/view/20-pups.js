@@ -1,5 +1,11 @@
-  /* Host & Companion Wing Hero Rendering (Elsa, Anna & Olaf), Interactive Cheer Tap & Grounded Shadows. */
+  /* Host & Companion Wing Hero Rendering (Elsa, Anna & Olaf), Live Voice Puppet Bounce & Cheer Tap. */
   const heroDrawn = { built: false, leftWho: '', leftPose: '', rightWho: '', rightPose: '' };
+  const liveVoice = { active: false, energy: 0 };
+
+  function setLiveVoice(active, energy) {
+    liveVoice.active = !!active;
+    liveVoice.energy = Math.max(0, Math.min(1, energy || 0));
+  }
 
   function buildActors() {
     const box = $('actors');
@@ -43,13 +49,20 @@
     if (!heroDrawn.built) buildActors();
     const lv = g.level();
     const [leftWho, rightWho] = pairForHost(lv.host);
-    const poseOf = who => {
+    const e = liveVoice.active ? liveVoice.energy : 0;
+    const poseOf = (who, isLeft) => {
       const h = g.heroes[who];
       if (!h) return 'idle';
       if (h.cheer > 0.05) return 'cheer';
+      if (g.phase === 'studio' && liveVoice.active) {
+        if (e > .42) return 'cheer';
+        if (e > .11 && isLeft) return 'speak';
+        if (e > .24 && !isLeft) return 'speak';
+        return 'idle';
+      }
       return g.phase === 'build' && who === lv.host ? 'speak' : 'idle';
     };
-    const lPose = poseOf(leftWho), rPose = poseOf(rightWho);
+    const lPose = poseOf(leftWho, true), rPose = poseOf(rightWho, false);
     const leftG = $('heroLeft'), rightG = $('heroRight');
 
     if (heroDrawn.leftWho !== leftWho || heroDrawn.leftPose !== lPose) {
@@ -61,8 +74,11 @@
       heroDrawn.rightWho = rightWho; heroDrawn.rightPose = rPose;
     }
 
-    const lbob = Math.sin(now * 2.5) * 3 + (g.heroes[leftWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[leftWho].cheer * 10)) * 14 : 0);
-    const rbob = Math.cos(now * 2.3) * 3 + (g.heroes[rightWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[rightWho].cheer * 10)) * 14 : 0);
-    leftG.setAttribute('transform', `translate(92 ${(466 + lbob).toFixed(1)})`);
-    rightG.setAttribute('transform', `translate(868 ${(466 + rbob).toFixed(1)}) scale(-1 1)`);
+    const vBounceL = liveVoice.active ? -e * 18 : 0;
+    const vBounceR = liveVoice.active ? -e * 13 : 0;
+    const leanL = liveVoice.active ? (1 + e * .06) : 1;
+    const lbob = Math.sin(now * 2.5) * 3 + (g.heroes[leftWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[leftWho].cheer * 10)) * 14 : 0) + vBounceL;
+    const rbob = Math.cos(now * 2.3) * 3 + (g.heroes[rightWho].cheer > 0 ? -Math.abs(Math.sin(g.heroes[rightWho].cheer * 10)) * 14 : 0) + vBounceR;
+    leftG.setAttribute('transform', `translate(92 ${(466 + lbob).toFixed(1)}) scale(${leanL.toFixed(3)})`);
+    rightG.setAttribute('transform', `translate(868 ${(466 + rbob).toFixed(1)}) scale(${(-leanL).toFixed(3)} ${leanL.toFixed(3)})`);
   }

@@ -1,4 +1,4 @@
-  /* Story prologue, Chapter intro cards, 3-star Clear overlay (with Parent Tip) & Grand Finale celebration. */
+  /* Story prologue (distinct vignettes), Chapter intro cards, 3-star Clear, 10-min Eye-Care & Grand Finale. */
   let story = null;
   const storyIsOpen = () => !!story;
   const uxHooks = { replay: /** @type {(i: number) => void} */ (() => {}) };
@@ -9,7 +9,6 @@
   function uxLine(key, opts) { return hasLineKey(key) ? voice.line(key, opts) : Promise.resolve(false); }
   function uxPreload(keys) { if (typeof voice !== 'undefined' && voice.preload) voice.preload(keys); }
   function uxStopVoice() { if (typeof voice !== 'undefined' && voice.stop) voice.stop(); }
-  function uxWait(ms) { return new Promise(ok => setTimeout(ok, ms)); }
 
   function uxScreen(name) { story = { name, onKey: null }; return story; }
   const uxAlive = s => story === s;
@@ -39,6 +38,7 @@
     if (kind === 'mic') return `<rect x="${-s * .22}" y="${-s * .52}" width="${s * .44}" height="${s * .62}" rx="${s * .22}" fill="${c}"/><path d="M${-s * .42} ${-s * .05}A${s * .42} ${s * .42} 0 0 0 ${s * .42} ${-s * .05}M0 ${s * .38}V${s * .58}M${-s * .25} ${s * .58}H${s * .25}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
     if (kind === 'speaker') return `<path d="M${-s * .45} ${-s * .22}H${-s * .18}L${s * .14} ${-s * .48}V${s * .48}L${-s * .18} ${s * .22}H${-s * .45}Z" fill="${c}"/><path d="M${s * .28} ${-s * .26}A${s * .36} ${s * .36} 0 0 1 ${s * .28} ${s * .26}M${s * .45} ${-s * .44}A${s * .6} ${s * .6} 0 0 1 ${s * .45} ${s * .44}" fill="none" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>`;
     if (kind === 'train') return `<circle cx="${-s * .28}" cy="${-s * .44}" r="${s * .1}" fill="${c}" opacity=".65"/><circle cx="${-s * .12}" cy="${-s * .56}" r="${s * .07}" fill="${c}" opacity=".45"/><path d="M${-s * .42} ${-s * .1}V${-s * .32}H${-s * .26}V${-s * .1}H${s * .04}V${-s * .36}H${s * .48}V${s * .18}H${-s * .48}V${-s * .1}Z" fill="${c}"/><rect x="${s * .12}" y="${-s * .24}" width="${s * .24}" height="${s * .18}" rx="2" fill="#fff9ec" opacity=".88"/><circle cx="${-s * .26}" cy="${s * .32}" r="${s * .14}" fill="${c}"/><circle cx="${s * .24}" cy="${s * .32}" r="${s * .14}" fill="${c}"/>`;
+    if (kind === 'mountain') return `<path d="M${-s * .58} ${s * .42}L${-s * .14} ${-s * .36}L${s * .08} ${s * .06}L${s * .28} ${-s * .2}L${s * .6} ${s * .42}Z" fill="${c}"/><path d="${UX_STAR_D}" transform="translate(${-s * .14} ${-s * .52}) scale(${s * .2})" fill="#ffd27a"/>`;
     if (kind === 'fullscreen') return `<path d="M${-s * .48} ${-s * .16}V${-s * .48}H${-s * .16}M${s * .16} ${-s * .48}H${s * .48}V${-s * .16}M${s * .48} ${s * .16}V${s * .48}H${s * .16}M${-s * .16} ${s * .48}H${-s * .48}V${s * .16}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
     if (kind === 'lock') return `<path d="M${-s * .24} ${-s * .08}V${-s * .24}A${s * .24} ${s * .24} 0 0 1 ${s * .24} ${-s * .24}V${-s * .08}" fill="none" stroke="${c}" stroke-width="3.4" stroke-linecap="round"/><rect x="${-s * .38}" y="${-s * .08}" width="${s * .76}" height="${s * .58}" rx="${s * .14}" fill="${c}"/><circle cx="0" cy="${s * .2}" r="${s * .09}" fill="#1b264f"/>`;
     if (kind === 'album') return `<circle r="${s * .48}" fill="none" stroke="${c}" stroke-width="3"/><circle r="${s * .16}" fill="${c}"/>`;
@@ -46,6 +46,15 @@
     if (kind === 'sticker') return `<path d="${UX_STAR_D}" transform="scale(${s * .68})" fill="${c}"/>`;
     if (kind === 'rooms') return `<rect x="${-s * .5}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${-s * .5}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${-s * .5}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/><rect x="${s * .08}" y="${s * .08}" width="${s * .42}" height="${s * .42}" rx="4" fill="${c}"/>`;
     if (kind === 'gear') return `<circle r="${s * .42}" fill="none" stroke="${c}" stroke-width="3.2" stroke-dasharray="5 3"/><circle r="${s * .16}" fill="${c}"/>`;
+    if (kind === 'cloze') return `<circle cx="${-s * .34}" cy="0" r="${s * .16}" fill="${c}"/><path d="M${-s * .14} 0H${s * .14}" stroke="${c}" stroke-width="3" stroke-linecap="round"/><circle cx="${s * .34}" cy="0" r="${s * .16}" fill="none" stroke="${c}" stroke-width="3" stroke-dasharray="4 3"/>`;
+    if (kind === 'director') return `<path d="M${-s * .24} ${-s * .36}V${s * .22}L${s * .06} ${s * .06}L${s * .22} ${s * .44}L${s * .36} ${s * .36}L${s * .18} ${-s * .02}L${s * .44} ${-s * .04}Z" fill="${c}"/><circle cx="${-s * .28}" cy="${-s * .44}" r="${s * .12}" fill="#ffd27a"/>`;
+    if (kind === 'anchor' || kind === 'crown') return `<path d="M${-s * .48} ${s * .3}L${-s * .54} ${-s * .24}L${-s * .2} ${s * .04}L0 ${-s * .42}L${s * .2} ${s * .04}L${s * .54} ${-s * .24}L${s * .48} ${s * .3}Z" fill="${c}"/>`;
+    if (kind === 'fx_normal') return `<circle cx="${-s * .15}" cy="${s * .24}" r="${s * .2}" fill="${c}"/><path d="M${s * .03} ${s * .24}V${-s * .42}L${s * .38} ${-s * .26}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+    if (kind === 'fx_olaf') return `<circle cx="0" cy="${-s * .22}" r="${s * .22}" fill="${c}"/><circle cx="0" cy="${s * .22}" r="${s * .3}" fill="${c}"/><path d="M${s * .08} ${-s * .24}L${s * .42} ${-s * .3}" stroke="#ff7a33" stroke-width="3.5" stroke-linecap="round"/>`;
+    if (kind === 'fx_hall') return `<circle cx="0" cy="0" r="${s * .16}" fill="${c}"/><circle cx="0" cy="0" r="${s * .34}" fill="none" stroke="${c}" stroke-width="2.4" opacity=".75"/><circle cx="0" cy="0" r="${s * .5}" fill="none" stroke="${c}" stroke-width="2" opacity=".45"/>`;
+    if (kind === 'download') return `<path d="M0 ${-s * .44}V${s * .16}M${-s * .26} ${-s * .06}L0 ${s * .2}L${s * .26} ${-s * .06}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M${-s * .44} ${s * .42}H${s * .44}" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/>`;
+    if (kind === 'diary') return `<rect x="${-s * .4}" y="${-s * .48}" width="${s * .8}" height="${s * .96}" rx="6" fill="none" stroke="${c}" stroke-width="3"/><path d="M${-s * .12} ${-s * .48}V${s * .48}M${s * .08} ${-s * .18}H${s * .26}M${s * .08} ${s * .06}H${s * .26}" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`;
+    if (kind === 'moon') return `<path d="M${s * .18} ${-s * .48}A${s * .48} ${s * .48} 0 1 0 ${s * .48} ${s * .18}A${s * .36} ${s * .36} 0 1 1 ${s * .18} ${-s * .48}Z" fill="${c}"/>`;
     return `<circle r="${s * .35}" fill="${c}"/>`;
   }
 
@@ -74,24 +83,38 @@
     if (kind === 'what') {
       return `${ring}<circle r="${r}" fill="#ffaa33" stroke="${stroke}" stroke-width="${sw}"/><path d="M0 -9L2.5 -2.5L9 0L2.5 2.5L0 9L-2.5 2.5L-9 0L-2.5 -2.5Z" fill="#fff9ec"/>`;
     }
-    if (kind === 'mood') {
+    if (kind === 'mood' || kind === 'heart') {
       return `${ring}<circle r="${r}" fill="#a484ff" stroke="${stroke}" stroke-width="${sw}"/><circle cx="-4" cy="-3" r="1.8" fill="#fff9ec"/><circle cx="4" cy="-3" r="1.8" fill="#fff9ec"/><path d="M-5 3Q0 8 5 3" fill="none" stroke="#fff9ec" stroke-width="2.2" stroke-linecap="round"/>`;
     }
-    if (kind === 'pick') {
-      return `${ring}<circle r="${r}" fill="#ff7eb6" stroke="${stroke}" stroke-width="${sw}"/><path d="M-7 1L-2 6L8 -5" fill="none" stroke="#fff9ec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (kind === 'pick' || kind === 'end') {
+      return `${ring}<circle r="${r}" fill="${kind === 'end' ? '#49c598' : '#ff7eb6'}" stroke="${stroke}" stroke-width="${sw}"/><path d="M-7 1L-2 6L8 -5" fill="none" stroke="#fff9ec" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
     }
-    if (kind === 'why') {
+    if (kind === 'why' || kind === 'so') {
       return `${ring}<circle r="${r}" fill="#ffbe3d" stroke="${stroke}" stroke-width="${sw}"/><circle cx="0" cy="-2" r="6" fill="#fff9ec"/><rect x="-3" y="4" width="6" height="4" rx="1.5" fill="#fff9ec"/>`;
+    }
+    if (kind === 'plan') {
+      return `${ring}<circle r="${r}" fill="#4db8ff" stroke="${stroke}" stroke-width="${sw}"/><path d="M-4 -7V8M-4 -6H6L3 -2L6 2H-4" fill="none" stroke="#fff9ec" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (kind === 'but' || kind === 'oops') {
+      return `${ring}<circle r="${r}" fill="#ff738f" stroke="${stroke}" stroke-width="${sw}"/><path d="M-2 -8L4 -1H-1L3 8" fill="none" stroke="#fff9ec" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    }
+    if (kind === 'wand') {
+      return `${ring}<circle r="${r}" fill="#45b7e8" stroke="${stroke}" stroke-width="${sw}"/><path d="M-6 6L4 -4M3 -8V-1M0 -5H7" fill="none" stroke="#fff9ec" stroke-width="2.5" stroke-linecap="round"/>`;
+    }
+    if (kind === 'star_end') {
+      return `${ring}<circle r="${r}" fill="#ffbe3d" stroke="${stroke}" stroke-width="${sw}"/><path d="${UX_STAR_D}" transform="scale(10)" fill="#fffdf5"/>`;
     }
     return `${ring}<circle r="${r}" fill="#263876" stroke="${stroke}" stroke-width="${sw}"/>`;
   }
 
-  function uxSlotBadgesFor(lv) {
+  function uxSlotBadgesFor(lv, count) {
     if (!lv) return [];
     if (lv.skill === 'sequence') return ['1', '2', '3'];
     if (lv.skill === 'sentence') return ['who', 'where', 'what', 'mood'];
     if (lv.skill === 'classify') return ['star1', 'star2', 'star3'];
-    if (lv.skill === 'reason') return ['pick', 'why'];
+    if (lv.skill === 'reason') return count === 4 ? ['pick', 'why', 'pick', 'why'] : ['pick', 'why'];
+    if (lv.skill === 'twist') return ['plan', 'but', 'so', 'end'];
+    if (lv.skill === 'episode') return ['who', 'oops', 'heart', 'wand', 'star_end'];
     return [];
   }
 
@@ -115,11 +138,6 @@
     node.classList.add('ux-shake');
   }
 
-  function uxPopSlot(root, k) {
-    const n = root && root.querySelector(`[data-pop="${k}"]`);
-    if (n) n.classList.add('on');
-  }
-
   function uxBind(root, handlers) {
     if (!root) return;
     root.querySelectorAll('[data-act]').forEach(btn => {
@@ -131,6 +149,44 @@
     });
   }
 
+  function storyBeatSceneHtml(key) {
+    if (key === 'p1') {
+      return `<image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".36"/>
+        <circle cx="480" cy="240" r="190" fill="url(#aurora)" opacity=".65"/>
+        <image href="${SRC('elsa_speak')}" x="210" y="130" width="246" height="250" preserveAspectRatio="xMidYMid meet" filter="url(#softShadow)"/>
+        <rect x="494" y="134" width="234" height="222" rx="30" fill="#fff9ec" opacity=".95" stroke="#ffd27a" stroke-width="4" filter="url(#softShadow)"/>
+        ${uxPic('prop_mic', 540, 152, 140, 184, '', 'meet')}`;
+    }
+    if (key === 'p2') {
+      const seq = ['card_snowfall', 'card_rollball', 'card_olaf_born'];
+      const seqHtml = seq.map((cid, k) => `<rect x="${190 + k * 140}" y="114" width="118" height="114" rx="22" fill="#fff9ec" stroke="#ffd27a" stroke-width="3.5" filter="url(#softShadow)"/>
+        ${uxPic(cid, 202 + k * 140, 126, 94, 90, '', 'meet')}`).join('');
+      return `<image href="${SRC('bg_garden')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".42"/>
+        ${seqHtml}
+        <image href="${SRC('anna_cheer')}" x="630" y="140" width="220" height="240" preserveAspectRatio="xMidYMid meet" filter="url(#softShadow)"/>`;
+    }
+    if (key === 'p3') {
+      return `<image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".34"/>
+        <circle cx="480" cy="250" r="200" fill="url(#warm)" opacity=".55"/>
+        <image href="${SRC('olaf_cheer')}" x="392" y="160" width="184" height="216" preserveAspectRatio="xMidYMid meet" filter="url(#softShadow)"/>
+        ${uxPic('card_sky_lanterns', 196, 154, 142, 134, '', 'meet')}
+        ${uxPic('card_aurora_crown', 622, 154, 146, 134, '', 'meet')}`;
+    }
+    if (key === 'win') {
+      return `<image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        <rect width="960" height="520" fill="#101836" opacity=".34"/>
+        <circle cx="480" cy="230" r="210" fill="url(#warm)" opacity=".55"/>
+        ${uxPic('card_aurora_crown', 350, 42, 260, 150, '', 'meet')}
+        <image href="${SRC('elsa_cheer')}" x="220" y="180" width="166" height="240" preserveAspectRatio="xMidYMid meet"/>
+        <image href="${SRC('anna_cheer')}" x="406" y="186" width="166" height="232" preserveAspectRatio="xMidYMid meet"/>
+        <image href="${SRC('olaf_cheer')}" x="594" y="216" width="154" height="196" preserveAspectRatio="xMidYMid meet"/>`;
+    }
+    return `<image href="${SRC('key')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>`;
+  }
+
   function showStory(keys, done) {
     const s = uxScreen('story');
     uxPreload(keys);
@@ -139,7 +195,7 @@
       if (!uxAlive(s)) return;
       const key = keys[idx];
       const root = uxPaint(`<g class="page">
-        <image href="${SRC('key')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+        ${storyBeatSceneHtml(key)}
         <rect width="960" height="520" fill="url(#bottomFade)" opacity=".55" pointer-events="none"/>
         <g transform="translate(480 488)">${keys.map((_, k) => `<circle cx="${(k - (keys.length - 1) / 2) * 20}" cy="0" r="${k === idx ? 6 : 4.5}" fill="${k === idx ? '#ffd27a' : '#96b4e8'}"/>`).join('')}</g>
         ${uxButton({ act: 'next', ui: 'next', icon: 'next', x: 886, y: 452, r: 38, plate: 'gold' })}
@@ -166,24 +222,26 @@
     const host = lv.host || 'elsa';
     const preview = lv.skill === 'reason' && lv.puzzles && lv.puzzles[0]
       ? [lv.puzzles[0].promptCard, ...lv.puzzles[0].answer]
-      : (lv.target || []).slice(0, 4);
-    const badges = uxSlotBadgesFor(lv);
-    const pn = Math.max(1, preview.length), pw = 104, ph = 104, pgap = pn >= 4 ? 22 : 38;
+      : (lv.target || []).slice(0, 5);
+    const badges = uxSlotBadgesFor(lv, preview.length);
+    const pn = Math.max(1, preview.length);
+    const pw = pn >= 5 ? 90 : 104, ph = pn >= 5 ? 90 : 104, pgap = pn >= 5 ? 16 : (pn >= 4 ? 22 : 38);
     const px0 = 480 - (pn * pw + (pn - 1) * pgap) / 2;
+    const py = pn >= 5 ? 224 : 214;
     const previewHtml = preview.map((cid, i) => {
       const px = px0 + i * (pw + pgap);
       const bk = lv.skill === 'reason' ? (i === 0 ? '' : badges[i - 1]) : badges[i];
       const conn = i < pn - 1
         ? (lv.skill === 'sentence'
-          ? `<rect x="${px + pw}" y="262" width="${pgap}" height="8" rx="4" fill="#ffd27a"/>`
-          : `<path d="M${px + pw + 6} 266H${px + pw + pgap - 8}L${px + pw + pgap - 14} 260M${px + pw + pgap - 8} 266L${px + pw + pgap - 14} 272" fill="none" stroke="#ffbe3d" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`)
+          ? `<rect x="${px + pw}" y="${py + ph / 2 - 4}" width="${pgap}" height="8" rx="4" fill="#ffd27a"/>`
+          : `<path d="M${px + pw + 3} ${py + ph / 2}H${px + pw + pgap - 4}L${px + pw + pgap - 9} ${py + ph / 2 - 5}M${px + pw + pgap - 4} ${py + ph / 2}L${px + pw + pgap - 9} ${py + ph / 2 + 5}" fill="none" stroke="#ffbe3d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`)
         : '';
       const wheels = lv.skill === 'sentence'
-        ? `<circle cx="${px + 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/><circle cx="${px + pw - 26}" cy="326" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/>`
+        ? `<circle cx="${px + 26}" cy="${py + ph + 8}" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/><circle cx="${px + pw - 26}" cy="${py + ph + 8}" r="8" fill="#263876" stroke="#ffd27a" stroke-width="2.5"/>`
         : '';
-      return `${conn}${wheels}<g><rect x="${px}" y="214" width="${pw}" height="${ph}" rx="20" fill="#eef6ff" stroke="#7dd4ff" stroke-width="2.8"/>
-        <image href="${SRC(cid)}" x="${px + 8}" y="222" width="${pw - 16}" height="${ph - 16}" preserveAspectRatio="xMidYMid meet"/>
-        ${bk ? `<g transform="translate(${px + pw / 2} 212)">${uxSlotBadgeSvg(bk, false, 14)}</g>` : ''}</g>`;
+      return `${conn}${wheels}<g><rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="18" fill="#eef6ff" stroke="#7dd4ff" stroke-width="2.6"/>
+        <image href="${SRC(cid)}" x="${px + 7}" y="${py + 7}" width="${pw - 14}" height="${ph - 14}" preserveAspectRatio="xMidYMid meet"/>
+        ${bk ? `<g transform="translate(${px + pw / 2} ${py - 2})">${uxSlotBadgeSvg(bk, false, 13)}</g>` : ''}</g>`;
     }).join('');
 
     const root = uxPaint(`<g class="page">
@@ -245,8 +303,9 @@
       <rect x="-86" y="-26" width="172" height="52" rx="26" fill="#141c42" opacity=".92" stroke="#ffd27a" stroke-width="2.5"/>
       ${innerHtml}</g>`;
 
+    const dotCols = ['#ff9cc4', '#7dd4ff', '#ffd27a', '#b79cff', '#49c598', '#ff8c66'];
     const starPill = pill(284, 382, `${uxPic('prop_star', -54, -15, 32, 28, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${totalStars}/${LEVELS.length * 3}</text>`);
-    const dotsPill = pill(480, 382, `${['#ff9cc4', '#7dd4ff', '#ffd27a', '#b79cff'].map((c, i) => `<circle cx="${-50 + i * 16}" cy="0" r="6" fill="${c}" stroke="#fff9ec" stroke-width="1.2"/>`).join('')}<text x="36" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${doneSkills}/4</text>`);
+    const dotsPill = pill(480, 382, `${dotCols.map((c, i) => `<circle cx="${-56 + i * 13}" cy="0" r="5" fill="${c}" stroke="#fff9ec" stroke-width="1"/>`).join('')}<text x="44" y="8" text-anchor="middle" font-size="21" font-weight="bold" fill="#fff5cf">${doneSkills}/6</text>`);
     const micPill = pill(676, 382, `${uxPic('prop_mic', -44, -17, 22, 34, '', 'meet')}<text x="16" y="8" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff5cf">${save.recordingsCount || 0}</text>`);
 
     const root = uxPaint(`<g class="page">
@@ -272,4 +331,26 @@
     uxSfx('gliss');
     uxConfetti(root.querySelector('.page'), 480, 170, 36);
     uxLine('end', { maxWait: 6000 });
+  }
+
+  function showEyeCareBreak(done) {
+    const s = uxScreen('eyeCare');
+    const root = uxPaint(`<g class="page">
+      <image href="${SRC('bg_cozy')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+      <rect width="960" height="520" fill="#0d1532" opacity=".76"/>
+      <circle cx="480" cy="210" r="150" fill="url(#warm)" opacity=".35"/>
+      <g transform="translate(480 130)">
+        <circle r="56" fill="#182552" stroke="#ffd27a" stroke-width="4" filter="url(#softShadow)"/>
+        <g>${uxIcon('moon', 50, '#ffd27a')}</g>
+        <path d="${UX_STAR_D}" transform="translate(-76 -30) scale(12)" fill="#9fe8ff"/>
+        <path d="${UX_STAR_D}" transform="translate(82 -24) scale(14)" fill="#ffd27a"/>
+      </g>
+      <image href="${SRC('olaf_idle')}" x="332" y="218" width="120" height="175" preserveAspectRatio="xMidYMid meet"/>
+      <image href="${SRC('anna_idle')}" x="506" y="198" width="126" height="196" preserveAspectRatio="xMidYMid meet"/>
+      ${uxButton({ act: 'go', ui: 'continue', icon: 'play', x: 480, y: 446, r: 44, plate: 'gold', cls: 'ux-pulse' })}
+    </g>`);
+    const go = () => uxEnd(s, done);
+    s.onKey = go;
+    uxBind(root, { go });
+    uxLine('eye_care_rest', { maxWait: 8000 });
   }

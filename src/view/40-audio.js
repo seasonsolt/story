@@ -1,9 +1,17 @@
-  /* Enchanted Arendelle harp/celesta WebAudio score, tactile SFX & strict microphone mute while recording. */
+  /* Enchanted Arendelle harp/celesta WebAudio score, tactile SFX, Cloze/Premiere/Mic-Mute modes. */
   const AC = window.AudioContext || window.webkitAudioContext;
-  let audio = null, muted = !setting('sound'), voiceOn = false, micMute = false, bus = null, curLevel = 0;
+  let audio = null, muted = !setting('sound'), voiceOn = false, recMode = 'off', bus = null, curLevel = 0;
 
-  const soundWanted = () => !muted && !micMute && !(typeof isPortraitView === 'function' && isPortraitView());
-  const musicLevel = () => soundWanted() ? (voiceOn ? .03 : .11) : 0;
+  const isAudioAllowed = () => !muted && !(typeof isPortraitView === 'function' && isPortraitView());
+  const soundWanted = () => isAudioAllowed() && recMode !== 'rec_quiet' && recMode !== 'rec_cloze';
+  const sfxWanted = () => isAudioAllowed() && (recMode === 'off' || recMode === 'premiere');
+  const voiceWanted = () => isAudioAllowed() && recMode !== 'rec_quiet';
+  const musicLevel = () => {
+    if (!isAudioAllowed()) return 0;
+    if (recMode === 'rec_quiet' || recMode === 'rec_cloze') return 0;
+    if (recMode === 'premiere') return .032;
+    return voiceOn ? .03 : .11;
+  };
 
   function makeAudio() {
     if (audio || !AC) return;
@@ -12,8 +20,8 @@
       const comp = audio.createDynamicsCompressor();
       comp.threshold.value = -16; comp.knee.value = 18; comp.ratio.value = 3;
       const music = audio.createGain(); music.gain.value = musicLevel();
-      const sfx = audio.createGain(); sfx.gain.value = soundWanted() ? .9 : 0;
-      const vGain = audio.createGain(); vGain.gain.value = 1;
+      const sfx = audio.createGain(); sfx.gain.value = sfxWanted() ? .9 : 0;
+      const vGain = audio.createGain(); vGain.gain.value = voiceWanted() ? 1 : 0;
       music.connect(comp); sfx.connect(comp); vGain.connect(comp); comp.connect(audio.destination);
       bus = { comp, music, sfx, voice: vGain };
     } catch (e) { audio = null; }
@@ -23,13 +31,18 @@
     if (!audio || !bus) return;
     const t = audio.currentTime;
     bus.music.gain.setTargetAtTime(musicLevel(), t, .08);
-    bus.sfx.gain.setTargetAtTime(soundWanted() ? .9 : 0, t, .05);
+    bus.sfx.gain.setTargetAtTime(sfxWanted() ? .9 : 0, t, .05);
+    bus.voice.gain.setTargetAtTime(voiceWanted() ? 1 : 0, t, .04);
+  }
+
+  function setRecordingAudioMode(mode) {
+    recMode = mode || 'off';
+    if (recMode === 'rec_quiet' && typeof voice !== 'undefined') voice.stop();
+    refreshAudioGains();
   }
 
   function setMicMute(on) {
-    micMute = !!on;
-    if (micMute && typeof voice !== 'undefined') voice.stop();
-    refreshAudioGains();
+    setRecordingAudioMode(on ? 'rec_quiet' : 'off');
   }
 
   function unlockAudio() {
@@ -46,7 +59,7 @@
   const midi = n => 440 * Math.pow(2, (n - 69) / 12);
 
   function envNote(t, f, dur, vol, type, dest, glideF) {
-    if (!audio || !bus || !soundWanted()) return;
+    if (!audio || !bus || !isAudioAllowed()) return;
     const o = audio.createOscillator(), g = audio.createGain();
     o.type = type || 'triangle';
     o.frequency.setValueAtTime(f, t);
@@ -60,7 +73,8 @@
 
   function uxSfx(kind) {
     unlockAudio();
-    if (!audio || !soundWanted()) return;
+    if (!audio || !isAudioAllowed()) return;
+    if (!sfxWanted() && kind !== 'cloze_cue') return;
     const t = audio.currentTime;
     if (kind === 'tap' || kind === 'page') {
       envNote(t, midi(76), .11, .13, 'sine');
@@ -75,8 +89,14 @@
     } else if (kind === 'mic_stop') {
       envNote(t, midi(84), .11, .13, 'sine');
       envNote(t + .08, midi(72), .18, .13, 'sine');
+    } else if (kind === 'premiere') {
+      [72, 76, 79, 84].forEach((m, i) => envNote(t + i * .08, midi(m), .36, .14, 'triangle'));
+    } else if (kind === 'cloze_cue') {
+      envNote(t, midi(79), .14, .11, 'sine');
+      envNote(t + .08, midi(84), .18, .11, 'sine');
     } else if (kind === 'wrong') {
-      envNote(t, midi(62), .15, .11, 'triangle', null, midi(58));
+      // Soft Montessori bubble boop instead of harsh downward buzz
+      envNote(t, midi(67), .14, .09, 'sine', null, midi(72));
     } else if (kind === 'star' || kind === 'cheer') {
       [72, 76, 79, 84, 88].forEach((m, i) => envNote(t + i * .06, midi(m), .34, .15, 'sine'));
     } else if (kind === 'gliss') {
