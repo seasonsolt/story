@@ -1,4 +1,38 @@
-  /* Extras: Meet Trio, Olaf Daily Reporter Interview Mode, 4-Car/5-Mountain Free Studio (30-clip Portfolio) & 3-Tab Album. */
+  /* Extras: 3-Card Workshop Hub, Meet Trio, Step-by-Step Free Studio, Clean Olaf Interview & 3-Tab Album. */
+
+  function showWorkshop() {
+    const s = uxScreen('workshop');
+    loadArt(['card_topic_play', 'card_act_castle', 'portrait_olaf', 'portrait_elsa', 'portrait_anna'], ART_PATIENCE);
+    const items = [
+      { act: 'interview', ui: 'interview', card: 'card_topic_play', badge: 'portrait_olaf', ic: 'mic', x: 128 },
+      { act: 'free', ui: 'train', card: 'card_act_castle', badge: '', ic: 'train', x: 376 },
+      { act: 'meet', ui: 'meet', card: 'portrait_elsa', badge: 'portrait_anna', ic: 'meet', x: 624 },
+    ];
+    const cardsHtml = items.map(it => `<g class="ux-btn" data-act="${it.act}" data-ui="${it.ui}" role="button" tabindex="0" aria-label="${it.act}" transform="translate(${it.x} 136)">
+      <g class="btn-vis" filter="url(#softShadow)">
+        <rect width="208" height="248" rx="30" fill="#fff9ec" stroke="#ffd27a" stroke-width="4.5"/>
+        <image href="${SRC(it.card)}" x="24" y="24" width="160" height="148" preserveAspectRatio="xMidYMid meet"/>
+        ${it.badge ? `<image href="${SRC(it.badge)}" x="136" y="18" width="52" height="52" preserveAspectRatio="xMidYMid meet"/>` : ''}
+        <circle cx="104" cy="208" r="24" fill="url(#goldGrad)" stroke="#fff9ec" stroke-width="2.5"/>
+        <g transform="translate(104 208)">${uxIcon(it.ic, 20, '#4a2605')}</g>
+      </g>
+    </g>`).join('');
+
+    const root = uxPaint(`<g class="page">
+      <image href="${SRC('bg_palace')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
+      <rect width="960" height="520" fill="#101836" opacity=".54"/>
+      ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 46, r: 32 })}
+      ${cardsHtml}
+    </g>`);
+    const back = () => uxEnd(s, () => showTitle());
+    s.onKey = back;
+    uxBind(root, {
+      back,
+      interview: () => uxEnd(s, () => showInterview()),
+      free: () => uxEnd(s, () => showFreeTrain()),
+      meet: () => uxEnd(s, () => showMeet()),
+    });
+  }
 
   function showMeet() {
     const s = uxScreen('meet');
@@ -21,7 +55,7 @@
       ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 56, y: 48, r: 34 })}
       ${htmlHeroes}
     </g>`);
-    const back = () => uxEnd(s, () => showTitle());
+    const back = () => uxEnd(s, () => showWorkshop());
     s.onKey = back;
     uxBind(root, { back });
     root.querySelectorAll('[data-hero]').forEach(g => {
@@ -45,7 +79,6 @@
     let recBusy = false;
     let playBusy = false;
     let clipBlob = null;
-    let voiceFx = 'normal';
 
     const updateIntWaves = bars => {
       const wg = $('intWaves');
@@ -109,7 +142,7 @@
           ${gridHtml}
         </g>`);
 
-        const back = () => { cleanup(); uxEnd(s, () => showTitle()); };
+        const back = () => { cleanup(); uxEnd(s, () => showWorkshop()); };
         s.onKey = back;
         uxBind(root, { back });
         root.querySelectorAll('[data-topic]').forEach(btn => {
@@ -132,15 +165,10 @@
       const waveCols = ['#7dd4ff', '#9fe8ff', '#ff9cc4', '#ffd27a', '#ff9cc4', '#9fe8ff', '#7dd4ff'];
       const wavesHtml = waveCols.map((c, i) => `<rect x="${(i - 3) * 26 - 6}" y="17" width="12" height="10" rx="6" fill="${c}" opacity="${recBusy || playBusy ? '.98' : '.42'}"/>`).join('');
 
-      let fxHtml = '';
-      if (clipBlob && !recBusy) {
-        const fxs = [['normal', 636], ['olaf', 706], ['hall', 776]];
-        for (const [fk, fxX] of fxs) fxHtml += uxButton({ act: 'fx_' + fk, ui: `fx_${fk}`, icon: 'fx_' + fk, x: fxX, y: 298, r: 32, plate: voiceFx === fk ? 'gold' : '' });
-      }
-      const micRipple = recBusy ? `<circle class="ux-ripple" cx="480" cy="400" r="52" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
+      const micRipple = recBusy ? `<circle class="ux-ripple" cx="480" cy="400" r="54" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
       const micBtn = micRipple + uxButton(recBusy
-        ? { act: 'intMic', ui: 'stop', icon: 'stop', x: 480, y: 400, r: 50, plate: 'rec', cls: 'ux-pulse' }
-        : { act: 'intMic', ui: 'mic', pic: 'prop_mic', x: 480, y: 400, r: 50, plate: 'gold' });
+        ? { act: 'intMic', ui: 'stop', icon: 'stop', x: 480, y: 400, r: 52, plate: 'rec', cls: 'ux-pulse' }
+        : { act: 'intMic', ui: 'mic', pic: 'prop_mic', x: 480, y: 400, r: 52, plate: 'gold', cls: !clipBlob ? 'ux-pulse' : '' });
       const playBtn = clipBlob && !recBusy ? uxButton({ act: 'intPlay', ui: 'listen', icon: 'play', x: 646, y: 406, r: 38, plate: 'gold' }) : '';
 
       const root = uxPaint(`<g class="page">
@@ -153,8 +181,7 @@
           <image href="${SRC(tp.card)}" x="394" y="54" width="172" height="148" preserveAspectRatio="xMidYMid meet"/>
         </g>
         ${badgeStrip}
-        <g id="intWaves" transform="translate(480 276)">${wavesHtml}</g>
-        ${fxHtml}
+        <g id="intWaves" transform="translate(480 282)">${wavesHtml}</g>
         ${uxButton({ act: 'askAgain', ui: 'demo', icon: 'speaker', x: 314, y: 406, r: 38 })}
         ${micBtn}
         ${playBtn}
@@ -179,50 +206,53 @@
           updateIntWaves(null);
           updateIntOlaf(0);
           if (uxAlive(s)) render();
-        }, { fx: voiceFx, onBars: updateIntWaves, onEnergy: updateIntOlaf });
+        }, { fx: 'normal', onBars: updateIntWaves, onEnergy: updateIntOlaf });
+      };
+
+      const stopRecordingNow = async () => {
+        if (!recBusy) return;
+        const res = await recorder.stop();
+        recBusy = false;
+        setRecordingAudioMode('off');
+        updateIntWaves(null);
+        updateIntOlaf(0);
+        uxSfx('mic_stop');
+        if (res && res.blob) {
+          clipBlob = res.blob;
+          const did = 'diary_' + Date.now();
+          const meta = { createdAt: Date.now(), topicId: tp.id, durationMs: res.durationMs || 0, activeSpeechMs: res.activeSpeechMs || 0 };
+          await recorder.saveClip(did, res.blob);
+          await recorder.saveMeta(did, meta);
+          save.diary = [{ id: did, topicId: tp.id, createdAt: meta.createdAt, durationMs: meta.durationMs, activeSpeechMs: meta.activeSpeechMs }, ...(save.diary || [])];
+          while (save.diary.length > 30) {
+            const dropped = save.diary.pop();
+            if (dropped) recorder.deleteClip(dropped.id);
+          }
+          save.recordingsCount = (save.recordingsCount || 0) + 1;
+          save.speechSamples = (save.speechSamples || 0) + 1;
+          save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
+          saveWrite();
+          render();
+          playCurrent();
+          uxConfetti(root.querySelector('.page'), 480, 220, 26);
+        } else render();
       };
 
       uxBind(root, {
         backTopic,
         askAgain: () => { if (!recBusy) uxLine(tp.voiceKey, { interrupt: true, maxWait: 7500 }); },
-        fx_normal: () => { voiceFx = 'normal'; playCurrent(); },
-        fx_olaf: () => { voiceFx = 'olaf'; playCurrent(); },
-        fx_hall: () => { voiceFx = 'hall'; playCurrent(); },
         intPlay: playCurrent,
         intMic: async () => {
           unlockAudio();
-          if (recBusy) {
-            const res = await recorder.stop();
-            recBusy = false;
-            setRecordingAudioMode('off');
-            updateIntWaves(null);
-            updateIntOlaf(0);
-            uxSfx('mic_stop');
-            if (res && res.blob) {
-              clipBlob = res.blob;
-              const did = 'diary_' + Date.now();
-              const meta = { createdAt: Date.now(), topicId: tp.id, durationMs: res.durationMs || 0, activeSpeechMs: res.activeSpeechMs || 0 };
-              await recorder.saveClip(did, res.blob);
-              await recorder.saveMeta(did, meta);
-              save.diary = [{ id: did, topicId: tp.id, createdAt: meta.createdAt, durationMs: meta.durationMs, activeSpeechMs: meta.activeSpeechMs }, ...(save.diary || [])];
-              while (save.diary.length > 30) {
-                const dropped = save.diary.pop();
-                if (dropped) recorder.deleteClip(dropped.id);
-              }
-              save.recordingsCount = (save.recordingsCount || 0) + 1;
-              save.speechSamples = (save.speechSamples || 0) + 1;
-              save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
-              saveWrite();
-              render();
-              playCurrent();
-              uxConfetti(root.querySelector('.page'), 480, 220, 26);
-            } else render();
-            return;
-          }
+          if (recBusy) { await stopRecordingNow(); return; }
           setRecordingAudioMode('rec_quiet');
           const st = await recorder.start(
-            fd => { updateIntWaves(fd.bars); updateIntOlaf(fd.energy); },
-            () => { if (recBusy && uxAlive(s)) root.querySelector('[data-act="intMic"]').dispatchEvent(new MouseEvent('click')); },
+            fd => {
+              updateIntWaves(fd.bars);
+              updateIntOlaf(fd.energy);
+              if (fd.vad.activeSpeechMs >= 1500 && fd.vad.silenceAfterSpeechMs >= 2800 && recBusy) stopRecordingNow();
+            },
+            () => { if (recBusy && uxAlive(s)) stopRecordingNow(); },
           );
           if (!st.ok) {
             setRecordingAudioMode('off');
@@ -245,14 +275,13 @@
     loadArt([...FREE_TRAIN_POOL.slots.flat(), ...FREE_MOUNTAIN_POOL.slots.flat()], ART_PATIENCE);
     let mode = 'train';
     let picked = FREE_TRAIN_POOL.slots.map(row => row[0]);
+    let activeSlotIdx = 0;
     let recBusy = false;
     let clipBlob = null;
-    let voiceFx = 'normal';
     let activeCarIdx = -1;
     let playSeq = 0;
 
     let render = () => {};
-
     const poolFor = () => mode === 'mountain' ? FREE_MOUNTAIN_POOL : FREE_TRAIN_POOL;
 
     const readTrain = async () => {
@@ -272,7 +301,7 @@
       if (uxAlive(s) && seq === playSeq) {
         activeCarIdx = -1;
         render();
-        uxConfetti(document.querySelector('#overlay .page'), 480, 200, 18);
+        uxConfetti(document.querySelector('#overlay .page'), 440, 200, 18);
       }
     };
 
@@ -282,11 +311,11 @@
       const pool = poolFor();
       const kinds = isMt ? ['who', 'oops', 'heart', 'wand', 'star_end'] : ['who', 'where', 'what', 'mood'];
       const n = pool.slots.length;
-      const cw = isMt ? 120 : 154;
-      const ch = isMt ? 104 : 114;
-      const gap = isMt ? 16 : 22;
-      const x0 = isMt ? (456 - (n * cw + (n - 1) * gap) / 2) : 110;
-      const mtYs = [110, 96, 82, 96, 110];
+      const cw = isMt ? 124 : 154;
+      const ch = isMt ? 106 : 114;
+      const gap = isMt ? 14 : 22;
+      const x0 = isMt ? 62 : 76;
+      const mtYs = [126, 112, 98, 112, 126];
 
       const arcHtml = isMt
         ? `<path d="M ${mtYs.map((yy, i) => `${x0 + i * (cw + gap) + cw / 2} ${yy + ch / 2}`).join(' L ')}" fill="none" stroke="#ffd27a" stroke-width="3.5" stroke-dasharray="7 5" opacity=".65"/>`
@@ -294,9 +323,9 @@
 
       const carsHtml = picked.map((cid, i) => {
         const x = x0 + i * (cw + gap);
-        const y = isMt ? mtYs[i] : 84;
+        const y = isMt ? mtYs[i] : 104;
         const meta = CARD_META[cid] || { label: cid };
-        const hot = activeCarIdx === i;
+        const hot = activeCarIdx === i || (activeCarIdx < 0 && activeSlotIdx === i);
         const conn = !isMt && i < 3 ? `<rect x="${cw - 2}" y="54" width="${gap + 4}" height="8" rx="4" fill="#ffd27a"/>` : '';
         const wheels = !isMt ? `<circle cx="36" cy="${ch + 8}" r="11" fill="#263876" stroke="#ffd27a" stroke-width="2.6"/><circle cx="${cw - 36}" cy="${ch + 8}" r="11" fill="#263876" stroke="#ffd27a" stroke-width="2.6"/>` : '';
         return `<g class="card-btn${hot ? ' ux-pulse' : ''}" data-car="${i}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${x} ${y})">
@@ -309,42 +338,36 @@
         </g>`;
       }).join('');
 
-      const rowsHtml = pool.slots.map((row, sIdx) => {
-        const colX = x0 + sIdx * (cw + gap);
-        const twoByTwo = row.length === 4;
-        return row.map((cid, rIdx) => {
-          const active = picked[sIdx] === cid;
-          const meta = CARD_META[cid] || { label: cid };
-          const w = twoByTwo ? Math.floor((cw - 6) / 2) : cw - 4;
-          const h = twoByTwo ? 78 : 70;
-          const tx = twoByTwo ? colX + (rIdx % 2) * (w + 6) : colX + 2;
-          const ty = twoByTwo ? 244 + ((rIdx / 2) | 0) * 90 : 230 + rIdx * 82;
-          const iw = twoByTwo ? Math.min(54, w - 10) : 72;
-          const ih = twoByTwo ? 58 : 56;
-          return `<g class="card-btn" data-pick-slot="${sIdx}" data-pick-cid="${cid}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${tx} ${ty})">
-            <g class="card-vis" filter="url(#softShadow)">
-              <rect width="${w}" height="${h}" rx="16" fill="${active ? '#ffe08a' : '#fff9ec'}" stroke="${active ? '#f59e0b' : '#7ea9e8'}" stroke-width="${active ? 3.2 : 2.4}"/>
-              <image href="${SRC(cid)}" x="${(w - iw) / 2}" y="${(h - ih) / 2}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid meet"/>
-            </g>
-          </g>`;
-        }).join('');
+      // Single clean active-slot choice tray at bottom (3-4 big crisp cards)
+      const choices = pool.slots[activeSlotIdx] || [];
+      const bw = 148, bh = 146, bgap = 24;
+      const bx0 = 418 - (choices.length * bw + (choices.length - 1) * bgap) / 2;
+      const choicesHtml = choices.map((cid, rIdx) => {
+        const active = picked[activeSlotIdx] === cid;
+        const meta = CARD_META[cid] || { label: cid };
+        const tx = bx0 + rIdx * (bw + bgap);
+        return `<g class="card-btn" data-pick-cid="${cid}" role="button" tabindex="0" aria-label="${meta.label}" transform="translate(${tx} 274)">
+          <g class="card-vis" filter="url(#softShadow)">
+            <rect width="${bw}" height="${bh}" rx="22" fill="${active ? '#ffe08a' : '#fff9ec'}" stroke="${active ? '#f59e0b' : '#7ea9e8'}" stroke-width="${active ? 4.2 : 2.8}"/>
+            <image href="${SRC(cid)}" x="14" y="14" width="${bw - 28}" height="${bh - 28}" preserveAspectRatio="xMidYMid meet"/>
+          </g>
+        </g>`;
       }).join('');
 
-      const playBtn = uxButton({ act: 'speakTrain', ui: 'demo', icon: 'speaker', x: 892, y: 122, r: 36, plate: 'gold' });
-      const micRipple = recBusy ? `<circle class="ux-ripple" cx="892" cy="236" r="44" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
+      const playBtn = uxButton({ act: 'speakTrain', ui: 'demo', icon: 'speaker', x: 890, y: 146, r: 38, plate: 'gold' });
+      const micRipple = recBusy ? `<circle class="ux-ripple" cx="890" cy="264" r="48" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>` : '';
       const micBtn = micRipple + uxButton(recBusy
-        ? { act: 'freeMic', ui: 'stop', icon: 'stop', x: 892, y: 236, r: 42, plate: 'rec', cls: 'ux-pulse' }
-        : { act: 'freeMic', ui: 'mic', pic: 'prop_mic', x: 892, y: 236, r: 42, plate: 'gold' });
-      const listenBtn = clipBlob ? uxButton({ act: 'freePlay', ui: 'listen', icon: 'play', x: 892, y: 348, r: 34 }) : '';
-      const fxBtn = clipBlob && !recBusy ? uxButton({ act: 'cycleFx', ui: `fx_${voiceFx}`, icon: 'fx_' + voiceFx, x: 892, y: 446, r: 32, plate: voiceFx === 'normal' ? '' : 'gold' }) : '';
+        ? { act: 'freeMic', ui: 'stop', icon: 'stop', x: 890, y: 264, r: 46, plate: 'rec', cls: 'ux-pulse' }
+        : { act: 'freeMic', ui: 'mic', pic: 'prop_mic', x: 890, y: 264, r: 46, plate: 'gold' });
+      const listenBtn = clipBlob && !recBusy ? uxButton({ act: 'freePlay', ui: 'listen', icon: 'play', x: 890, y: 382, r: 36 }) : '';
 
       const root = uxPaint(`<g class="page">
         <image href="${SRC('bg_garden')}" width="960" height="520" preserveAspectRatio="xMidYMid slice"/>
         <rect width="960" height="520" fill="#101836" opacity=".54"/>
-        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 52, y: 46, r: 32 })}
-        ${uxButton({ act: 'modeTrain', ui: 'mode_train', icon: 'train', x: 430, y: 46, r: 32, plate: !isMt ? 'gold' : '' })}
-        ${uxButton({ act: 'modeMountain', ui: 'mode_mountain', icon: 'mountain', x: 526, y: 46, r: 32, plate: isMt ? 'gold' : '' })}
-        ${arcHtml}${carsHtml}${rowsHtml}${playBtn}${micBtn}${listenBtn}${fxBtn}
+        ${uxButton({ act: 'back', ui: 'back', icon: 'back', x: 52, y: 42, r: 32 })}
+        ${uxButton({ act: 'modeTrain', ui: 'mode_train', icon: 'train', x: 430, y: 42, r: 32, plate: !isMt ? 'gold' : '' })}
+        ${uxButton({ act: 'modeMountain', ui: 'mode_mountain', icon: 'mountain', x: 526, y: 42, r: 32, plate: isMt ? 'gold' : '' })}
+        ${arcHtml}${carsHtml}${choicesHtml}${playBtn}${micBtn}${listenBtn}
       </g>`);
 
       const cleanup = () => {
@@ -355,67 +378,65 @@
         setRecordingAudioMode('off');
         saveWrite();
       };
-      const back = () => { cleanup(); uxEnd(s, () => showTitle()); };
+      const back = () => { cleanup(); uxEnd(s, () => showWorkshop()); };
       s.onKey = back;
 
       const playBlob = b => {
         setRecordingAudioMode('premiere');
-        recorder.play(b, () => setRecordingAudioMode('off'), { fx: voiceFx });
+        recorder.play(b, () => setRecordingAudioMode('off'), { fx: 'normal' });
+      };
+
+      const finishRec = async () => {
+        if (!recBusy) return;
+        const res = await recorder.stop();
+        recBusy = false;
+        setRecordingAudioMode('off');
+        uxSfx('mic_stop');
+        if (res && res.blob) {
+          clipBlob = res.blob;
+          const fid = 'free_' + Date.now();
+          const meta = { createdAt: Date.now(), mode, cards: picked.slice(), durationMs: res.durationMs || 0, activeSpeechMs: res.activeSpeechMs || 0 };
+          await recorder.saveClip(fid, res.blob);
+          await recorder.saveMeta(fid, meta);
+          save.creations = [{ id: fid, mode, cards: picked.slice(), createdAt: meta.createdAt, durationMs: meta.durationMs, activeSpeechMs: meta.activeSpeechMs, timeline: [] }, ...(save.creations || [])];
+          while (save.creations.length > 30) {
+            const dropped = save.creations.pop();
+            if (dropped) recorder.deleteClip(dropped.id);
+          }
+          save.recordingsCount = (save.recordingsCount || 0) + 1;
+          save.speechSamples = (save.speechSamples || 0) + 1;
+          save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
+          saveWrite();
+          render();
+          playBlob(res.blob);
+        } else render();
       };
 
       uxBind(root, {
         back,
         modeTrain: () => {
           if (recBusy || mode === 'train') return;
-          playSeq++; activeCarIdx = -1; mode = 'train';
+          playSeq++; activeCarIdx = -1; mode = 'train'; activeSlotIdx = 0;
           picked = FREE_TRAIN_POOL.slots.map(row => row[0]);
           clipBlob = null; uxSfx('tap'); render();
         },
         modeMountain: () => {
           if (recBusy || mode === 'mountain') return;
-          playSeq++; activeCarIdx = -1; mode = 'mountain';
+          playSeq++; activeCarIdx = -1; mode = 'mountain'; activeSlotIdx = 0;
           picked = FREE_MOUNTAIN_POOL.slots.map(row => row[0]);
           clipBlob = null; uxSfx('tap'); render();
         },
         speakTrain: () => readTrain(),
-        cycleFx: () => {
-          if (!clipBlob || recBusy) return;
-          const order = ['normal', 'olaf', 'hall'];
-          voiceFx = order[(order.indexOf(voiceFx) + 1) % order.length];
-          render();
-          playBlob(clipBlob);
-        },
         freeMic: async () => {
           unlockAudio();
           playSeq++;
           activeCarIdx = -1;
-          if (recBusy) {
-            const res = await recorder.stop();
-            recBusy = false;
-            setRecordingAudioMode('off');
-            uxSfx('mic_stop');
-            if (res && res.blob) {
-              clipBlob = res.blob;
-              const fid = 'free_' + Date.now();
-              const meta = { createdAt: Date.now(), mode, cards: picked.slice(), durationMs: res.durationMs || 0, activeSpeechMs: res.activeSpeechMs || 0 };
-              await recorder.saveClip(fid, res.blob);
-              await recorder.saveMeta(fid, meta);
-              save.creations = [{ id: fid, mode, cards: picked.slice(), createdAt: meta.createdAt, durationMs: meta.durationMs, activeSpeechMs: meta.activeSpeechMs, timeline: [] }, ...(save.creations || [])];
-              while (save.creations.length > 30) {
-                const dropped = save.creations.pop();
-                if (dropped) recorder.deleteClip(dropped.id);
-              }
-              save.recordingsCount = (save.recordingsCount || 0) + 1;
-              save.speechSamples = (save.speechSamples || 0) + 1;
-              save.totalSpeechMs = (save.totalSpeechMs || 0) + (res.activeSpeechMs || 0);
-              saveWrite();
-              render();
-              playBlob(res.blob);
-            } else render();
-            return;
-          }
+          if (recBusy) { await finishRec(); return; }
           setRecordingAudioMode('rec_quiet');
-          const st = await recorder.start(null, () => { if (recBusy && uxAlive(s)) root.querySelector('[data-act="freeMic"]').dispatchEvent(new MouseEvent('click')); });
+          const st = await recorder.start(
+            fd => { if (fd.vad.activeSpeechMs >= 1500 && fd.vad.silenceAfterSpeechMs >= 2800 && recBusy) finishRec(); },
+            () => { if (recBusy && uxAlive(s)) finishRec(); },
+          );
           if (!st.ok) {
             setRecordingAudioMode('off');
             uxLine('mic_fallback', { interrupt: true, maxWait: 4500 });
@@ -430,23 +451,30 @@
       });
 
       root.querySelectorAll('[data-pick-cid]').forEach(btn => {
-        const sIdx = Number(btn.getAttribute('data-pick-slot'));
         const cid = btn.getAttribute('data-pick-cid');
         const pick = () => {
           playSeq++;
           activeCarIdx = -1;
-          picked[sIdx] = cid;
+          picked[activeSlotIdx] = cid;
           uxSfx('tap');
           const m = CARD_META[cid];
           if (m && m.voiceKey && hasLineKey(m.voiceKey)) voice.line(m.voiceKey, { interrupt: true, tag: 'card', maxWait: 2000, subtitle: false });
+          activeSlotIdx = (activeSlotIdx + 1) % n;
           render();
         };
         btn.addEventListener('click', pick);
         btn.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
       });
       root.querySelectorAll('[data-car]').forEach(car => {
-        car.addEventListener('click', () => readTrain());
-        car.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); readTrain(); } });
+        const cIdx = Number(car.getAttribute('data-car'));
+        const focusCar = () => {
+          activeSlotIdx = cIdx;
+          const m = CARD_META[picked[cIdx]];
+          if (m && m.voiceKey && hasLineKey(m.voiceKey)) voice.line(m.voiceKey, { interrupt: true, tag: 'card', maxWait: 2000, subtitle: false });
+          render();
+        };
+        car.addEventListener('click', focusCar);
+        car.addEventListener('keydown', /** @param {KeyboardEvent} e */ e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focusCar(); } });
       });
     };
     render();
@@ -472,6 +500,7 @@
       const keys = new Set(await recorder.listClipKeys());
       if (!uxAlive(s)) return;
       let discs;
+
       if (tab === 'stories') {
         discs = LEVELS.map((lv, i) => {
           const col = i % 4, row = (i / 4) | 0;

@@ -2,7 +2,7 @@
   const stageState = {
     idx: -1, phase: '', stepIdx: -1, puzzleIdx: -1, assistCard: '', hintCard: '', demoHeard: false,
     recorded: false, hasClip: false, recording: false, premiere: false, activeCardIdx: -1,
-    tier: (typeof save === 'object' && save.studioTier) || 'director',
+    tier: (typeof save === 'object' && save.studioTier) || 'cloze',
     voiceFx: 'normal',
   };
   let lastHoverMs = 0;
@@ -47,6 +47,7 @@
     if (actName) g.setAttribute('data-act', actName);
 
     const vis = el('g', { class: 'card-vis', filter: 'url(#softShadow)' }, g);
+    const futureEmpty = empty && !active;
     const fill = empty ? 'rgba(18, 28, 62, .65)' : '#fff9ec';
     const warmEdge = badgeKind === '1' || badgeKind === 'who' || badgeKind === 'pick' || badgeKind === 'plan' || badgeKind === 'but';
     const stroke = glow || active ? '#ffd27a' : (warmEdge ? '#ff9cc4' : '#7dd4ff');
@@ -54,16 +55,16 @@
       width: w, height: h, rx: 20, fill, stroke,
       'stroke-width': glow || active ? 4.5 : 3.2,
       ...(empty ? { 'stroke-dasharray': '9 7' } : {}),
-      ...(dim ? { opacity: '.28' } : {}),
+      ...(dim ? { opacity: '.28' } : (futureEmpty ? { opacity: '.42' } : {})),
     }, vis);
 
     if (badgeKind) {
-      const bg = el('g', { transform: `translate(${w / 2} -2)` }, vis);
+      const bg = el('g', Object.assign({ transform: `translate(${w / 2} -2)` }, futureEmpty ? { opacity: '.55' } : {}), vis);
       bg.innerHTML = uxSlotBadgeSvg(badgeKind, !!active, 15);
     }
 
     if (empty) {
-      const q = el('text', { x: w / 2, y: h / 2 + 14, 'text-anchor': 'middle', 'font-size': 38, fill: active ? '#ffd27a' : '#8da7db' }, vis);
+      const q = el('text', { x: w / 2, y: h / 2 + 14, 'text-anchor': 'middle', 'font-size': 38, fill: active ? '#ffd27a' : '#8da7db', ...(futureEmpty ? { opacity: '.52' } : {}) }, vis);
       q.textContent = '?';
     } else if (cid) {
       const topPad = badgeKind ? 18 : 10;
@@ -539,32 +540,18 @@
 
     const hasClip = stageState.hasClip;
     let html = '';
-    // Left 3-Tier Scaffold Selector (visible when idle)
-    if (!rec) {
-      const tiers = [['cloze', 184], ['director', 254], ['anchor', 324]];
-      for (const [tk, tx] of tiers) {
-        html += uxButton({ act: 'tier_' + tk, ui: `tier_${tk}`, icon: tk, x: tx, y: 298, r: 32, plate: stageState.tier === tk ? 'gold' : '' });
-      }
-    }
-    // Right 3 Voice Effect Chips (visible when clip exists & idle)
-    if (hasClip && !rec) {
-      const fxs = [['normal', 636], ['olaf', 706], ['hall', 776]];
-      for (const [fk, fxX] of fxs) {
-        html += uxButton({ act: 'fx_' + fk, ui: `fx_${fk}`, icon: 'fx_' + fk, x: fxX, y: 298, r: 32, plate: stageState.voiceFx === fk ? 'gold' : '' });
-      }
-    }
 
     html += uxButton({ act: 'demo', ui: 'demo', icon: 'speaker', x: 296, y: 406, r: 38, cls: (!g.demoHeard && !rec) ? 'ux-pulse' : '' });
     if (rec) {
-      html += `<circle class="ux-ripple" cx="480" cy="400" r="52" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>`
-        + `<circle class="ux-ripple" cx="480" cy="400" r="52" fill="none" stroke="#ffb3c8" stroke-width="3" style="animation-delay:.6s" pointer-events="none"/>`
-        + uxButton({ act: 'mic', ui: 'stop', icon: 'stop', x: 480, y: 400, r: 50, plate: 'rec', cls: 'ux-pulse' });
+      html += `<circle class="ux-ripple" cx="480" cy="398" r="54" fill="none" stroke="#ff7ca0" stroke-width="4" pointer-events="none"/>`
+        + `<circle class="ux-ripple" cx="480" cy="398" r="54" fill="none" stroke="#ffb3c8" stroke-width="3" style="animation-delay:.6s" pointer-events="none"/>`
+        + uxButton({ act: 'mic', ui: 'stop', icon: 'stop', x: 480, y: 398, r: 52, plate: 'rec', cls: 'ux-pulse' });
     } else {
-      html += uxButton({ act: 'mic', ui: 'mic', pic: 'prop_mic', x: 480, y: 400, r: 50, plate: 'gold', cls: (g.demoHeard && !hasClip) ? 'ux-pulse' : '' });
+      html += uxButton({ act: 'mic', ui: 'mic', pic: 'prop_mic', x: 480, y: 398, r: 52, plate: 'gold', cls: (g.demoHeard && !hasClip) ? 'ux-pulse' : '' });
     }
     if (hasClip) {
       html += uxButton({ act: 'listen', ui: 'listen', icon: 'play', x: 626, y: 406, r: 36 });
-      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 738, y: 406, r: 40, plate: 'gold', cls: 'ux-pulse' });
+      html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 740, y: 406, r: 42, plate: 'gold', cls: 'ux-pulse' });
     } else {
       html += uxButton({ act: 'done', ui: 'skip', icon: 'next', x: 668, y: 406, r: 38, plate: 'gold', cls: g.demoHeard ? 'ux-pulse' : '' });
     }
@@ -576,12 +563,6 @@
       mic: () => onStudioMicToggle(),
       listen: () => onStudioListen(),
       done: () => onStudioDone(),
-      tier_cloze: () => setStudioTier('cloze'),
-      tier_director: () => setStudioTier('director'),
-      tier_anchor: () => setStudioTier('anchor'),
-      fx_normal: () => selectVoiceFx('normal'),
-      fx_olaf: () => selectVoiceFx('olaf'),
-      fx_hall: () => selectVoiceFx('hall'),
     });
   }
 

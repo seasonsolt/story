@@ -43,8 +43,6 @@
           hideBubble();
         } else if (e.type === 'puzzle_next') {
           say('reason_puz2_intro', { interrupt: true, tag: 'prompt', maxWait: 5000 });
-        } else if (e.type === 'studio_ready') {
-          say('studio_prompt', { interrupt: true, tag: 'studio', maxWait: 5500 });
         } else if (e.type === 'cheer' && e.who) {
           say('cheer_' + e.who, { interrupt: true, tag: 'cheer', maxWait: 2800 });
         } else if (e.type === 'hint_auto') {

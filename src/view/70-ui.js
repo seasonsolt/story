@@ -1,4 +1,4 @@
-  /* Title Screen, 12-Room Story Map, Zero-Reading HUD, and 2-Tab Parent Report + First/Latest WAV Export Modal. */
+  /* Minimalist Title Screen, 4-Act 12-Room Map, Calm Child HUD & 2-Tab Parent Modal (incl. Tier selector & Export). */
   const uxState = { modal: false };
 
   function syncHud() {
@@ -7,40 +7,31 @@
     if (game.state !== 'play' || storyIsOpen()) { hud.textContent = ''; return; }
     const lv = game.level();
     const host = (lv && lv.host) || 'elsa';
-    const dots = LEVELS.map((l, k) => {
-      const done = !!(save.rooms && save.rooms[l.id] && save.rooms[l.id].cleared);
-      const cur = k === game.index;
-      const r = cur ? 5.6 : (done ? 4.2 : 3.6);
-      const fill = cur ? '#ffd27a' : (done ? '#ffbe3d' : '#49629c');
-      const stroke = cur ? ' stroke="#fff9ec" stroke-width="1.6"' : '';
-      return `<circle cx="${98 + k * 14}" cy="46" r="${r}" fill="${fill}"${stroke}/>`;
-    }).join('');
+    const actCols = ['#7dd4ff', '#ff9cc4', '#ff9e64', '#ffd27a'];
+    const strokeCol = actCols[(lv.act || 1) - 1];
+
     hud.innerHTML = `<g class="hud-bar">
       <g class="ux-btn" data-act="prompt" role="button" tabindex="0" aria-label="再听一遍">
         <circle cx="46" cy="46" r="36" fill="transparent"/>
         <g class="btn-vis" filter="url(#softShadow)">
-          <circle cx="46" cy="46" r="30" fill="#162044" stroke="#ffd27a" stroke-width="3"/>
+          <circle cx="46" cy="46" r="30" fill="#162044" stroke="${strokeCol}" stroke-width="3"/>
           <image href="${SRC('portrait_' + host)}" x="20" y="20" width="52" height="52" preserveAspectRatio="xMidYMid meet"/>
           <circle cx="70" cy="66" r="12" fill="url(#goldGrad)" stroke="#fff9ec" stroke-width="1.8"/>
           <g transform="translate(70 66)">${uxIcon('speaker', 10, '#4a2605')}</g>
         </g>
       </g>
       <g filter="url(#softShadow)">
-        <rect x="84" y="30" width="182" height="32" rx="16" fill="#162044" opacity=".9" stroke="#7dd4ff" stroke-width="2"/>
-        ${dots}
+        <rect x="86" y="30" width="76" height="32" rx="16" fill="#162044" opacity=".9" stroke="${strokeCol}" stroke-width="2"/>
+        <text x="124" y="52" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff9ec">${lv.badge} / ${LEVELS.length}</text>
       </g>
-      ${uxButton({ act: 'replay', ui: 'replay', icon: 'replay', x: 706, y: 45, r: 32 })}
-      ${uxButton({ act: 'home', ui: 'back', icon: 'home', x: 778, y: 45, r: 32 })}
-      ${uxButton({ act: 'hint', ui: 'hint', icon: 'sticker', x: 850, y: 45, r: 32, plate: 'gold' })}
-      ${uxButton({ act: 'fs', ui: 'fullscreen', icon: 'fullscreen', x: 918, y: 45, r: 32 })}
+      ${uxButton({ act: 'hint', ui: 'hint', icon: 'sticker', x: 836, y: 45, r: 32, plate: 'gold' })}
+      ${uxButton({ act: 'home', ui: 'back', icon: 'home', x: 910, y: 45, r: 32 })}
     </g>`;
 
     uxBind(hud, {
       prompt: () => onHudPrompt(),
-      replay: () => onHudReplay(),
       home: () => { if (typeof stopStudioPlayback === 'function') stopStudioPlayback(); game.state = 'title'; maybeEyeCareBreak(showTitle); },
       hint: () => triggerHint(),
-      fs: () => toggleFullscreen(),
     });
   }
 
@@ -56,13 +47,11 @@
         <rect x="255" y="18" width="450" height="62" rx="31" fill="#141c42" opacity=".88" stroke="#ffd27a" stroke-width="3"/>
         <text x="480" y="59" text-anchor="middle" font-size="35" fill="#fff9ec" letter-spacing="2">冰雪故事小导演</text>
       </g>
-      ${uxButton({ act: 'play', ui: playUi, icon: 'play', x: 480, y: 262, r: 52, plate: 'gold', cls: 'ux-pulse' })}
-      ${uxButton({ act: 'rooms', ui: 'rooms', icon: 'rooms', x: 256, y: 408, r: 38 })}
-      ${uxButton({ act: 'train', ui: 'train', icon: 'train', x: 368, y: 408, r: 38 })}
-      ${uxButton({ act: 'interview', ui: 'interview', pic: 'portrait_olaf', x: 480, y: 408, r: 38, plate: 'gold' })}
-      ${uxButton({ act: 'album', ui: 'album', pic: 'prop_mic', x: 592, y: 408, r: 38 })}
-      ${uxButton({ act: 'meet', ui: 'meet', icon: 'meet', x: 704, y: 408, r: 38, plate: 'gold' })}
-      ${uxButton({ act: 'gear', ui: 'settings', icon: 'gear', x: 902, y: 458, r: 34 })}
+      ${uxButton({ act: 'play', ui: playUi, icon: 'play', x: 480, y: 262, r: 54, plate: 'gold', cls: 'ux-pulse' })}
+      ${uxButton({ act: 'rooms', ui: 'rooms', icon: 'rooms', x: 320, y: 412, r: 40 })}
+      ${uxButton({ act: 'workshop', ui: 'workshop', pic: 'portrait_olaf', x: 480, y: 412, r: 40, plate: 'gold' })}
+      ${uxButton({ act: 'album', ui: 'album', pic: 'prop_mic', x: 640, y: 412, r: 40 })}
+      ${uxButton({ act: 'gear', ui: 'settings', icon: 'gear', x: 902, y: 458, r: 32 })}
     </g>`);
 
     const launch = () => { unlockAudio(); uxEnd(s, () => onStartJourney()); };
@@ -70,10 +59,8 @@
     uxBind(root, {
       play: launch,
       rooms: () => { unlockAudio(); uxEnd(s, () => showRooms()); },
-      train: () => { unlockAudio(); uxEnd(s, () => showFreeTrain()); },
-      interview: () => { unlockAudio(); uxEnd(s, () => { if (typeof showInterview === 'function') showInterview(); }); },
+      workshop: () => { unlockAudio(); uxEnd(s, () => { if (typeof showWorkshop === 'function') showWorkshop(); }); },
       album: () => { unlockAudio(); uxEnd(s, () => showAlbum()); },
-      meet: () => { unlockAudio(); uxEnd(s, () => showMeet()); },
     });
 
     const gear = root.querySelector('[data-act="gear"]');
@@ -102,6 +89,7 @@
       const rr = save.rooms && save.rooms[l.id];
       if (rr && Array.isArray(rr.stars)) totalStars += rr.stars.filter(Boolean).length;
     }
+    const actCols = ['#7dd4ff', '#ff9cc4', '#ff9e64', '#ffd27a'];
     const cards = LEVELS.map((lv, i) => {
       const col = i % 4, row = (i / 4) | 0;
       const x = 64 + col * 212, y = 84 + row * 142;
@@ -109,10 +97,11 @@
       const rSave = save.rooms && save.rooms[lv.id];
       const stars = (rSave && rSave.stars) || [false, false, false];
       const crown = rSave && rSave.tier3 ? `<g transform="translate(172 52)">${uxIcon('crown', 14, '#ffb703')}</g>` : '';
+      const borderCol = open ? actCols[(lv.act || 1) - 1] : '#4a6099';
       const starRow = stars.map((g, k) => `<path d="${UX_STAR_D}" transform="translate(${64 + k * 34} 109) scale(12)" fill="${g ? '#ffd27a' : '#233262'}" stroke="#fff5cf" stroke-width=".08"/>`).join('');
       return `<g class="ux-btn" data-act="${open ? 'pick' : ''}" data-room="${i}" data-ui="${open ? 'room_' + lv.id : ''}" data-state="${open ? 'open' : 'lock'}" role="button" tabindex="${open ? 0 : -1}" aria-label="${lv.title}" transform="translate(${x} ${y})">
         <g class="btn-vis" filter="url(#softShadow)">
-          <rect width="196" height="128" rx="20" fill="${open ? '#fff9ec' : '#1b264f'}" stroke="${open ? '#ffd27a' : '#4a6099'}" stroke-width="3.2"/>
+          <rect width="196" height="128" rx="20" fill="${open ? '#fff9ec' : '#1b264f'}" stroke="${borderCol}" stroke-width="3.4"/>
           <image href="${SRC(lv.bg)}" x="8" y="8" width="180" height="82" clip-path="url(#rcClip)" preserveAspectRatio="xMidYMid slice" opacity="${open ? .24 : .12}"/>
           <image href="${SRC(lv.coverCard)}" x="54" y="10" width="88" height="80" preserveAspectRatio="xMidYMid meet" opacity="${open ? 1 : .24}"/>
           <circle cx="24" cy="24" r="14" fill="${open ? 'url(#goldGrad)' : '#263876'}" stroke="#fff9ec" stroke-width="2"/>
@@ -164,6 +153,8 @@
       const d = new Date(ts);
       return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     };
+
+    const tierLabel = t => t === 'cloze' ? '接力(推荐)' : (t === 'director' ? '点卡' : '独立');
 
     const refreshExportItems = async () => {
       const keySet = new Set(await recorder.listClipKeys());
@@ -234,17 +225,19 @@
             <text x="582" y="${y}" font-size="14" fill="#4e5d8c">${val}/2</text>`;
         }).join('');
         const tipLines = wrap(LEVELS[tipIdx].parentTip || '', 32).slice(0, 2);
+        const curTier = save.studioTier || 'cloze';
         bodyHtml = `<text x="330" y="116" text-anchor="middle" font-size="14" fill="#4e5d8c">录音：${save.recordingsCount || 0}次 · 平均开口：${avgSec}秒 · 创作/日记：${worksCount}篇 · 探索：${mins}分</text>
           ${bars}
           <g class="ux-btn" data-m="nextTip" transform="translate(36 312)">
             <rect width="588" height="72" rx="14" fill="#eef5ff" stroke="#7dd4ff" stroke-width="2"/>
-            <text x="14" y="22" font-size="13" fill="#b8326a">亲子日常提问建议（点我换一条 · 第${tipIdx + 1}/${LEVELS.length}关）：</text>
+            <text x="14" y="22" font-size="13" fill="#b8326a">亲子日常提问建议（点我换一条 · 第${tipIdx + 1}/${LEVELS.length}幕）：</text>
             ${tipLines.map((ln, i) => `<text x="14" y="${44 + i * 20}" font-size="14" fill="#1e2a58">${ln}</text>`).join('')}
           </g>
-          <g class="ux-btn" data-m="subs" transform="translate(36 400)"><rect width="132" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="66" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">字幕：${setting('subtitles') ? '开' : '关'}</text></g>
-          <g class="ux-btn" data-m="snd" transform="translate(180 400)"><rect width="132" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="66" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">声音：${setting('sound') ? '开' : '关'}</text></g>
-          <g class="ux-btn" data-m="eye" transform="translate(324 400)"><rect width="156" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="78" y="28" text-anchor="middle" font-size="15" fill="#1e2a58">10分护眼：${setting('eyeCare') ? '开' : '关'}</text></g>
-          <g class="ux-btn" data-m="close" transform="translate(492 400)"><rect width="132" height="44" rx="12" fill="url(#goldGrad)" stroke="#d6a44e" stroke-width="2"/><text x="66" y="28" text-anchor="middle" font-size="17" fill="#4a2605">关闭返回</text></g>`;
+          <g class="ux-btn" data-m="subs" transform="translate(36 400)"><rect width="94" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="47" y="28" text-anchor="middle" font-size="14" fill="#1e2a58">字幕：${setting('subtitles') ? '开' : '关'}</text></g>
+          <g class="ux-btn" data-m="snd" transform="translate(138 400)"><rect width="94" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="47" y="28" text-anchor="middle" font-size="14" fill="#1e2a58">声音：${setting('sound') ? '开' : '关'}</text></g>
+          <g class="ux-btn" data-m="eye" transform="translate(240 400)"><rect width="118" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="59" y="28" text-anchor="middle" font-size="14" fill="#1e2a58">护眼：${setting('eyeCare') ? '10分' : '关'}</text></g>
+          <g class="ux-btn" data-m="tier" transform="translate(366 400)"><rect width="146" height="44" rx="12" fill="#eef5ff" stroke="#7ea9e8" stroke-width="2"/><text x="73" y="28" text-anchor="middle" font-size="14" fill="#1e2a58">支架：${tierLabel(curTier)}</text></g>
+          <g class="ux-btn" data-m="close" transform="translate(520 400)"><rect width="104" height="44" rx="12" fill="url(#goldGrad)" stroke="#d6a44e" stroke-width="2"/><text x="52" y="28" text-anchor="middle" font-size="16" fill="#4a2605">关闭返回</text></g>`;
       } else {
         const perPage = 5;
         const maxPage = Math.max(0, Math.ceil(exportItems.length / perPage) - 1);
@@ -290,6 +283,14 @@
           if (m === 'subs') { setSetting('subtitles', !setting('subtitles')); drawModal(); }
           else if (m === 'snd') { setSetting('sound', !setting('sound')); drawModal(); }
           else if (m === 'eye') { setSetting('eyeCare', !setting('eyeCare')); drawModal(); }
+          else if (m === 'tier') {
+            const order = ['cloze', 'director', 'anchor'];
+            const next = order[(order.indexOf(save.studioTier || 'cloze') + 1) % order.length];
+            save.studioTier = next;
+            if (typeof stageState === 'object') stageState.tier = next;
+            saveWrite();
+            drawModal();
+          }
           else if (m === 'nextTip') { tipIdx = (tipIdx + 1) % LEVELS.length; drawModal(); }
           else if (m === 'tab_stats') { stopModalAudio(); tab = 'stats'; drawModal(); }
           else if (m === 'tab_export') { stopModalAudio(); tab = 'export'; await refreshExportItems(); drawModal(); }

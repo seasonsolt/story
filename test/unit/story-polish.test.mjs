@@ -27,6 +27,8 @@ export function openComposeSentenceTrainAcceptsCreativePicksAndFlagsCustom({ log
 
 export function twistAndEpisodeLevelsHaveExpectedSlotsAndSolve({ logic, solveRoom, assert }) {
   assert.equal(logic.LEVELS.length, 12);
+  assert.equal(logic.LEVELS[0].id, 'snowman');
+  assert.equal(logic.LEVELS[11].id, 'reason_finale');
   const g = logic.createGame();
   for (const id of ['twist_picnic', 'twist_sculpture', 'episode_bunny', 'episode_aurora']) {
     const idx = logic.LEVELS.findIndex(lv => lv.id === id);

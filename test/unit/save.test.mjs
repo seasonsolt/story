@@ -3,7 +3,7 @@ export function saveSanitizesMergesSkillsAndRecordings({ loadLib, assert }) {
   const d = defaultSave();
   assert.equal(d.settings.subtitles, false);
   assert.equal(d.settings.eyeCare, true);
-  assert.equal(d.studioTier, 'director');
+  assert.equal(d.studioTier, 'cloze');
   assert.equal(d.unlocked.rooms, 1);
   assert.deepEqual(Object.keys(d.skills), ['sequence', 'sentence', 'classify', 'reason', 'twist', 'episode']);
 

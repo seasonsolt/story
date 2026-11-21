@@ -21,7 +21,7 @@
       settings: { subtitles: false, sound: true, eyeCare: true },
       rooms: {},
       skills: emptySkills(),
-      studioTier: 'director',
+      studioTier: 'cloze',
       freeSentences: 0,
       recordingsCount: 0,
       speechSamples: 0,

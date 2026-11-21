@@ -34,15 +34,18 @@ export function checkContentKeys(logic = loadLogic()) {
 
   const need = ['p1', 'p2', 'p3', 'win', 'end', 'me_elsa', 'me_anna', 'me_olaf',
     'ui_play', 'ui_continue', 'ui_next', 'ui_replay', 'ui_back', 'ui_rooms', 'ui_train', 'ui_album',
-    'ui_meet', 'ui_interview', 'ui_settings', 'ui_hint', 'ui_fullscreen', 'ui_demo', 'ui_mic', 'ui_stop', 'ui_listen', 'ui_skip',
+    'ui_meet', 'ui_interview', 'ui_workshop', 'ui_settings', 'ui_hint', 'ui_fullscreen', 'ui_demo', 'ui_mic', 'ui_stop', 'ui_listen', 'ui_skip',
     'ui_tier_cloze', 'ui_tier_director', 'ui_tier_anchor', 'ui_fx_normal', 'ui_fx_olaf', 'ui_fx_hall',
     'ui_mode_train', 'ui_mode_mountain', 'ui_tab_stories', 'ui_tab_free', 'ui_tab_diary',
-    'studio_prompt', 'rec_done_1', 'rec_done_2', 'rec_done_3', 'mic_fallback',
+    'studio_prompt', 'studio_turn', 'rec_done_1', 'rec_done_2', 'rec_done_3', 'mic_fallback',
     'try_1', 'try_2', 'try_3', 'assist_1', 'recast_order', 'recast_classify', 'recast_reason',
     'idle_1', 'idle_2', 'idle_3', 'cheer_elsa', 'cheer_anna', 'cheer_olaf',
     'cue_first', 'cue_then', 'cue_last', 'cue_who', 'cue_where', 'cue_what', 'cue_mood',
     'cue_num1', 'cue_num2', 'cue_num3', 'cue_pick', 'cue_why',
     'cue_plan', 'cue_but', 'cue_so', 'cue_problem', 'cue_feel', 'cue_action',
+    'relay_first', 'relay_then', 'relay_last', 'relay_who', 'relay_where', 'relay_what', 'relay_mood',
+    'relay_num1', 'relay_num2', 'relay_num3', 'relay_pick', 'relay_why',
+    'relay_plan', 'relay_but', 'relay_so', 'relay_problem', 'relay_feel', 'relay_action',
     'interview_intro', 'interview_play', 'interview_food', 'interview_oops', 'interview_bedtime', 'eye_care_rest',
     'free_train_intro', 'album_intro', 'reason_puz2_intro'];
 
